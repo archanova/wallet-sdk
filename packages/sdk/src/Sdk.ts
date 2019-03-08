@@ -9,6 +9,7 @@ import {
   ApiService,
   DeviceService,
   EthService,
+  FaucetService,
   LinkingService,
   NotificationService,
   SessionService,
@@ -17,6 +18,7 @@ import {
   IAccountProxyService,
   IDeviceService,
   IEthService,
+  IFaucetService,
   ILinkingService,
   INotificationService,
   ISessionService,
@@ -31,6 +33,7 @@ export class Sdk implements ISdk {
   public readonly accountProxyService: IAccountProxyService;
   public readonly deviceService: IDeviceService;
   public readonly ethService: IEthService;
+  public readonly faucetService: IFaucetService;
   public readonly linkingService: ILinkingService;
   public readonly notificationService: INotificationService;
   public readonly sessionService: ISessionService;
@@ -78,6 +81,8 @@ export class Sdk implements ISdk {
       this.accountService,
       this.deviceService,
     );
+
+    this.faucetService = new FaucetService(storage, apiService, this.accountService);
 
     this.sessionService = new SessionService(
       apiService,

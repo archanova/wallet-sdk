@@ -5,6 +5,7 @@ import {
   IAccountProxyService,
   IDeviceService,
   IEthService,
+  IFaucetService,
   ILinkingService,
   INotificationService,
   ISessionService,
@@ -16,6 +17,7 @@ export interface ISdk {
   readonly accountProxyService: IAccountProxyService;
   readonly deviceService: IDeviceService;
   readonly ethService: IEthService;
+  readonly faucetService: IFaucetService;
   readonly linkingService: ILinkingService;
   readonly notificationService: INotificationService;
   readonly sessionService: ISessionService;

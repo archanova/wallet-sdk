@@ -4,6 +4,7 @@ export * from './account-proxy';
 export * from './api';
 export * from './device';
 export * from './eth';
+export * from './faucet';
 export * from './linking';
 export * from './notification';
 export * from './session';
