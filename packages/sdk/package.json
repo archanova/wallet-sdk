@@ -15,6 +15,7 @@
   "scripts": {
     "clean": "rimraf ./build",
     "compile": "tsc --project ./tsconfig.build.json --rootDir ./src",
+    "compile:watch": "npm run compile -- --watch --preserveWatchOutput",
     "prebuild": "npm run clean",
     "build": "npm run compile",
     "prepublish": "npm run build",

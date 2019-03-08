@@ -9,17 +9,37 @@ import './index.css';
 import App from './App';
 import reducers from './reducers';
 
-const sdk = new Sdk(
-  availableEnviroments.development,
-  null,
-);
+let sdkEnv = availableEnviroments.development;
+const sdkStorage = null;
+
+// sdk env customizations for local development
+if (process.env.REACT_APP_SDK_API_HOST) {
+  const {
+    REACT_APP_SDK_API_HOST,
+    REACT_APP_SDK_API_PORT,
+    REACT_APP_SDK_API_USE_SSL,
+    REACT_APP_SDK_ETH_PROVIDER_ENDPOINT,
+  } = process.env;
+
+  sdkEnv = sdkEnv
+    .extendServiceOptions('api', {
+      host: REACT_APP_SDK_API_HOST,
+      port: parseInt(REACT_APP_SDK_API_PORT, 10),
+      useSsl: !!REACT_APP_SDK_API_USE_SSL,
+    })
+    .extendServiceOptions('eth', {
+      providerEndpoint: REACT_APP_SDK_ETH_PROVIDER_ENDPOINT,
+    });
+}
+
+const sdk = new Sdk(sdkEnv, sdkStorage);
 
 const store = createStore(
   reducers,
   {},
   composeWithDevTools(applyMiddleware(
     sdk.createReduxMiddleware(),
-    thunk.withExtraArgument(sdk)
+    thunk.withExtraArgument(sdk),
   )),
 );
 

@@ -15,7 +15,7 @@ export const availableEnviroments = {
       contractAddress: '0xc9FE248E38a2F0Ac114932ecFF4B1bAc74E90b91',
     },
     eth: {
-      providerEndpoint: 'eth.development.archanova.run',
+      providerEndpoint: 'https://eth.development.archanova.run',
     },
     linking: {},
   }),

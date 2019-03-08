@@ -25,7 +25,6 @@ export class EthService implements IEthService {
         ? customProvider
         : {
           sendAsync: (payload: any, callback: (err: any, data: any) => void) => {
-
             const options: RequestInit = {
               method: 'POST',
               headers: new Headers({
@@ -37,7 +36,7 @@ export class EthService implements IEthService {
             };
 
             fetch(providerEndpoint, options)
-              .then(({ json }) => json())
+              .then(res => res.json())
               .then(data => callback(null, data))
               .catch(err => callback(new EthError(err), null));
           },

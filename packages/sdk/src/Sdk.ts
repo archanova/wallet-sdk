@@ -39,9 +39,14 @@ export class Sdk implements ISdk {
     const apiService = new ApiService(environment.getServiceOptions('api'));
 
     this.deviceService = new DeviceService(storage);
+
     this.ethService = new EthService(
       environment.getServiceOptions('eth'),
       storage,
+    );
+
+    this.linkingService = new LinkingService(
+      environment.getServiceOptions('linking'),
     );
 
     this.accountService = new AccountService(
@@ -66,10 +71,6 @@ export class Sdk implements ISdk {
       this.accountService,
       this.deviceService,
       this.ethService,
-    );
-
-    this.linkingService = new LinkingService(
-      environment.getServiceOptions('linking'),
     );
 
     this.notificationService = new NotificationService(
