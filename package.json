@@ -17,9 +17,11 @@
     "precompile:watch": "npm run compile",
     "compile:watch": "lerna run compile:watch --parallel",
     "test": "lerna run test --stream",
-    "start:example-connect": "lerna run start --scope \"@archanova/wallet-sdk-example-connect\""
+    "start:example-account": "cross-env PORT=5100 lerna run start --scope \"@archanova/wallet-sdk-example-account\"",
+    "start:example-connect": "cross-env PORT=5200 lerna run start --scope \"@archanova/wallet-sdk-example-connect\""
   },
   "dependencies": {
+    "cross-env": "^5.2.0",
     "lerna": "^3.8.5"
   }
 }
