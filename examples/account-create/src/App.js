@@ -2,8 +2,7 @@
 
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { sdkSetup, createSdkRequestUrl } from './actions';
-import QrCode from 'qrcode.react';
+import { sdkSetup, createSdkAccount } from './actions';
 
 class App extends Component {
   render() {
@@ -13,7 +12,7 @@ class App extends Component {
       sdkSetupCompleted,
       sdkRequestUrl,
       sdkSetup,
-      createSdkRequestUrl,
+      createSdkAccount,
     } = this.props;
 
     if (!sdkSetupCompleted) { // Step 1
@@ -35,25 +34,15 @@ class App extends Component {
     } else if (!sdkAccount && !sdkRequestUrl) { // Step 2
       return (
         <div>
-          <p>Step 2. Create Account Request URL</p>
+          <p>Step 2. Create Account</p>
           <p>
             <a
               className="App-link"
               href="javascript:void(0);"
-              onClick={createSdkRequestUrl}
+              onClick={createSdkAccount}
             >
               Create
             </a>
-          </p>
-          <small>Device {sdkDevice.address}</small>
-        </div>
-      );
-    } else if (!sdkAccount && sdkRequestUrl) { // Step 3
-      return (
-        <div>
-          <p>Step 3. Scan QR Code with your SmartSafe app</p>
-          <p>
-            <QrCode size={180} value={sdkRequestUrl} />
           </p>
           <small>Device {sdkDevice.address}</small>
         </div>
@@ -62,7 +51,7 @@ class App extends Component {
       return (
         <div>
           <p>
-            Account Connected!
+            Account Created!
           </p>
           <small>Account {sdkAccount.address}</small>
           <small>Device {sdkDevice.address}</small>
@@ -79,10 +68,9 @@ export default connect(
     sdkAccount: state.sdk.account,
     sdkDevice: state.sdk.device,
     sdkSetupCompleted: state.sdkSetupCompleted,
-    sdkRequestUrl: state.sdkRequestUrl,
   }),
   dispatch => ({
     sdkSetup: () => dispatch(sdkSetup()),
-    createSdkRequestUrl: () => dispatch(createSdkRequestUrl()),
+    createSdkAccount: () => dispatch(createSdkAccount()),
   }),
 )(App);

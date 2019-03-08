@@ -24,11 +24,11 @@ $ npm run build
 
 ### Available examples:
 
-- [Account](packages/sdk-example-account)
+- [Account](examples/account-create)
   ```bash
-  $ npm run start:example-account
+  $ npm run start:example:account-create
   ```
-- [Connect](packages/sdk-example-connect)
+- [Account Connect](examples/account-connect)
   ```bash
-  $ npm run start:example-connect
+  $ npm run start:example:account-connect
   ```
