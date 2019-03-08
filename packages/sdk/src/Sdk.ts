@@ -36,17 +36,52 @@ export class Sdk implements ISdk {
   public readonly sessionService: ISessionService;
 
   constructor(environment: IEnvironment, storage: IStorage = null) {
-    const apiService = new ApiService(null);
+    const apiService = new ApiService(environment.getServiceOptions('api'));
 
     this.deviceService = new DeviceService(storage);
-    this.ethService = new EthService(null, storage);
+    this.ethService = new EthService(
+      environment.getServiceOptions('eth'),
+      storage,
+    );
 
-    this.accountService = new AccountService(storage, apiService, this.deviceService, this.ethService, this.linkingService);
-    this.accountProviderService = new AccountProviderService(null, storage, apiService, this.accountService, this.ethService);
-    this.accountProxyService = new AccountProxyService(null, apiService, this.accountService, this.deviceService, this.ethService);
-    this.linkingService = new LinkingService({});
-    this.notificationService = new NotificationService(apiService, this.accountService, this.deviceService);
-    this.sessionService = new SessionService(apiService, this.deviceService);
+    this.accountService = new AccountService(
+      storage,
+      apiService,
+      this.deviceService,
+      this.ethService,
+      this.linkingService,
+    );
+
+    this.accountProviderService = new AccountProviderService(
+      environment.getServiceOptions('accountProvider'),
+      storage,
+      apiService,
+      this.accountService,
+      this.ethService,
+    );
+
+    this.accountProxyService = new AccountProxyService(
+      environment.getServiceOptions('accountProxy'),
+      apiService,
+      this.accountService,
+      this.deviceService,
+      this.ethService,
+    );
+
+    this.linkingService = new LinkingService(
+      environment.getServiceOptions('linking'),
+    );
+
+    this.notificationService = new NotificationService(
+      apiService,
+      this.accountService,
+      this.deviceService,
+    );
+
+    this.sessionService = new SessionService(
+      apiService,
+      this.deviceService,
+    );
   }
 
   public async setup(): Promise<void> {
