@@ -14,8 +14,15 @@ $ npm i @archanova/wallet-sdk -S
 - [Storage Interface](docs/storage-interface.md)
 - [Services API](docs/services-api.md)
 
-
 ## Examples
+
+```bash
+$ git clone git@github.com:archanova/wallet-sdk.git
+$ cd ./wallet-sdk
+$ npm run build
+```
+
+### Available examples:
 
 - [Connect](packages/sdk-example-connect)
   ```bash
