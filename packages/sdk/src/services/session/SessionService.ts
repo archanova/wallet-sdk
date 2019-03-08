@@ -53,7 +53,7 @@ export class SessionService implements ISessionService {
       deviceAddress: string;
     }>({
       method: 'POST',
-      path: 'session',
+      path: 'auth',
       body: {
         deviceAddress: this.deviceService.device.address,
       },
@@ -74,7 +74,7 @@ export class SessionService implements ISessionService {
       signature: string;
     }>({
       method: 'PUT',
-      path: 'session',
+      path: 'auth',
       body: {
         code,
         signature,
@@ -89,7 +89,7 @@ export class SessionService implements ISessionService {
       success: boolean;
     }>({
       method: 'DELETE',
-      path: 'session',
+      path: 'auth',
     });
 
     return success;
