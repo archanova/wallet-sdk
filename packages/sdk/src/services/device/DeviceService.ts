@@ -1,11 +1,8 @@
-import { injectable, inject, optional } from 'inversify';
 import { UniqueBehaviorSubject } from 'rxjs-addons';
 import { generateRandomPrivateKey, privateToPublicKey, publicKeyToAddress, signPersonalMessage } from '@netgum/utils';
-import { TYPES } from '../../constants';
 import { IStorage } from '../../storage';
 import { IDeviceService, IDevice } from './interfaces';
 
-@injectable()
 export class DeviceService implements IDeviceService {
   public static STORAGE_KEYS = {
     privateKey: 'DeviceService/privateKey',
@@ -17,7 +14,7 @@ export class DeviceService implements IDeviceService {
   private privateKey: Buffer = null;
 
   constructor(
-    @inject(TYPES.Storage) @optional() private storage: IStorage,
+    private storage: IStorage,
   ) {
     //
   }

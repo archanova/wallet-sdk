@@ -1,15 +1,20 @@
 import { Subject } from 'rxjs';
 import { TUniqueBehaviorSubject } from 'rxjs-addons';
 
-export interface IPlatformService {
-  //
+export interface IApiService {
+  setSessionToken(sessionToken?: string): void;
+
+  buildWsSubjects(): IApiService.IWsSubjects;
+
+  sendHttpRequest<T = any, B = any>(req: IApiService.IHttpRequest<B>): Promise<T>;
 }
 
-export namespace IPlatformService {
+export namespace IApiService {
   export interface IOptions {
     host: string;
     port: number;
     useSsl: boolean;
+    reconnectTimeout: number;
   }
 
   export interface IWsSubjects {

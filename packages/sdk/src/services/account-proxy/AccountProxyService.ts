@@ -1,26 +1,20 @@
 import { IBN } from 'bn.js';
 import { abiEncodePacked, getMethodSignature } from '@netgum/utils';
-import { inject, injectable } from 'inversify';
-import { TYPES } from '../../constants';
-import { PlatformService } from '../platform';
+import { IApiService } from '../api';
 import { IAccountService } from '../account';
 import { IDeviceService } from '../device';
 import { IEthService } from '../eth';
 import { IAccountProxyService } from './interfaces';
 
-@injectable()
-export class AccountProxyService extends PlatformService implements IAccountProxyService {
-  public static TYPES = {
-    Options: Symbol('AccountProxyService:Options'),
-  };
-
+export class AccountProxyService implements IAccountProxyService {
   constructor(
-    @inject(AccountProxyService.TYPES.Options) private options: IAccountProxyService.IOptions,
-    @inject(TYPES.AccountService) private accountService: IAccountService,
-    @inject(TYPES.DeviceService) private deviceService: IDeviceService,
-    @inject(TYPES.EthService) private ethService: IEthService,
+    private options: IAccountProxyService.IOptions,
+    private apiService: IApiService,
+    private accountService: IAccountService,
+    private deviceService: IDeviceService,
+    private ethService: IEthService,
   ) {
-    super(options);
+    //
   }
 
   public async estimateTransaction(to: string, value: IBN, data: Buffer = null): Promise<IAccountProxyService.IEstimatedTransaction> {
@@ -164,9 +158,9 @@ export class AccountProxyService extends PlatformService implements IAccountProx
     accountAddress: string,
     body: IAccountProxyService.ISendEstimateTransactionBody,
   ): Promise<IAccountProxyService.ISendEstimateTransactionResponse> {
-    return this.sendHttpRequest<IAccountProxyService.ISendEstimateTransactionResponse>({
+    return this.apiService.sendHttpRequest<IAccountProxyService.ISendEstimateTransactionResponse>({
       body,
-      path: `${accountProviderAddress}/account/${accountAddress}/transaction`,
+      path: `account-proxy/${accountProviderAddress}/account/${accountAddress}/transaction`,
       method: 'POST',
     });
   }
@@ -176,11 +170,11 @@ export class AccountProxyService extends PlatformService implements IAccountProx
     accountAddress: string,
     body: IAccountProxyService.ISendExecuteTransactionBody,
   ): Promise<string> {
-    const { hash } = await this.sendHttpRequest<{
+    const { hash } = await this.apiService.sendHttpRequest<{
       hash: string;
     }>({
       body,
-      path: `${accountProviderAddress}/account/${accountAddress}/transaction`,
+      path: `account-proxy/${accountProviderAddress}/account/${accountAddress}/transaction`,
       method: 'PUT',
     });
 
@@ -193,8 +187,8 @@ export class AccountProxyService extends PlatformService implements IAccountProx
     deviceAddress: string,
     gasPrice: IBN,
   ): Promise<IAccountProxyService.ISendEstimateTransactionResponse> {
-    return this.sendHttpRequest<IAccountProxyService.ISendEstimateTransactionResponse>({
-      path: `${accountProviderAddress}/account/${accountAddress}/device/${deviceAddress}`,
+    return this.apiService.sendHttpRequest<IAccountProxyService.ISendEstimateTransactionResponse>({
+      path: `account-proxy/${accountProviderAddress}/account/${accountAddress}/device/${deviceAddress}`,
       method: 'POST',
       body: { gasPrice },
     });
@@ -206,11 +200,11 @@ export class AccountProxyService extends PlatformService implements IAccountProx
     deviceAddress: string,
     body: IAccountProxyService.ISendExecuteTransactionBody,
   ): Promise<string> {
-    const { hash } = await this.sendHttpRequest<{
+    const { hash } = await this.apiService.sendHttpRequest<{
       hash: string;
     }>({
       body,
-      path: `${accountProviderAddress}/account/${accountAddress}/device/${deviceAddress}`,
+      path: `account-proxy/${accountProviderAddress}/account/${accountAddress}/device/${deviceAddress}`,
       method: 'PUT',
     });
 

@@ -1,23 +1,16 @@
 import * as BN from 'bn.js';
-import { inject, injectable } from 'inversify';
 import { from, of, timer, EMPTY, Observable } from 'rxjs';
 import { UniqueBehaviorSubject } from 'rxjs-addons';
 import { skip, switchMap } from 'rxjs/operators';
-import { TYPES } from '../../constants';
 import { IStorage } from '../../storage';
+import { IApiService } from '../api';
 import { IDeviceService } from '../device';
 import { IEthService } from '../eth';
 import { ILinkingService } from '../linking';
-import { IPlatformService, PlatformService } from '../platform';
 import { AccountDeviceStates, AccountDeviceTypes } from './constants';
 import { IAccount, IAccountDevice, IAccountLinkingActions, IAccountService, IAccountTransaction } from './interfaces';
 
-@injectable()
-export class AccountService extends PlatformService implements IAccountService {
-  public static TYPES = {
-    Options: Symbol('AccountService:Options'),
-  };
-
+export class AccountService implements IAccountService {
   public static STORAGE_KEYS = {
     account: 'AccountService/account',
     accountDevice: 'AccountService/accountDevice',
@@ -28,13 +21,13 @@ export class AccountService extends PlatformService implements IAccountService {
   public accountDevice$ = new UniqueBehaviorSubject<IAccountDevice>(null);
 
   constructor(
-    @inject(AccountService.TYPES.Options) options: IPlatformService.IOptions,
-    @inject(TYPES.Storage) private storage: IStorage,
-    @inject(TYPES.DeviceService) private deviceService: IDeviceService,
-    @inject(TYPES.EthService) private ethService: IEthService,
-    @inject(TYPES.LinkingService) private linkingService: ILinkingService,
+    private storage: IStorage,
+    private apiService: IApiService,
+    private deviceService: IDeviceService,
+    private ethService: IEthService,
+    private linkingService: ILinkingService,
   ) {
-    super(options);
+    //
   }
 
   public get account(): IAccount {
@@ -292,7 +285,7 @@ export class AccountService extends PlatformService implements IAccountService {
     let result: string = null;
     try {
 
-      const { address } = await this.sendHttpRequest<{
+      const { address } = await this.apiService.sendHttpRequest<{
         address: string;
       }>({
         method: 'GET',
@@ -307,7 +300,7 @@ export class AccountService extends PlatformService implements IAccountService {
   }
 
   private async sendGetAccounts(): Promise<IAccount[]> {
-    const { items } = await this.sendHttpRequest<{
+    const { items } = await this.apiService.sendHttpRequest<{
       items: IAccount[];
     }>({
       method: 'GET',
@@ -318,7 +311,7 @@ export class AccountService extends PlatformService implements IAccountService {
   }
 
   private async sendGetAccount(accountAddress: string): Promise<IAccount> {
-    const { item } = await this.sendHttpRequest<{
+    const { item } = await this.apiService.sendHttpRequest<{
       item: IAccount;
     }>({
       method: 'GET',
@@ -329,7 +322,7 @@ export class AccountService extends PlatformService implements IAccountService {
   }
 
   private async sendGetAccountDevices(accountAddress: string): Promise<IAccountDevice[]> {
-    const { items } = await this.sendHttpRequest<{
+    const { items } = await this.apiService.sendHttpRequest<{
       items: IAccountDevice[];
     }>({
       method: 'GET',
@@ -340,7 +333,7 @@ export class AccountService extends PlatformService implements IAccountService {
   }
 
   private async sendGetAccountTransactions(accountAddress: string): Promise<IAccountTransaction[]> {
-    const { items } = await this.sendHttpRequest<{
+    const { items } = await this.apiService.sendHttpRequest<{
       items: IAccountTransaction[];
     }>({
       method: 'GET',
@@ -351,7 +344,7 @@ export class AccountService extends PlatformService implements IAccountService {
   }
 
   private async sendGetAccountDevice(accountAddress: string, deviceAddress: string): Promise<IAccountDevice> {
-    const { item } = await this.sendHttpRequest<{
+    const { item } = await this.apiService.sendHttpRequest<{
       item: IAccountDevice;
     }>({
       method: 'GET',
@@ -362,7 +355,7 @@ export class AccountService extends PlatformService implements IAccountService {
   }
 
   private async sendCreateAccountDevice(accountAddress: string, deviceAddress: string): Promise<boolean> {
-    const { success } = await this.sendHttpRequest<{
+    const { success } = await this.apiService.sendHttpRequest<{
       success: boolean;
     }>({
       method: 'POST',
@@ -373,7 +366,7 @@ export class AccountService extends PlatformService implements IAccountService {
   }
 
   private async sendRemoveAccountDevice(accountAddress: string, deviceAddress: string): Promise<boolean> {
-    const { success } = await this.sendHttpRequest<{
+    const { success } = await this.apiService.sendHttpRequest<{
       success: boolean;
     }>({
       method: 'DELETE',

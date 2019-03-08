@@ -2,7 +2,6 @@ import { TUniqueBehaviorSubject } from 'rxjs-addons';
 import { IBN } from 'bn.js';
 import { IDevice } from '../device';
 import { ILinkingService } from '../linking';
-import { IPlatformService } from '../platform';
 import {
   AccountDeviceStates,
   AccountDeviceTypes,
@@ -10,7 +9,7 @@ import {
   AccountDeployModes, AccountTransactionTypes,
 } from './constants';
 
-export interface IAccountService extends IPlatformService {
+export interface IAccountService {
   readonly account$: TUniqueBehaviorSubject<IAccount>;
   readonly account: IAccount;
   readonly accountBalance$: TUniqueBehaviorSubject<IBN>;

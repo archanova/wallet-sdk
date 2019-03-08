@@ -1,9 +1,8 @@
 import { Subject } from 'rxjs';
 import { TUniqueBehaviorSubject } from 'rxjs-addons';
-import { IPlatformService } from '../platform';
 import { NotificationEventTypes } from './constants';
 
-export interface INotificationService extends IPlatformService {
+export interface INotificationService {
   connected$: TUniqueBehaviorSubject<boolean>;
   connected: boolean;
   event$: Subject<INotificationService.IEvent>;
@@ -20,5 +19,10 @@ export namespace INotificationService {
   export interface IAccountDeviceEventPayload {
     accountAddress: string;
     deviceAddress: string;
+  }
+
+  export interface ISecureCodeEventPayload {
+    code: string;
+    signerAddress: string;
   }
 }

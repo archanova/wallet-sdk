@@ -1,32 +1,29 @@
 import { jsonReplacer, jsonReviver } from '@netgum/utils';
-import { injectable, unmanaged } from 'inversify';
 import { Subject } from 'rxjs';
 import { UniqueBehaviorSubject } from 'rxjs-addons';
 import { delay } from 'rxjs/operators';
-import { IPlatformService } from './interfaces';
-import { PlatformError } from './PlatformError';
+import { IApiService } from './interfaces';
+import { ApiError } from './ApiError';
 
-@injectable()
-export abstract class PlatformService<T extends IPlatformService.IOptions = IPlatformService.IOptions> implements IPlatformService {
-
-  protected static sessionToken$ = new UniqueBehaviorSubject<string>(null);
-
-  protected static get sessionToken(): string {
-    return this.sessionToken$.getValue();
-  }
+export class ApiService implements IApiService {
+  protected sessionToken$ = new UniqueBehaviorSubject<string>(null);
 
   private readonly wsEndpoint: string = null;
   private readonly httpEndpoint: string = null;
 
-  constructor(
-    @unmanaged() { host, port, useSsl }: T,
-  ) {
+  constructor(private options: IApiService.IOptions) {
+    const { host, port, useSsl } = options;
+
     const endpointBase = `${useSsl ? 's' : ''}://${host || 'localhost'}${port ? `:${port}` : ''}`;
     this.wsEndpoint = `ws${endpointBase}`;
     this.httpEndpoint = `http${endpointBase}`;
   }
 
-  protected buildWsSubjects(reconnectTimeout: number = 0): IPlatformService.IWsSubjects {
+  public setSessionToken(sessionToken: string = null): void {
+    this.sessionToken$.next(sessionToken || null);
+  }
+
+  public buildWsSubjects(): IApiService.IWsSubjects {
     const connected$ = new UniqueBehaviorSubject<boolean>(null);
     const message$ = new Subject<any>();
     const reconnected$ = new Subject<boolean>();
@@ -51,10 +48,10 @@ export abstract class PlatformService<T extends IPlatformService.IOptions = IPla
     };
 
     const connect = () => {
-      if (!ws && PlatformService.sessionToken) {
+      if (!ws && this.sessionToken) {
         connected$.next(null);
 
-        ws = new WebSocket(this.wsEndpoint, PlatformService.sessionToken);
+        ws = new WebSocket(this.wsEndpoint, this.sessionToken);
         ws.binaryType = 'blob';
 
         ws.addEventListener('open', openHandler);
@@ -77,9 +74,11 @@ export abstract class PlatformService<T extends IPlatformService.IOptions = IPla
       }
     };
 
-    PlatformService
+    this
       .sessionToken$
       .subscribe(token => token ? connect() : disconnect());
+
+    const { reconnectTimeout } = this.options;
 
     if (reconnectTimeout) {
       reconnected$
@@ -96,7 +95,7 @@ export abstract class PlatformService<T extends IPlatformService.IOptions = IPla
     };
   }
 
-  protected async sendHttpRequest<T = any, B = any>(req: IPlatformService.IHttpRequest<B>): Promise<T> {
+  public async sendHttpRequest<T = any, B = any>(req: IApiService.IHttpRequest<B>): Promise<T> {
     const { method, path, body, dontUseReplacer } = req;
 
     let status: number = null;
@@ -108,7 +107,7 @@ export abstract class PlatformService<T extends IPlatformService.IOptions = IPla
         headers: new Headers({
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'X-Session-Token': PlatformService.sessionToken || '',
+          'X-Session-Token': this.sessionToken || '',
           Pragma: 'no-cache',
         }),
         ...(
@@ -129,22 +128,26 @@ export abstract class PlatformService<T extends IPlatformService.IOptions = IPla
 
     switch (status) {
       case 400:
-        throw new PlatformError(PlatformError.Types.BadRequest, data);
+        throw new ApiError(ApiError.Types.BadRequest, data);
 
       case 401:
-        throw new PlatformError(PlatformError.Types.Unauthorized, data);
+        throw new ApiError(ApiError.Types.Unauthorized, data);
 
       case 403:
-        throw new PlatformError(PlatformError.Types.Forbidden, data);
+        throw new ApiError(ApiError.Types.Forbidden, data);
 
       case 404:
-        throw new PlatformError(PlatformError.Types.NotFound, data);
+        throw new ApiError(ApiError.Types.NotFound, data);
 
       case 500:
       case null:
-        throw new PlatformError(PlatformError.Types.Failed, data);
+        throw new ApiError(ApiError.Types.Failed, data);
     }
 
     return data;
+  }
+
+  private get sessionToken(): string {
+    return this.sessionToken$.getValue();
   }
 }

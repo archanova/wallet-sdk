@@ -1,4 +1,3 @@
-import { Container, interfaces } from 'inversify';
 import { merge } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Store, Middleware } from 'redux';
@@ -7,8 +6,8 @@ import {
   AccountService,
   AccountProviderService,
   AccountProxyService,
+  ApiService,
   DeviceService,
-  EnsService,
   EthService,
   LinkingService,
   NotificationService,
@@ -17,98 +16,37 @@ import {
   IAccountProviderService,
   IAccountProxyService,
   IDeviceService,
-  IEnsService,
   IEthService,
   ILinkingService,
   INotificationService,
   ISessionService,
 } from './services';
 import { IStorage } from './storage';
-import { TYPES } from './constants';
 import { ISdk } from './interfaces';
 import { reduxActions } from './redux';
 
 export class Sdk implements ISdk {
-
-  private container = new Container({
-    defaultScope: 'Singleton',
-  });
+  public readonly accountService: IAccountService;
+  public readonly accountProviderService: IAccountProviderService;
+  public readonly accountProxyService: IAccountProxyService;
+  public readonly deviceService: IDeviceService;
+  public readonly ethService: IEthService;
+  public readonly linkingService: ILinkingService;
+  public readonly notificationService: INotificationService;
+  public readonly sessionService: ISessionService;
 
   constructor(environment: IEnvironment, storage: IStorage = null) {
+    const apiService = new ApiService(null);
 
-    // constants
-    this.container.bind(TYPES.Storage).toConstantValue(storage || null);
+    this.deviceService = new DeviceService(storage);
+    this.ethService = new EthService(null, storage);
 
-    // services
-    this.container.bind(TYPES.AccountService).to(AccountService);
-    this.container.bind(TYPES.AccountProviderService).to(AccountProviderService);
-    this.container.bind(TYPES.AccountProxyService).to(AccountProxyService);
-    this.container.bind(TYPES.DeviceService).to(DeviceService);
-    this.container.bind(TYPES.EnsService).to(EnsService);
-    this.container.bind(TYPES.EthService).to(EthService);
-    this.container.bind(TYPES.LinkingService).to(LinkingService);
-    this.container.bind(TYPES.NotificationService).to(NotificationService);
-    this.container.bind(TYPES.SessionService).to(SessionService);
-
-    // services options
-    this.container.bind(AccountService.TYPES.Options).toConstantValue(environment.getServiceOptions('account'));
-    this.container.bind(AccountProviderService.TYPES.Options).toConstantValue(environment.getServiceOptions('accountProvider'));
-    this.container.bind(AccountProxyService.TYPES.Options).toConstantValue(environment.getServiceOptions('accountProxy'));
-    this.container.bind(EnsService.TYPES.Options).toConstantValue(environment.getServiceOptions('ens'));
-    this.container.bind(EthService.TYPES.Options).toConstantValue(environment.getServiceOptions('eth'));
-    this.container.bind(LinkingService.TYPES.Options).toConstantValue(environment.getServiceOptions('linking'));
-    this.container.bind(NotificationService.TYPES.Options).toConstantValue(environment.getServiceOptions('notification'));
-    this.container.bind(SessionService.TYPES.Options).toConstantValue(environment.getServiceOptions('session'));
-  }
-
-  public get storage(): IStorage {
-    return this.getService(TYPES.Storage);
-  }
-
-  public get accountService(): IAccountService {
-    return this.getService(TYPES.AccountService);
-  }
-
-  public get accountProviderService(): IAccountProviderService {
-    return this.getService(TYPES.AccountProviderService);
-  }
-
-  public get accountProxyService(): IAccountProxyService {
-    return this.getService(TYPES.AccountProxyService);
-  }
-
-  public get deviceService(): IDeviceService {
-    return this.getService(TYPES.DeviceService);
-  }
-
-  public get ensService(): IEnsService {
-    return this.getService(TYPES.EnsService);
-  }
-
-  public get ethService(): IEthService {
-    return this.getService(TYPES.EthService);
-  }
-
-  public get linkingService(): ILinkingService {
-    return this.getService(TYPES.LinkingService);
-  }
-
-  public get notificationService(): INotificationService {
-    return this.getService(TYPES.NotificationService);
-  }
-
-  public get sessionService(): ISessionService {
-    return this.getService(TYPES.SessionService);
-  }
-
-  public getService<T = any>(id: interfaces.ServiceIdentifier<T>): T {
-    return this.container.get<T>(id);
-  }
-
-  public extend(callback: (bind: interfaces.Bind) => any): void {
-    callback(
-      this.container.bind.bind(this.container),
-    );
+    this.accountService = new AccountService(storage, apiService, this.deviceService, this.ethService, this.linkingService);
+    this.accountProviderService = new AccountProviderService(null, storage, apiService, this.accountService, this.ethService);
+    this.accountProxyService = new AccountProxyService(null, apiService, this.accountService, this.deviceService, this.ethService);
+    this.linkingService = new LinkingService({});
+    this.notificationService = new NotificationService(apiService, this.accountService, this.deviceService);
+    this.sessionService = new SessionService(apiService, this.deviceService);
   }
 
   public async setup(): Promise<void> {

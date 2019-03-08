@@ -1,10 +1,10 @@
-class PlatformError extends Error {
+class ApiError extends Error {
   public error: string = null;
 
   public errors: { [key: string]: string } = {};
 
   constructor(
-    public type: PlatformError.Types,
+    public type: ApiError.Types,
     response: {
       error?: string;
       errors?: {
@@ -33,7 +33,7 @@ class PlatformError extends Error {
   }
 }
 
-namespace PlatformError {
+namespace ApiError {
   export enum Types {
     BadRequest = 'BadRequest',
     Unauthorized = 'Unauthorized',
@@ -44,5 +44,5 @@ namespace PlatformError {
 }
 
 export {
-  PlatformError,
+  ApiError,
 };

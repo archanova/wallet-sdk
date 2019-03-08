@@ -1,8 +1,7 @@
 import { IBN } from 'bn.js';
 import { TUniqueBehaviorSubject } from 'rxjs-addons';
-import { IPlatformService } from '../platform';
 
-export interface IAccountProviderService extends IPlatformService {
+export interface IAccountProviderService {
   supportedEnsName$: TUniqueBehaviorSubject<string>;
   supportedEnsName: string;
 
@@ -18,7 +17,7 @@ export interface IAccountProviderService extends IPlatformService {
 }
 
 export namespace IAccountProviderService {
-  export interface IOptions extends IPlatformService.IOptions {
+  export interface IOptions {
     contractAddress: string;
   }
 

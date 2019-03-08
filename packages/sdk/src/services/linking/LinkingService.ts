@@ -1,17 +1,10 @@
-import { inject, injectable } from 'inversify';
 import { jsonReplacer, jsonReviver } from '@netgum/utils';
 import { Subject } from 'rxjs';
 import { map, filter } from 'rxjs/operators';
 import { LinkingUrlTargets } from './constants';
 import { ILinkingService } from './interfaces';
 
-@injectable()
 export class LinkingService implements ILinkingService {
-
-  public static TYPES = {
-    Options: Symbol('LinkingService:Options'),
-  };
-
   public static QUERY_FIELD_NAME = 'sdkQuery';
 
   public incomingUrl$ = new Subject<string>();
@@ -21,7 +14,7 @@ export class LinkingService implements ILinkingService {
   private readonly options: ILinkingService.IOptions;
 
   constructor(
-    @inject(LinkingService.TYPES.Options) options: ILinkingService.IOptions,
+    options: ILinkingService.IOptions,
   ) {
     this.options = {
       walletIOSEndpoint: '://',

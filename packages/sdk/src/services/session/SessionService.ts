@@ -1,24 +1,17 @@
-import { injectable, inject } from 'inversify';
 import { anyToHex } from '@netgum/utils';
 import { UniqueBehaviorSubject } from 'rxjs-addons';
-import { TYPES } from '../../constants';
-import { IPlatformService, PlatformService } from '../platform';
+import { IApiService } from '../api';
 import { IDeviceService } from '../device';
 import { ISessionService } from './interfaces';
 
-@injectable()
-export class SessionService extends PlatformService implements ISessionService {
-  public static TYPES = {
-    Options: Symbol('SessionService:Options'),
-  };
-
+export class SessionService implements ISessionService {
   public readonly ready$ = new UniqueBehaviorSubject<boolean>(false);
 
   constructor(
-    @inject(SessionService.TYPES.Options) options: IPlatformService.IOptions,
-    @inject(TYPES.DeviceService) private deviceService: IDeviceService,
+    private apiService: IApiService,
+    private deviceService: IDeviceService,
   ) {
-    super(options);
+    //
   }
 
   public get ready(): boolean {
@@ -33,7 +26,7 @@ export class SessionService extends PlatformService implements ISessionService {
     const code = await this.sendCreateCode();
     const token = await this.sendCreateToken(code);
 
-    PlatformService.sessionToken$.next(token);
+    this.apiService.setSessionToken(token);
 
     this.ready$.next(true);
   }
@@ -48,13 +41,13 @@ export class SessionService extends PlatformService implements ISessionService {
 
     await this.sendDestroy();
 
-    PlatformService.sessionToken$.next(null);
+    this.apiService.setSessionToken();
 
     await this.create();
   }
 
   private async sendCreateCode(): Promise<string> {
-    const { code } = await this.sendHttpRequest<{
+    const { code } = await this.apiService.sendHttpRequest<{
       code: string;
     }, {
       deviceAddress: string;
@@ -74,7 +67,7 @@ export class SessionService extends PlatformService implements ISessionService {
       add0x: true,
     });
 
-    const { token } = await this.sendHttpRequest<{
+    const { token } = await this.apiService.sendHttpRequest<{
       token: string;
     }, {
       code: string;
@@ -92,7 +85,7 @@ export class SessionService extends PlatformService implements ISessionService {
   }
 
   private async sendDestroy(): Promise<boolean> {
-    const { success } = await this.sendHttpRequest<{
+    const { success } = await this.apiService.sendHttpRequest<{
       success: boolean;
     }>({
       method: 'DELETE',

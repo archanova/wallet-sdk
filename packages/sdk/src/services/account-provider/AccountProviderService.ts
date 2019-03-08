@@ -1,20 +1,13 @@
 import { IBN } from 'bn.js';
-import { inject, injectable } from 'inversify';
 import { getEnsNameInfo } from '@netgum/utils';
 import { UniqueBehaviorSubject } from 'rxjs-addons';
-import { TYPES } from '../../constants';
 import { IStorage } from '../../storage';
+import { IApiService } from '../api';
 import { IAccountService, IAccount } from '../account';
 import { IEthService } from '../eth';
-import { PlatformService } from '../platform';
 import { IAccountProviderService } from './interfaces';
 
-@injectable()
-export class AccountProviderService extends PlatformService implements IAccountProviderService {
-  public static TYPES = {
-    Options: Symbol('AccountProviderService:Options'),
-  };
-
+export class AccountProviderService implements IAccountProviderService {
   public static STORAGE_KEYS = {
     supportedEnsName: 'AccountProviderService/supportedEnsName',
   };
@@ -22,12 +15,13 @@ export class AccountProviderService extends PlatformService implements IAccountP
   public supportedEnsName$ = new UniqueBehaviorSubject<string>();
 
   constructor(
-    @inject(AccountProviderService.TYPES.Options) private options: IAccountProviderService.IOptions,
-    @inject(TYPES.Storage) private storage: IStorage,
-    @inject(TYPES.AccountService) private accountService: IAccountService,
-    @inject(TYPES.EthService) private ethService: IEthService,
+    private options: IAccountProviderService.IOptions,
+    private storage: IStorage,
+    private apiService: IApiService,
+    private accountService: IAccountService,
+    private ethService: IEthService,
   ) {
-    super(options);
+    //
   }
 
   public get supportedEnsName(): string {
@@ -125,18 +119,18 @@ export class AccountProviderService extends PlatformService implements IAccountP
   }
 
   private sendGetSettings(accountProviderAddress: string): Promise<IAccountProviderService.ISettings> {
-    return this.sendHttpRequest<IAccountProviderService.ISettings>({
+    return this.apiService.sendHttpRequest<IAccountProviderService.ISettings>({
       method: 'GET',
-      path: `${accountProviderAddress}/settings`,
+      path: `account-provider/${accountProviderAddress}/settings`,
     });
   }
 
   private async sendGetDeploymentCost(accountProviderAddress: string, accountAddress: string, gasPrice: IBN): Promise<IBN> {
-    const { refundAmount } = await this.sendHttpRequest<{
+    const { refundAmount } = await this.apiService.sendHttpRequest<{
       refundAmount: IBN;
     }>({
       method: 'POST',
-      path: `${accountProviderAddress}/account/${accountAddress}/deploy`,
+      path: `account-provider/${accountProviderAddress}/account/${accountAddress}/deploy`,
       body: {
         gasPrice,
       },
@@ -146,12 +140,12 @@ export class AccountProviderService extends PlatformService implements IAccountP
   }
 
   private async sendDeployAccount(accountProviderAddress: string, accountAddress: string, gasPrice: IBN): Promise<boolean> {
-    const { hash } = await this.sendHttpRequest<{
+    const { hash } = await this.apiService.sendHttpRequest<{
       refundAmount: IBN;
       hash: string;
     }>({
       method: 'PUT',
-      path: `${accountProviderAddress}/account/${accountAddress}/deploy`,
+      path: `account-provider/${accountProviderAddress}/account/${accountAddress}/deploy`,
       body: {
         gasPrice,
       },
@@ -161,11 +155,11 @@ export class AccountProviderService extends PlatformService implements IAccountP
   }
 
   private async sendCreateAccount(accountProviderAddress: string, ensName: string = null): Promise<IAccount> {
-    const { item } = await this.sendHttpRequest<{
+    const { item } = await this.apiService.sendHttpRequest<{
       item: IAccount;
     }>({
       method: 'POST',
-      path: `${accountProviderAddress}/account`,
+      path: `account-provider/${accountProviderAddress}/account`,
       body: ensName
         ? { ensName }
         : {},
@@ -175,11 +169,11 @@ export class AccountProviderService extends PlatformService implements IAccountP
   }
 
   private async sendUpdateAccount(accountProviderAddress: string, accountAddress: string, ensName: string): Promise<IAccount> {
-    const { item } = await this.sendHttpRequest<{
+    const { item } = await this.apiService.sendHttpRequest<{
       item: IAccount;
     }>({
       method: 'PUT',
-      path: `${accountProviderAddress}/account/${accountAddress}`,
+      path: `account-provider/${accountProviderAddress}/account/${accountAddress}`,
       body: {
         ensName,
       },

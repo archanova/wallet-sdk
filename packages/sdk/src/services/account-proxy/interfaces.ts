@@ -1,7 +1,6 @@
 import { IBN } from 'bn.js';
-import { IPlatformService } from '../platform';
 
-export interface IAccountProxyService extends IPlatformService {
+export interface IAccountProxyService {
   estimateTransaction(to: string, value: IBN, data?: Buffer): Promise<IAccountProxyService.IEstimatedTransaction>;
 
   estimateDeployDevice(deviceAddress: string): Promise<IAccountProxyService.IEstimatedTransaction>;
@@ -12,7 +11,7 @@ export interface IAccountProxyService extends IPlatformService {
 }
 
 export namespace IAccountProxyService {
-  export interface IOptions extends IPlatformService.IOptions {
+  export interface IOptions {
     contractAddress: string;
   }
 

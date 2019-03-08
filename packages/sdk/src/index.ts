@@ -1,6 +1,5 @@
-import 'reflect-metadata';
+import 'cross-fetch/polyfill';
 
-export * from './constants';
 export * from './environment';
 export * from './interfaces';
 export * from './redux';

@@ -1,30 +1,23 @@
-import { inject, injectable } from 'inversify';
 import { Subject, EMPTY, Observable, from } from 'rxjs';
 import { switchMap, filter } from 'rxjs/operators';
 import { UniqueBehaviorSubject } from 'rxjs-addons';
-import { TYPES } from '../../constants';
 import { IAccountService } from '../account';
 import { IDeviceService } from '../device';
-import { IPlatformService, PlatformService } from '../platform';
+import { IApiService } from '../api';
 import { INotificationService } from './interfaces';
 import { NotificationEventTypes } from './constants';
 
-@injectable()
-export class NotificationService extends PlatformService implements INotificationService {
-  public static TYPES = {
-    Options: Symbol('NotificationService:Options'),
-  };
-
+export class NotificationService implements INotificationService {
   public connected$ = new UniqueBehaviorSubject<boolean>(null);
 
   public event$ = new Subject<INotificationService.IEvent>();
 
   constructor(
-    @inject(NotificationService.TYPES.Options) options: IPlatformService.IOptions,
-    @inject(TYPES.AccountService) private accountService: IAccountService,
-    @inject(TYPES.DeviceService) private deviceService: IDeviceService,
+    private apiService: IApiService,
+    private accountService: IAccountService,
+    private deviceService: IDeviceService,
   ) {
-    super(options);
+    //
   }
 
   public get connected(): boolean {
@@ -32,7 +25,7 @@ export class NotificationService extends PlatformService implements INotificatio
   }
 
   public setup(): void {
-    const { connected$, message$ } = this.buildWsSubjects(3000);
+    const { connected$, message$ } = this.apiService.buildWsSubjects();
 
     connected$
       .subscribe(this.connected$);

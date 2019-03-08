@@ -1,20 +1,12 @@
-import { injectable, inject, unmanaged } from 'inversify';
 import { targetToAddress } from '@netgum/utils';
 import { UniqueBehaviorSubject } from 'rxjs-addons';
 import * as BN from 'bn.js';
 import * as Eth from 'ethjs';
-import { TYPES } from '../../constants';
 import { IStorage } from '../../storage';
-import { PlatformService } from '../platform';
 import { EthError } from './EthError';
 import { IEthService } from './interfaces';
 
-@injectable()
-export class EthService extends PlatformService implements IEthService {
-  public static TYPES = {
-    Options: Symbol('EthService:Options'),
-  };
-
+export class EthService implements IEthService {
   public static STORAGE_KEYS = {
     networkVersion: 'EthService/networkVersion',
   };
@@ -22,28 +14,31 @@ export class EthService extends PlatformService implements IEthService {
   public readonly networkVersion$ = new UniqueBehaviorSubject<string>(null);
 
   constructor(
-    @inject(EthService.TYPES.Options) options: IEthService.IOptions,
-    @inject(TYPES.Storage) private storage: IStorage,
-    @unmanaged() private readonly eth: Eth.IEth = null,
+    options: IEthService.IOptions,
+    private storage: IStorage,
+    private readonly eth: Eth.IEth = null,
   ) {
-    super(options);
-
     if (!this.eth) {
-      const { customProvider } = options;
+      const { providerEndpoint, customProvider } = options;
 
       const provider = customProvider
         ? customProvider
         : {
           sendAsync: (payload: any, callback: (err: any, data: any) => void) => {
-            this
-              .sendHttpRequest({
-                method: 'POST',
-                body: payload,
-                dontUseReplacer: true,
-              })
-              .then((data) => {
-                callback(null, data);
-              })
+
+            const options: RequestInit = {
+              method: 'POST',
+              headers: new Headers({
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache',
+                Pragma: 'no-cache',
+              }),
+              body: JSON.stringify(payload),
+            };
+
+            fetch(providerEndpoint, options)
+              .then(({ json }) => json())
+              .then(data => callback(null, data))
               .catch(err => callback(new EthError(err), null));
           },
         };
