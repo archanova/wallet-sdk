@@ -1,8 +1,18 @@
+import { LinkingUrlTargets } from '@archanova/wallet-sdk';
+
 export const SET_SDK_SETUP_COMPLETED = 'SET_SDK_SETUP_COMPLETED';
+export const SET_SDK_SECURE_CODE_URL = 'SET_SDK_SECURE_CODE_URL';
 
 export function setSdkSetupCompleted() {
   return {
     type: SET_SDK_SETUP_COMPLETED,
+  };
+}
+
+export function setSdkSecureCodeUrl(payload) {
+  return {
+    type: SET_SDK_SECURE_CODE_URL,
+    payload,
   };
 }
 
@@ -11,6 +21,16 @@ export function createSdkAccount() {
     sdk
       .accountProviderService
       .createAccount()
+      .catch(console.error);
+  };
+}
+
+export function createSdkSecureUrl() {
+  return (dispatch, getState, sdk) => {
+    sdk
+      .secureService
+      .createCodeUrl()
+      .then(urlCreator => dispatch(setSdkSecureCodeUrl(urlCreator(LinkingUrlTargets.WalletIOS))))
       .catch(console.error);
   };
 }

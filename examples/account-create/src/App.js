@@ -2,7 +2,8 @@
 
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { sdkSetup, createSdkAccount } from './actions';
+import QrCode from 'qrcode.react';
+import { sdkSetup, createSdkAccount, createSdkSecureUrl } from './actions';
 
 class App extends Component {
   render() {
@@ -10,9 +11,10 @@ class App extends Component {
       sdkAccount,
       sdkDevice,
       sdkSetupCompleted,
-      sdkRequestUrl,
       sdkSetup,
+      sdkSecureCodeUrl,
       createSdkAccount,
+      createSdkSecureUrl,
     } = this.props;
 
     if (!sdkSetupCompleted) { // Step 1
@@ -31,7 +33,7 @@ class App extends Component {
         </div>
       );
 
-    } else if (!sdkAccount && !sdkRequestUrl) { // Step 2
+    } else if (!sdkAccount) { // Step 2
       return (
         <div>
           <p>Step 2. Create Account</p>
@@ -47,11 +49,36 @@ class App extends Component {
           <small>Device {sdkDevice.address}</small>
         </div>
       );
+    } else if (sdkAccount && !sdkSecureCodeUrl) { // Step 3
+      return (
+        <div>
+          <p>
+            Step 3. Create Secure URL
+          </p>
+          <p>
+            <a
+              className="App-link"
+              href="javascript:void(0);"
+              onClick={createSdkSecureUrl}
+            >
+              Create Secure URL
+            </a>
+          </p>
+          <small>Account {sdkAccount.address}</small>
+          <small>Device {sdkDevice.address}</small>
+        </div>
+      );
     } else if (sdkAccount) { // Completed
       return (
         <div>
           <p>
-            Account Created!
+            Completed!
+          </p>
+          <p>
+            Scan QR Code with your SmartSafe app
+          </p>
+          <p>
+            <QrCode size={180} value={sdkSecureCodeUrl} />
           </p>
           <small>Account {sdkAccount.address}</small>
           <small>Device {sdkDevice.address}</small>
@@ -68,9 +95,11 @@ export default connect(
     sdkAccount: state.sdk.account,
     sdkDevice: state.sdk.device,
     sdkSetupCompleted: state.sdkSetupCompleted,
+    sdkSecureCodeUrl: state.sdkSecureCodeUrl,
   }),
   dispatch => ({
     sdkSetup: () => dispatch(sdkSetup()),
     createSdkAccount: () => dispatch(createSdkAccount()),
+    createSdkSecureUrl: () => dispatch(createSdkSecureUrl()),
   }),
 )(App);

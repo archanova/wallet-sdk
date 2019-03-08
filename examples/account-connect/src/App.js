@@ -2,8 +2,8 @@
 
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { sdkSetup, createSdkRequestUrl } from './actions';
 import QrCode from 'qrcode.react';
+import { sdkSetup, createSdkRequestUrl } from './actions';
 
 class App extends Component {
   render() {

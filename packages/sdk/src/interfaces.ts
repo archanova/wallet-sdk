@@ -8,6 +8,7 @@ import {
   IFaucetService,
   ILinkingService,
   INotificationService,
+  ISecureService,
   ISessionService,
 } from './services';
 
@@ -20,6 +21,7 @@ export interface ISdk {
   readonly faucetService: IFaucetService;
   readonly linkingService: ILinkingService;
   readonly notificationService: INotificationService;
+  readonly secureService: ISecureService;
   readonly sessionService: ISessionService;
 
   setup(): Promise<void>;

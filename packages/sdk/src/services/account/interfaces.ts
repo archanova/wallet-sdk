@@ -73,10 +73,16 @@ export interface IAccountTransaction {
 export namespace IAccountLinkingActions {
   export enum Types {
     AddAccountDeviceRequest = 'AddAccountDeviceRequest',
+    SignSecureCode = 'SignSecureCode',
   }
 
   export interface IAddAccountDeviceRequestPayload {
     accountAddress: string;
     deviceAddress: string;
+  }
+
+  export interface ISignSecureCodePayload {
+    creatorAddress: string;
+    code: string;
   }
 }

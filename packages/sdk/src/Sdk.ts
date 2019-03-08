@@ -12,6 +12,7 @@ import {
   FaucetService,
   LinkingService,
   NotificationService,
+  SecureService,
   SessionService,
   IAccountService,
   IAccountProviderService,
@@ -21,6 +22,7 @@ import {
   IFaucetService,
   ILinkingService,
   INotificationService,
+  ISecureService,
   ISessionService,
 } from './services';
 import { IStorage } from './storage';
@@ -36,6 +38,7 @@ export class Sdk implements ISdk {
   public readonly faucetService: IFaucetService;
   public readonly linkingService: ILinkingService;
   public readonly notificationService: INotificationService;
+  public readonly secureService: ISecureService;
   public readonly sessionService: ISessionService;
 
   constructor(environment: IEnvironment, storage: IStorage = null) {
@@ -83,6 +86,12 @@ export class Sdk implements ISdk {
     );
 
     this.faucetService = new FaucetService(storage, apiService, this.accountService);
+
+    this.secureService = new SecureService(
+      apiService,
+      this.deviceService,
+      this.linkingService,
+    );
 
     this.sessionService = new SessionService(
       apiService,

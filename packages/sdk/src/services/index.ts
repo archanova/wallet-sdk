@@ -7,4 +7,5 @@ export * from './eth';
 export * from './faucet';
 export * from './linking';
 export * from './notification';
+export * from './secure';
 export * from './session';
