@@ -1,14 +1,22 @@
-import { buildEnvironment } from './helpers';
-import { IEnvironment } from './interfaces';
+import { Environment } from './Environment';
 
-export const availableEnviroments: {
-  development: IEnvironment;
-} = {
-  development: buildEnvironment({ host: 'development.archanova.run' })
-    .extendServiceOptions('accountProxy', {
+export const availableEnviroments = {
+  development: new Environment({
+    api: {
+      host: 'api.development.archanova.run',
+      port: null,
+      useSsl: true,
+      reconnectTimeout: 3000,
+    },
+    accountProvider: {
+      contractAddress: '0x13266E4C16c279741f3cF0d9FE90D2d36B3669a2',
+    },
+    accountProxy: {
       contractAddress: '0xc9FE248E38a2F0Ac114932ecFF4B1bAc74E90b91',
-    })
-    .extendServiceOptions('ens', {
-      contractAddress: '0x1B64cF07A6b5Ae7903784F827941eC9679E379e5',
-    }),
+    },
+    eth: {
+      providerEndpoint: 'eth.development.archanova.run',
+    },
+    linking: {},
+  }),
 };
