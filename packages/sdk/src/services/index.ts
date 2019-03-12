@@ -1,6 +1,7 @@
 export * from './account';
 export * from './account-provider';
 export * from './account-proxy';
+export * from './action';
 export * from './api';
 export * from './device';
 export * from './eth';
@@ -9,3 +10,4 @@ export * from './linking';
 export * from './notification';
 export * from './secure';
 export * from './session';
+export * from './url';

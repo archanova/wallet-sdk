@@ -26,10 +26,10 @@ export class SecureService implements ISecureService {
     });
   }
 
-  public async verifyCode(creatorAddress: string, code: string): Promise<void> {
+  public async signCode(creatorAddress: string, code: string): Promise<void> {
     const signature = anyToHex(await this.deviceService.signPersonalMessage(code), { add0x: true });
 
-    await this.sendVerifyCode(creatorAddress, signature);
+    await this.sendSignCode(creatorAddress, signature);
   }
 
   public async destroyCode(): Promise<void> {
@@ -48,7 +48,7 @@ export class SecureService implements ISecureService {
     return code;
   }
 
-  private async sendVerifyCode(creatorAddress: string, signature: string): Promise<boolean> {
+  private async sendSignCode(creatorAddress: string, signature: string): Promise<boolean> {
     const { success } = await this.apiService.sendHttpRequest<{
       success: boolean;
     }, {
