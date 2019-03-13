@@ -16,6 +16,11 @@ export function createReduxMiddleware(sdk: ISdk): Middleware {
           state.accountDevice$.pipe(map(createActionCreator(ReduxActionTypes.SetAccountDevice))),
           state.accountBalance$.pipe(map(createActionCreator(ReduxActionTypes.SetAccountBalance))),
           state.device$.pipe(map(createActionCreator(ReduxActionTypes.SetDevice))),
+          state.faucet$.pipe(map(createActionCreator(ReduxActionTypes.SetFaucet))),
+          state.network$.pipe(map(createActionCreator(ReduxActionTypes.SetNetwork))),
+          state.completed$.pipe(map(createActionCreator(ReduxActionTypes.SetCompleted))),
+          state.ready$.pipe(map(createActionCreator(ReduxActionTypes.SetReady))),
+          state.online$.pipe(map(createActionCreator(ReduxActionTypes.SetOnline))),
         )
           .subscribe(store.dispatch);
       },
