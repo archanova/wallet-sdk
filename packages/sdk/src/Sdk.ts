@@ -1,139 +1,153 @@
-import { merge } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { Store, Middleware } from 'redux';
-import { IEnvironment } from './environment';
+import { IBN } from 'bn.js';
+import { ISdk } from './interfaces';
 import {
-  AccountService,
-  AccountProviderService,
-  AccountProxyService,
-  ApiService,
-  DeviceService,
-  EthService,
-  FaucetService,
-  LinkingService,
-  NotificationService,
-  SecureService,
-  SessionService,
-  IAccountService,
+  IAccount,
   IAccountProviderService,
   IAccountProxyService,
+  IAccountService,
+  IActionService,
   IDeviceService,
   IEthService,
+  IEventService,
   IFaucetService,
-  ILinkingService,
-  INotificationService,
   ISecureService,
   ISessionService,
+  IUrlService,
+  ActionTypes,
+  actionPayload,
 } from './services';
-import { IStorage } from './storage';
-import { ISdk } from './interfaces';
-import { reduxActions } from './redux';
+import { IState } from './state';
 
+/**
+ * Sdk
+ */
 export class Sdk implements ISdk {
-  public readonly accountService: IAccountService;
-  public readonly accountProviderService: IAccountProviderService;
-  public readonly accountProxyService: IAccountProxyService;
-  public readonly deviceService: IDeviceService;
-  public readonly ethService: IEthService;
-  public readonly faucetService: IFaucetService;
-  public readonly linkingService: ILinkingService;
-  public readonly notificationService: INotificationService;
-  public readonly secureService: ISecureService;
-  public readonly sessionService: ISessionService;
 
-  constructor(environment: IEnvironment, storage: IStorage = null) {
-    const apiService = new ApiService(environment.getServiceOptions('api'));
-
-    this.deviceService = new DeviceService(storage);
-
-    this.ethService = new EthService(
-      environment.getServiceOptions('eth'),
-      storage,
-    );
-
-    this.linkingService = new LinkingService(
-      environment.getServiceOptions('linking'),
-    );
-
-    this.accountService = new AccountService(
-      storage,
-      apiService,
-      this.deviceService,
-      this.ethService,
-      this.linkingService,
-    );
-
-    this.accountProviderService = new AccountProviderService(
-      environment.getServiceOptions('accountProvider'),
-      storage,
-      apiService,
-      this.accountService,
-      this.ethService,
-    );
-
-    this.accountProxyService = new AccountProxyService(
-      environment.getServiceOptions('accountProxy'),
-      apiService,
-      this.accountService,
-      this.deviceService,
-      this.ethService,
-    );
-
-    this.notificationService = new NotificationService(
-      apiService,
-      this.accountService,
-      this.deviceService,
-    );
-
-    this.faucetService = new FaucetService(storage, apiService, this.accountService);
-
-    this.secureService = new SecureService(
-      apiService,
-      this.deviceService,
-      this.linkingService,
-    );
-
-    this.sessionService = new SessionService(
-      apiService,
-      this.deviceService,
-    );
+  constructor(
+    public readonly state: IState,
+    public readonly accountService: IAccountService,
+    public readonly accountProviderService: IAccountProviderService,
+    public readonly accountProxyService: IAccountProxyService,
+    public readonly actionService: IActionService,
+    public readonly deviceService: IDeviceService,
+    public readonly ethService: IEthService,
+    public readonly eventService: IEventService,
+    public readonly faucetService: IFaucetService,
+    public readonly secureService: ISecureService,
+    public readonly sessionService: ISessionService,
+    public readonly urlService: IUrlService,
+  ) {
+    //
   }
 
   public async setup(): Promise<void> {
+    this.require({
+      uncompleted: true,
+    });
+
+    const { completed$ } = this.state;
+
+    await this.state.setup();
     await this.deviceService.setup();
-    await this.ethService.setup();
-    await this.sessionService.create();
-    await this.accountService.setup();
-    await this.accountProviderService.setup();
-    await this.linkingService.setup();
-    await this.notificationService.setup();
+    await this.sessionService.createSession();
+
+    completed$.next(true);
   }
 
   public async reset(): Promise<void> {
-    await this.deviceService.reset();
-    await this.sessionService.reset();
-    this.accountService.reset();
+    this.require();
   }
 
-  public createReduxMiddleware(): Middleware {
-    return (store: Store) => {
-      setTimeout(
-        () => {
-          merge(
-            this.accountService.account$.pipe(map(reduxActions.setAccount)),
-            this.accountService.accountBalance$.pipe(map(reduxActions.setAccountBalance)),
-            this.accountService.accountDevice$.pipe(map(reduxActions.setAccountDevice)),
-            this.accountProviderService.supportedEnsName$.pipe(map(reduxActions.setSupportedEnsName)),
-            this.deviceService.device$.pipe(map(reduxActions.setDevice)),
-            this.ethService.networkVersion$.pipe(map(reduxActions.setNetworkVersion)),
-            this.notificationService.connected$.pipe(map(reduxActions.setOnline)),
-          )
-            .subscribe(store.dispatch);
-        },
-        0,
-      );
+  public async getGasPrice(): Promise<IBN> {
+    return this.ethService.getGasPrice();
+  }
 
-      return next => action => next(action);
-    };
+  public async createAccount(ensName: string = null): Promise<boolean> {
+    this.require({
+      disconnectedAccount: true,
+    });
+
+    const account = await this.accountProviderService.createAccount(ensName);
+
+    return this.verifyAccount(account);
+  }
+
+  public async connectAccount(accountAddress: string): Promise<boolean> {
+    this.require({
+      disconnectedAccount: true,
+    });
+
+    const account = await this.accountService.getAccount(accountAddress);
+
+    return this.verifyAccount(account);
+  }
+
+  public async getAccounts(): Promise<IAccount[]> {
+    this.require();
+
+    return this.accountService.getAccounts();
+  }
+
+  public createRequestAddAccountDeviceUrl(options: { accountAddress?: string, endpoint?: string, callbackEndpoint?: string } = {}): string {
+    this.require({
+      disconnectedAccount: true,
+    });
+
+    const { deviceAddress } = this.state;
+    const action = this.actionService.createAction<actionPayload.IRequestAddAccountDevice>(ActionTypes.RequestAddAccountDevice, {
+      deviceAddress,
+      accountAddress: options.accountAddress || null,
+      callbackEndpoint: options.callbackEndpoint || null,
+    });
+
+    return this.urlService.buildActionUrl(action, options.endpoint || null);
+  }
+
+  private require(options: {
+    uncompleted?: boolean;
+    connectedAccount?: boolean;
+    disconnectedAccount?: boolean;
+  } = {}): void {
+    const { account, completed } = this.state;
+
+    if (!options.uncompleted && !completed) {
+      throw new Error('Setup uncompleted');
+    }
+    if (options.uncompleted && completed) {
+      throw new Error('Setup already completed');
+    }
+
+    if (options.connectedAccount && !account) {
+      throw new Error('Account disconnected');
+    }
+    if (options.disconnectedAccount && account) {
+      throw new Error('Account already connected');
+    }
+  }
+
+  private async verifyAccount(account: IAccount): Promise<boolean> {
+    let result = false;
+    const { account$, accountDevice$, deviceAddress } = this.state;
+
+    try {
+      if (account) {
+        account$.next(account);
+
+        const accountDevice = await this.accountService.getAccountDevice(deviceAddress);
+
+        if (accountDevice) {
+          account$.next(account);
+          accountDevice$.next(accountDevice);
+
+          result = true;
+        }
+      }
+
+    } catch (err) {
+      account$.next(null);
+      result = false;
+    }
+
+    return result;
   }
 }

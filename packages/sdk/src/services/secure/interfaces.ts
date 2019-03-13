@@ -1,9 +1,7 @@
-import { ILinkingService } from '../linking';
-
 export interface ISecureService {
-  createCodeUrl(): Promise<ILinkingService.TUrlCreator>;
+  createSecureCode(): Promise<string>;
 
-  signCode(creatorAddress: string, code: string): Promise<void>;
+  signSecureCode(creatorAddress: string, code: string): Promise<boolean>;
 
-  destroyCode(): Promise<void>;
+  destroySecureCode(): Promise<boolean>;
 }

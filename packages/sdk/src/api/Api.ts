@@ -2,16 +2,16 @@ import { jsonReplacer, jsonReviver } from '@netgum/utils';
 import { Subject } from 'rxjs';
 import { UniqueBehaviorSubject } from 'rxjs-addons';
 import { delay } from 'rxjs/operators';
-import { IApiService } from './interfaces';
+import { IApi } from './interfaces';
 import { ApiError } from './ApiError';
 
-export class ApiService implements IApiService {
+export class Api implements IApi {
   protected sessionToken$ = new UniqueBehaviorSubject<string>(null);
 
   private readonly wsEndpoint: string = null;
   private readonly httpEndpoint: string = null;
 
-  constructor(private options: IApiService.IOptions) {
+  constructor(private options: IApi.IOptions) {
     const { host, port, useSsl } = options;
 
     const endpointBase = `${useSsl ? 's' : ''}://${host || 'localhost'}${port ? `:${port}` : ''}`;
@@ -23,7 +23,7 @@ export class ApiService implements IApiService {
     this.sessionToken$.next(sessionToken || null);
   }
 
-  public buildWsSubjects(): IApiService.IWsSubjects {
+  public buildWsSubjects(): IApi.IWsSubjects {
     const connected$ = new UniqueBehaviorSubject<boolean>(null);
     const message$ = new Subject<any>();
     const reconnected$ = new Subject<boolean>();
@@ -95,7 +95,7 @@ export class ApiService implements IApiService {
     };
   }
 
-  public async sendHttpRequest<T = any, B = any>(req: IApiService.IHttpRequest<B>): Promise<T> {
+  public async sendHttpRequest<T = any, B = any>(req: IApi.IHttpRequest<B>): Promise<T> {
     const { method, path, body, dontUseReplacer } = req;
 
     let status: number = null;

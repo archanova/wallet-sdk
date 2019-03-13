@@ -1,5 +1,3 @@
-import { LinkingUrlTargets } from '@archanova/wallet-sdk';
-
 export const SET_SDK_SETUP_COMPLETED = 'SET_SDK_SETUP_COMPLETED';
 export const SET_SDK_REQUEST_URL = 'SET_SDK_REQUEST_URL';
 
@@ -18,7 +16,7 @@ export function setSdkRequestUrl(url) {
 
 export function createSdkRequestUrl() {
   return (dispatch, getState, sdk) => {
-    const url = sdk.accountService.requestAddAccountDevice()(LinkingUrlTargets.WalletIOS);
+    const url = 'test'//;
     dispatch(setSdkRequestUrl(url));
   };
 }

@@ -1,7 +1,5 @@
-import { TUniqueBehaviorSubject } from 'rxjs-addons';
 import { IBN } from 'bn.js';
 import { IDevice } from '../device';
-import { ILinkingService } from '../linking';
 import {
   AccountDeviceStates,
   AccountDeviceTypes,
@@ -10,38 +8,21 @@ import {
 } from './constants';
 
 export interface IAccountService {
-  readonly account$: TUniqueBehaviorSubject<IAccount>;
-  readonly account: IAccount;
-  readonly accountBalance$: TUniqueBehaviorSubject<IBN>;
-  readonly accountBalance: IBN;
-  readonly accountDevice$: TUniqueBehaviorSubject<IAccountDevice>;
-  readonly accountDevice: IAccountDevice;
-
-  setup(): Promise<void>;
-
-  reset(): void;
-
-  connectAccount(accountAddress: string): Promise<ILinkingService.TUrlCreator>;
+  getAccountAddressByEnsName(ensName: string): Promise<string>;
 
   getAccounts(): Promise<IAccount[]>;
 
-  getAccountDevice(): Promise<IAccountDevice[]>;
+  getAccount(accountAddress?: string): Promise<IAccount>;
+
+  getAccountDevices(): Promise<IAccountDevice[]>;
 
   getAccountTransactions(): Promise<IAccountTransaction[]>;
 
-  requestAddAccountDevice(accountAddress?: string): ILinkingService.TUrlCreator;
+  getAccountDevice(deviceAddress: string): Promise<IAccountDevice>;
 
   createAccountDevice(deviceAddress: string): Promise<boolean>;
 
   removeAccountDevice(deviceAddress: string): Promise<boolean>;
-
-  disconnectAccountDevice(): Promise<boolean>;
-
-  fetchAccount(): Promise<void>;
-
-  fetchAccountDevice(): Promise<void>;
-
-  lookupAccountAddress(ensName: string): Promise<string>;
 }
 
 export interface IAccount {
@@ -68,21 +49,4 @@ export interface IAccountTransaction {
   type: AccountTransactionTypes;
   value: IBN;
   updatedAt: any;
-}
-
-export namespace IAccountLinkingActions {
-  export enum Types {
-    AddAccountDeviceRequest = 'AddAccountDeviceRequest',
-    SignSecureCode = 'SignSecureCode',
-  }
-
-  export interface IAddAccountDeviceRequestPayload {
-    accountAddress: string;
-    deviceAddress: string;
-  }
-
-  export interface ISignSecureCodePayload {
-    creatorAddress: string;
-    code: string;
-  }
 }

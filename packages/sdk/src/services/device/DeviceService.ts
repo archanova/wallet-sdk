@@ -1,44 +1,36 @@
-import { UniqueBehaviorSubject } from 'rxjs-addons';
-import { generateRandomPrivateKey, privateToPublicKey, publicKeyToAddress, signPersonalMessage } from '@netgum/utils';
+import { generateRandomPrivateKey, privateKeyToAddress, signPersonalMessage } from '@netgum/utils';
+import { IState } from '../../state';
 import { IStorage } from '../../storage';
-import { IDeviceService, IDevice } from './interfaces';
+import { IDeviceService } from './interfaces';
 
 export class DeviceService implements IDeviceService {
   public static STORAGE_KEYS = {
     privateKey: 'DeviceService/privateKey',
   };
 
-  public device$ = new UniqueBehaviorSubject<IDevice>(null);
-
-  private publicKey: Buffer = null;
   private privateKey: Buffer = null;
 
   constructor(
+    private state: IState,
     private storage: IStorage,
   ) {
     //
   }
 
-  public get device(): IDevice {
-    return this.device$.getValue();
-  }
-
   public async setup(): Promise<void> {
-    let privateKey: Buffer = null;
-
     if (this.storage) {
-      privateKey = await this.storage.getItem<Buffer>(DeviceService.STORAGE_KEYS.privateKey);
+      this.privateKey = await this.storage.getItem<Buffer>(DeviceService.STORAGE_KEYS.privateKey);
     }
 
-    if (!privateKey) {
-      privateKey = generateRandomPrivateKey();
+    if (!this.privateKey) {
+      const privateKey = generateRandomPrivateKey();
 
       if (this.storage) {
         await this.storage.setItem(DeviceService.STORAGE_KEYS.privateKey, privateKey);
       }
-    }
 
-    this.setPrivateKey(privateKey);
+      this.setPrivateKey(privateKey);
+    }
   }
 
   public async reset(): Promise<void> {
@@ -56,11 +48,11 @@ export class DeviceService implements IDeviceService {
   }
 
   private setPrivateKey(privateKey: Buffer): void {
+    const { device$ } = this.state;
     this.privateKey = privateKey;
-    this.publicKey = privateToPublicKey(privateKey);
-    const address = publicKeyToAddress(this.publicKey);
+    const address = privateKeyToAddress(this.privateKey);
 
-    this.device$.next({
+    device$.next({
       address,
     });
   }

@@ -1,6 +1,6 @@
 import { Environment } from './Environment';
 
-export const availableEnviroments = {
+export const availableEnvironments = {
   development: new Environment({
     api: {
       host: 'api.development.archanova.run',
@@ -17,6 +17,6 @@ export const availableEnviroments = {
     eth: {
       providerEndpoint: 'https://eth.development.archanova.run',
     },
-    linking: {},
+    url: {},
   }),
 };

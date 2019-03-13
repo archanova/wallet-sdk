@@ -2,82 +2,79 @@ import { IBN } from 'bn.js';
 import { from } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { UniqueBehaviorSubject } from 'rxjs-addons';
+import { IApi } from '../../api';
+import { IState } from '../../state';
 import { IStorage } from '../../storage';
-import { IApiService } from '../api';
-import { IAccount, IAccountService } from '../account';
-import { IFaucetService } from './interfaces';
+import { IFaucetService, IFaucet } from './interfaces';
 
 export class FaucetService implements IFaucetService {
-  public static STORAGE_NAMESPACES = {
-    unlockedTo: 'FaucetService/unlockedTo',
-  };
+  public static STORAGE_NAMESPACE = 'FaucetService';
 
   public unlockedTo$ = new UniqueBehaviorSubject<number>();
 
   constructor(
+    private api: IApi,
+    private state: IState,
     private storage: IStorage,
-    private apiService: IApiService,
-    private accountService: IAccountService,
   ) {
-    this
-      .accountService
+    state
       .account$
       .pipe(
-        switchMap(account => from(this.getAccountUnlockedTo(account))),
+        switchMap(account => from(this.loadState())),
       )
-      .subscribe(this.unlockedTo$);
+      .subscribe(state.faucet$);
   }
 
   public get unlockedTo(): number {
     return this.unlockedTo$.getValue();
   }
 
-  public async getFunds(): Promise<IBN> {
-    let result: IBN = null;
-    const { account } = this.accountService;
+  public async getFunds(): Promise<IFaucet> {
+    let result: IFaucet = null;
+    const { accountAddress, faucet, faucet$ } = this.state;
 
     if (
-      account && (
-        !this.unlockedTo ||
-        this.unlockedTo < Date.now()
+      accountAddress && (
+        !faucet ||
+        faucet.lockedTo < Date.now()
       )
     ) {
-      const receipt = await this.sendGetFunds(account.address);
+      const { value, ...receipt } = await this.api.sendHttpRequest<{
+        hash: string;
+        value: IBN;
+        calledAt: number;
+        lockedTo: number;
+      }>({
+        method: 'POST',
+        path: `faucet/${accountAddress}`,
+        body: {},
+      });
+
       const calledAt = Date.now();
-      const unlockedTo = calledAt + receipt.unlockedTo - receipt.calledAt;
 
-      await this.setAccountUnlockedTo(account, unlockedTo);
+      result = {
+        value,
+        lockedTo: calledAt + receipt.lockedTo - receipt.calledAt,
+      };
 
-      this.unlockedTo$.next(unlockedTo);
+      await this.storage.setItem<IFaucet>(`${FaucetService.STORAGE_NAMESPACE}/${accountAddress}`, result);
 
-      result = receipt.value;
+      faucet$.next(result);
     }
 
     return result;
   }
 
-  private sendGetFunds(accountAddress: string): Promise<IFaucetService.IReceipt> {
-    return this.apiService.sendHttpRequest<IFaucetService.IReceipt>({
-      method: 'POST',
-      path: `faucet/${accountAddress}`,
-      body: {},
-    });
-  }
+  private async loadState(): Promise<IFaucet> {
+    let result: IFaucet = null;
+    const { accountAddress } = this.state;
 
-  private async getAccountUnlockedTo(account: IAccount): Promise<number> {
-    let result = 0;
-    if (account) {
-      result = await this.storage.getItem<number>(
-        `${FaucetService.STORAGE_NAMESPACES.unlockedTo}/${account.address}`,
+    if (accountAddress) {
+      result = await this.storage.getItem<IFaucet>(
+        `${FaucetService.STORAGE_NAMESPACE}/${accountAddress}`,
       );
     }
-    return result || 0;
-  }
 
-  private setAccountUnlockedTo(account: IAccount, unlockedTo: number): Promise<void> {
-    return this.storage.setItem<number>(
-      `${FaucetService.STORAGE_NAMESPACES.unlockedTo}/${account.address}`,
-      unlockedTo,
-    );
+    return result || null;
   }
 }

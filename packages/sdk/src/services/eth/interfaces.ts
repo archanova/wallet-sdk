@@ -1,11 +1,7 @@
-import { TUniqueBehaviorSubject } from 'rxjs-addons';
 import { IBN } from 'bn.js';
 
 export interface IEthService {
-  readonly networkVersion$: TUniqueBehaviorSubject<string>;
-  readonly networkVersion: string;
-
-  setup(): Promise<void>;
+  detectNetwork(force?: boolean): Promise<void>;
 
   getGasPrice(): Promise<IBN>;
 

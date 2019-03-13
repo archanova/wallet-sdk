@@ -1,30 +1,30 @@
+import { IApi } from '../api';
 import {
-  IApiService,
   IAccountProviderService,
   IAccountProxyService,
   IEthService,
-  ILinkingService,
+  IUrlService,
 } from '../services';
 
 export interface IEnvironment {
-  getServiceOptions<K extends IEnvironment.TServiceKeys>(
-    serviceKey: K,
-  ): IEnvironment.IServicesOptions[K];
+  getOptions<K extends IEnvironment.TKeys>(
+    key: K,
+  ): IEnvironment.IOptions[K];
 
-  extendServiceOptions<K extends IEnvironment.TServiceKeys>(
-    serviceKey: K,
-    serviceOptions: Partial<IEnvironment.IServicesOptions[K]>,
+  extendOptions<K extends IEnvironment.TKeys>(
+    key: K,
+    options: Partial<IEnvironment.IOptions[K]>,
   ): IEnvironment;
 }
 
 export namespace IEnvironment {
-  export type TServiceKeys = keyof IServicesOptions;
+  export type TKeys = keyof IOptions;
 
-  export interface IServicesOptions {
-    api: IApiService.IOptions;
+  export interface IOptions {
+    api: IApi.IOptions;
     accountProvider: IAccountProviderService.IOptions;
     accountProxy: IAccountProxyService.IOptions;
     eth: IEthService.IOptions;
-    linking: ILinkingService.IOptions;
+    url: IUrlService.IOptions;
   }
 }

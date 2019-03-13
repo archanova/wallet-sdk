@@ -1,7 +1,8 @@
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { ActionTypes } from './constants';
 
 export interface IAction<T = any> {
-  type: number;
+  type: ActionTypes;
   payload: T;
   timestamp: number;
 }
@@ -12,4 +13,8 @@ export interface IActionService {
   $accepted: Subject<IAction>;
 
   acceptAction(action: IAction): void;
+
+  createAction<T = any>(type: ActionTypes, payload: T): IAction<T>;
+
+  ofType<T = any>(type: ActionTypes): Observable<T>;
 }

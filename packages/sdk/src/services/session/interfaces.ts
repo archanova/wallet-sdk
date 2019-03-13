@@ -1,10 +1,5 @@
-import { TUniqueBehaviorSubject } from 'rxjs-addons';
-
 export interface ISessionService {
-  readonly ready$: TUniqueBehaviorSubject<boolean>;
-  readonly ready: boolean;
+  createSession(): Promise<void>;
 
-  create(): Promise<void>;
-
-  reset(): Promise<void>;
+  resetSession(): Promise<void>;
 }

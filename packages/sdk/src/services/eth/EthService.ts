@@ -2,6 +2,7 @@ import { targetToAddress } from '@netgum/utils';
 import { UniqueBehaviorSubject } from 'rxjs-addons';
 import * as BN from 'bn.js';
 import * as Eth from 'ethjs';
+import { IState } from '../../state';
 import { IStorage } from '../../storage';
 import { EthError } from './EthError';
 import { IEthService } from './interfaces';
@@ -15,6 +16,7 @@ export class EthService implements IEthService {
 
   constructor(
     options: IEthService.IOptions,
+    private state: IState,
     private storage: IStorage,
     private readonly eth: Eth.IEth = null,
   ) {
@@ -46,37 +48,16 @@ export class EthService implements IEthService {
     }
   }
 
-  public get networkVersion(): string {
-    return this.networkVersion$.getValue();
-  }
+  public async detectNetwork(force = false): Promise<void> {
+    const { network, network$ } = this.state;
 
-  public async setup(): Promise<void> {
-    let storageNetworkVersion: string = null;
+    if (!network || force) {
+      const network = await this.eth.net_version();
 
-    if (this.storage) {
-      storageNetworkVersion = await this.storage.getItem<string>(EthService.STORAGE_KEYS.networkVersion);
-    }
-
-    let networkVersion: string = null;
-
-    if (!networkVersion) {
-      networkVersion = await this.eth.net_version();
-    } else {
-      try {
-        networkVersion = await this.eth.net_version();
-      } catch (err) {
-        networkVersion = storageNetworkVersion;
+      if (network) {
+        network$.next(network);
       }
     }
-
-    if (
-      this.storage &&
-      (!storageNetworkVersion || storageNetworkVersion !== networkVersion)
-    ) {
-      await this.storage.setItem(EthService.STORAGE_KEYS.networkVersion, networkVersion);
-    }
-
-    this.networkVersion$.next(networkVersion);
   }
 
   public getGasPrice(): Promise<BN.IBN> {

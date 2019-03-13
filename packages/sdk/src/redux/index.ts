@@ -1,9 +1,4 @@
-import * as reduxActions from './actions';
-import reduxReducer from './reducer';
-
+export * from './constants';
 export * from './interfaces';
-
-export {
-  reduxActions,
-  reduxReducer,
-};
+export * from './middleware';
+export * from './reducer';

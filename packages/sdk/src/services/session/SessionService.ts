@@ -1,53 +1,27 @@
 import { anyToHex } from '@netgum/utils';
-import { UniqueBehaviorSubject } from 'rxjs-addons';
-import { IApiService } from '../api';
+import { IApi } from '../../api';
+import { IState } from '../../state';
 import { IDeviceService } from '../device';
 import { ISessionService } from './interfaces';
 
 export class SessionService implements ISessionService {
-  public readonly ready$ = new UniqueBehaviorSubject<boolean>(false);
-
   constructor(
-    private apiService: IApiService,
+    private api: IApi,
+    private state: IState,
     private deviceService: IDeviceService,
   ) {
     //
   }
 
-  public get ready(): boolean {
-    return this.ready$.getValue();
-  }
+  public async createSession(): Promise<void> {
+    const { deviceAddress, ready$, ready } = this.state;
 
-  public async create(): Promise<void> {
-    if (this.ready) {
+    if (ready) {
       throw new Error('Session already created');
     }
 
-    const code = await this.sendCreateCode();
-    const token = await this.sendCreateToken(code);
-
-    this.apiService.setSessionToken(token);
-
-    this.ready$.next(true);
-  }
-
-  public async reset(): Promise<void> {
-    if (!this.ready) {
-      await this.create();
-      return;
-    }
-
-    this.ready$.next(false);
-
-    await this.sendDestroy();
-
-    this.apiService.setSessionToken();
-
-    await this.create();
-  }
-
-  private async sendCreateCode(): Promise<string> {
-    const { code } = await this.apiService.sendHttpRequest<{
+    // create session code
+    const { code } = await this.api.sendHttpRequest<{
       code: string;
     }, {
       deviceAddress: string;
@@ -55,19 +29,16 @@ export class SessionService implements ISessionService {
       method: 'POST',
       path: 'auth',
       body: {
-        deviceAddress: this.deviceService.device.address,
+        deviceAddress,
       },
     });
 
-    return code;
-  }
-
-  private async sendCreateToken(code: string): Promise<string> {
     const signature = anyToHex(await this.deviceService.signPersonalMessage(code), {
       add0x: true,
     });
 
-    const { token } = await this.apiService.sendHttpRequest<{
+    // create session token
+    const { token } = await this.api.sendHttpRequest<{
       token: string;
     }, {
       code: string;
@@ -81,17 +52,30 @@ export class SessionService implements ISessionService {
       },
     });
 
-    return token;
+    this.api.setSessionToken(token);
+
+    ready$.next(true);
   }
 
-  private async sendDestroy(): Promise<boolean> {
-    const { success } = await this.apiService.sendHttpRequest<{
+  public async resetSession(): Promise<void> {
+    const { ready, ready$ } = this.state;
+
+    if (!ready) {
+      await this.createSession();
+      return;
+    }
+
+    ready$.next(false);
+
+    await this.api.sendHttpRequest<{
       success: boolean;
     }>({
       method: 'DELETE',
       path: 'auth',
     });
 
-    return success;
+    this.api.setSessionToken();
+
+    await this.createSession();
   }
 }
