@@ -94,11 +94,14 @@ export class Sdk implements ISdk {
     });
 
     const { deviceAddress } = this.state;
-    const action = this.actionService.createAction<actionPayload.IRequestAddAccountDevice>(ActionTypes.RequestAddAccountDevice, {
-      deviceAddress,
-      accountAddress: options.accountAddress || null,
-      callbackEndpoint: options.callbackEndpoint || null,
-    });
+    const action = this.actionService.createAction<actionPayload.IRequestAddAccountDevice>(
+      ActionTypes.RequestAddAccountDevice,
+      {
+        deviceAddress,
+        accountAddress: options.accountAddress || null,
+        callbackEndpoint: options.callbackEndpoint || null,
+      },
+    );
 
     return this.urlService.buildActionUrl(action, options.endpoint || null);
   }
@@ -140,6 +143,8 @@ export class Sdk implements ISdk {
           accountDevice$.next(accountDevice);
 
           result = true;
+        } else {
+          account$.next(null);
         }
       }
 
