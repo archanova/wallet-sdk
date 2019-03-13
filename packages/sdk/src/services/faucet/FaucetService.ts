@@ -1,7 +1,6 @@
 import { IBN } from 'bn.js';
 import { from } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { UniqueBehaviorSubject } from 'rxjs-addons';
 import { IApi } from '../../api';
 import { IState } from '../../state';
 import { IStorage } from '../../storage';
@@ -9,8 +8,6 @@ import { IFaucetService, IFaucet } from './interfaces';
 
 export class FaucetService implements IFaucetService {
   public static STORAGE_NAMESPACE = 'FaucetService';
-
-  public unlockedTo$ = new UniqueBehaviorSubject<number>();
 
   constructor(
     private api: IApi,
@@ -20,13 +17,9 @@ export class FaucetService implements IFaucetService {
     state
       .account$
       .pipe(
-        switchMap(account => from(this.loadState())),
+        switchMap(() => from(this.getState())),
       )
       .subscribe(state.faucet$);
-  }
-
-  public get unlockedTo(): number {
-    return this.unlockedTo$.getValue();
   }
 
   public async getFunds(): Promise<IFaucet> {
@@ -57,7 +50,9 @@ export class FaucetService implements IFaucetService {
         lockedTo: calledAt + receipt.lockedTo - receipt.calledAt,
       };
 
-      await this.storage.setItem<IFaucet>(`${FaucetService.STORAGE_NAMESPACE}/${accountAddress}`, result);
+      if (this.storage) {
+        await this.storage.setItem<IFaucet>(`${FaucetService.STORAGE_NAMESPACE}/${accountAddress}`, result);
+      }
 
       faucet$.next(result);
     }
@@ -65,11 +60,15 @@ export class FaucetService implements IFaucetService {
     return result;
   }
 
-  private async loadState(): Promise<IFaucet> {
+  private async getState(): Promise<IFaucet> {
     let result: IFaucet = null;
+
     const { accountAddress } = this.state;
 
-    if (accountAddress) {
+    if (
+      this.storage &&
+      accountAddress
+    ) {
       result = await this.storage.getItem<IFaucet>(
         `${FaucetService.STORAGE_NAMESPACE}/${accountAddress}`,
       );
