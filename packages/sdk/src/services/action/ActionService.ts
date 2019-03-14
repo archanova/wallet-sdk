@@ -1,10 +1,10 @@
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { IAction, IActionService } from './interfaces';
 import { ActionTypes } from './constants';
 
 export class ActionService implements IActionService {
-  public $incoming = new Subject<IAction>();
+  public $incoming = new BehaviorSubject<IAction>(null);
   public $accepted = new Subject<IAction>();
 
   constructor(private options: IActionService.IOptions = {}) {
@@ -24,9 +24,16 @@ export class ActionService implements IActionService {
     }
   }
 
-  public acceptAction(action: IAction): void {
-    this.$incoming.next(null);
-    this.$accepted.next(action);
+  public acceptAction(action: IAction = null): void {
+    if (!action) {
+      action = this.$incoming.getValue();
+      if (action) {
+        this.$incoming.next(null);
+      }
+    }
+    if (action) {
+      this.$accepted.next(action);
+    }
   }
 
   public dismissAction(): void {

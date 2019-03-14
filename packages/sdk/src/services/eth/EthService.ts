@@ -1,5 +1,4 @@
 import { targetToAddress } from '@netgum/utils';
-import { UniqueBehaviorSubject } from 'rxjs-addons';
 import * as BN from 'bn.js';
 import * as Eth from 'ethjs';
 import { IState } from '../../state';
@@ -7,12 +6,6 @@ import { EthError } from './EthError';
 import { IEthService } from './interfaces';
 
 export class EthService implements IEthService {
-  public static STORAGE_KEYS = {
-    networkVersion: 'EthService/networkVersion',
-  };
-
-  public readonly networkVersion$ = new UniqueBehaviorSubject<string>(null);
-
   constructor(
     options: IEthService.IOptions,
     private state: IState,
@@ -46,16 +39,21 @@ export class EthService implements IEthService {
     }
   }
 
-  public async detectNetwork(force = false): Promise<void> {
-    const { network, network$ } = this.state;
+  public async detectNetworkVersion(force = false): Promise<string> {
+    const { networkVersion$ } = this.state;
+    let { networkVersion } = this.state;
+    let result: string = networkVersion || null;
 
-    if (!network || force) {
-      const network = await this.eth.net_version();
+    if (!networkVersion || force) {
+      networkVersion = await this.eth.net_version();
 
-      if (network) {
-        network$.next(network);
+      if (networkVersion) {
+        networkVersion$.next(networkVersion);
+        result = networkVersion;
       }
     }
+
+    return result;
   }
 
   public getGasPrice(): Promise<BN.IBN> {

@@ -10,6 +10,8 @@ export interface IReduxState {
   accountBalance: IBN;
   accountDevice: IAccountDevice;
   device: IDevice;
-  online: boolean;
-  supportedEnsName: string;
+  networkVersion: string;
+  initialized: boolean;
+  authenticated: boolean;
+  connected: boolean;
 }

@@ -3,8 +3,9 @@ export enum ReduxActionTypes {
   SetAccountBalance = '@archanova/wallet-sdk/SetAccountBalance',
   SetAccountDevice = '@archanova/wallet-sdk/SetAccountDevice',
   SetDevice = '@archanova/wallet-sdk/SetDevice',
-  SetNetwork = '@archanova/wallet-sdk/SetNetwork',
+  SetNetworkVersion = '@archanova/wallet-sdk/SetNetworkVersion',
   SetInitialized = '@archanova/wallet-sdk/SetInitialized',
   SetAuthenticated = '@archanova/wallet-sdk/SetAuthenticated',
   SetConnected = '@archanova/wallet-sdk/SetConnected',
+  SetIncomingAction = '@archanova/wallet-sdk/SetIncomingAction',
 }

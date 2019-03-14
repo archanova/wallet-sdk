@@ -7,7 +7,7 @@ export interface IState {
   readonly accountDevice$: Subject<IAccountDevice>;
   readonly accountBalance$: Subject<IBN>;
   readonly device$: Subject<IDevice>;
-  readonly network$: Subject<string>;
+  readonly networkVersion$: Subject<string>;
   readonly initialized$: Subject<boolean>;
   readonly authenticated$: Subject<boolean>;
   readonly connected$: Subject<boolean>;
@@ -18,11 +18,10 @@ export interface IState {
   readonly accountBalance: IBN;
   readonly device: IDevice;
   readonly deviceAddress: string;
-  readonly network: string;
+  readonly networkVersion: string;
   readonly initialized: boolean;
   readonly authenticated: boolean;
   readonly connected: boolean;
-
 
   setup(): Promise<void>;
 

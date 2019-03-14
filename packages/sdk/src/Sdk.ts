@@ -1,4 +1,6 @@
 import { IBN } from 'bn.js';
+import { from, of, timer } from 'rxjs';
+import { switchMap, filter, map, tap, takeUntil } from 'rxjs/operators';
 import { ISdk } from './interfaces';
 import {
   IAccount,
@@ -58,7 +60,15 @@ export class Sdk implements ISdk {
     await this.sessionService.createSession();
     this.urlService.setup();
 
+    this.subscribeAccountBalance();
+
     initialized$.next(true);
+  }
+
+  public async reset(): Promise<void> {
+    this.require();
+
+    await this.state.reset();
   }
 
   public async getGasPrice(): Promise<IBN> {
@@ -157,5 +167,24 @@ export class Sdk implements ISdk {
     }
 
     return result;
+  }
+
+  private subscribeAccountBalance(): void {
+    const { account$, accountBalance$ } = this.state;
+
+    account$
+      .pipe(
+        filter(account => !!account),
+        switchMap(account => account
+          ? timer(0, 5000)
+            .pipe(
+              switchMap(() => from(this.ethService.getBalance(account).catch(() => null))),
+              filter(balance => !!balance),
+              takeUntil(account$.pipe(filter(account => !account))),
+            )
+          : of(null),
+        ),
+      )
+      .subscribe(accountBalance$);
   }
 }

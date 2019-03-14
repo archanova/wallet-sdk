@@ -7,8 +7,9 @@ export const reduxReducer = combineReducers({
   accountBalance: createReducer(ReduxActionTypes.SetAccountBalance),
   accountDevice: createReducer(ReduxActionTypes.SetAccountDevice),
   device: createReducer(ReduxActionTypes.SetDevice),
-  network: createReducer(ReduxActionTypes.SetNetwork),
+  networkVersion: createReducer(ReduxActionTypes.SetNetworkVersion),
   initialized: createReducer(ReduxActionTypes.SetInitialized),
   authenticated: createReducer(ReduxActionTypes.SetAuthenticated),
   connected: createReducer(ReduxActionTypes.SetConnected),
+  incomingAction: createReducer(ReduxActionTypes.SetIncomingAction),
 }) as any;

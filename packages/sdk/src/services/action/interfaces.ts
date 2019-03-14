@@ -14,7 +14,7 @@ export interface IActionService {
 
   setup(): void;
 
-  acceptAction(action: IAction): void;
+  acceptAction(action?: IAction): void;
 
   dismissAction(): void;
 

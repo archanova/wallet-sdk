@@ -9,17 +9,18 @@ export function createReduxMiddleware(sdk: ISdk): Middleware {
   return (store: Store) => {
     setTimeout(
       () => {
-        const { state } = sdk;
+        const { state, actionService } = sdk;
 
         merge(
           state.account$.pipe(map(createActionCreator(ReduxActionTypes.SetAccount))),
           state.accountDevice$.pipe(map(createActionCreator(ReduxActionTypes.SetAccountDevice))),
           state.accountBalance$.pipe(map(createActionCreator(ReduxActionTypes.SetAccountBalance))),
           state.device$.pipe(map(createActionCreator(ReduxActionTypes.SetDevice))),
-          state.network$.pipe(map(createActionCreator(ReduxActionTypes.SetNetwork))),
+          state.networkVersion$.pipe(map(createActionCreator(ReduxActionTypes.SetNetworkVersion))),
           state.initialized$.pipe(map(createActionCreator(ReduxActionTypes.SetInitialized))),
           state.authenticated$.pipe(map(createActionCreator(ReduxActionTypes.SetAuthenticated))),
           state.connected$.pipe(map(createActionCreator(ReduxActionTypes.SetConnected))),
+          actionService.$incoming.pipe(map(createActionCreator(ReduxActionTypes.SetIncomingAction))),
         )
           .subscribe(store.dispatch);
       },

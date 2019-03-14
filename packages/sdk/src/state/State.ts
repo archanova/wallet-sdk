@@ -12,7 +12,7 @@ export class State implements IState {
   public accountDevice$ = new UniqueBehaviorSubject<IAccountDevice>();
   public accountBalance$ = new UniqueBehaviorSubject<IBN>();
   public device$ = new UniqueBehaviorSubject<IDevice>();
-  public network$ = new UniqueBehaviorSubject<string>();
+  public networkVersion$ = new UniqueBehaviorSubject<string>();
   public initialized$ = new UniqueBehaviorSubject<boolean>(false);
   public authenticated$ = new UniqueBehaviorSubject<boolean>(false);
   public connected$ = new UniqueBehaviorSubject<boolean>(null);
@@ -43,8 +43,8 @@ export class State implements IState {
     return this.device ? this.device.address : null;
   }
 
-  public get network(): string {
-    return this.network$.getValue();
+  public get networkVersion(): string {
+    return this.networkVersion$.getValue();
   }
 
   public get initialized(): boolean {
@@ -69,25 +69,13 @@ export class State implements IState {
     await Promise.all([
       this.attachToStorage(this.account$, 'account'),
       this.attachToStorage(this.accountDevice$, 'accountDevice'),
-      this.attachToStorage(this.network$, 'network'),
+      this.attachToStorage(this.networkVersion$, 'networkVersion'),
     ]);
   }
 
   public reset(): void {
-    for (const subscription of this.subscriptions) {
-      subscription.unsubscribe();
-    }
-
-    this.subscriptions = [];
-
     this.account$.next(null);
     this.accountDevice$.next(null);
-    this.accountBalance$.next(null);
-    this.device$.next(null);
-    this.network$.next(null);
-    this.initialized$.next(false);
-    this.authenticated$.next(false);
-    this.connected$.next(null);
   }
 
   private async attachToStorage(subject: TUniqueBehaviorSubject, key: string): Promise<void> {

@@ -1,7 +1,7 @@
 import { IBN } from 'bn.js';
 
 export interface IEthService {
-  detectNetwork(force?: boolean): Promise<void>;
+  detectNetworkVersion(force?: boolean): Promise<string>;
 
   getGasPrice(): Promise<IBN>;
 
