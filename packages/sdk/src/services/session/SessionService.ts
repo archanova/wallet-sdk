@@ -14,9 +14,9 @@ export class SessionService implements ISessionService {
   }
 
   public async createSession(): Promise<void> {
-    const { deviceAddress, ready$, ready } = this.state;
+    const { deviceAddress, authenticated$, authenticated } = this.state;
 
-    if (ready) {
+    if (authenticated) {
       throw new Error('Session already created');
     }
 
@@ -54,18 +54,18 @@ export class SessionService implements ISessionService {
 
     this.api.setSessionToken(token);
 
-    ready$.next(true);
+    authenticated$.next(true);
   }
 
   public async resetSession(): Promise<void> {
-    const { ready, ready$ } = this.state;
+    const { authenticated$, authenticated } = this.state;
 
-    if (!ready) {
+    if (!authenticated) {
       await this.createSession();
       return;
     }
 
-    ready$.next(false);
+    authenticated$.next(false);
 
     await this.api.sendHttpRequest<{
       success: boolean;

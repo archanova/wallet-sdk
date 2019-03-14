@@ -23,33 +23,33 @@ export class DeviceService implements IDeviceService {
     }
 
     if (!this.privateKey) {
-      const privateKey = generateRandomPrivateKey();
+      this.privateKey = generateRandomPrivateKey();
 
       if (this.storage) {
-        await this.storage.setItem(DeviceService.STORAGE_KEYS.privateKey, privateKey);
+        await this.storage.setItem(DeviceService.STORAGE_KEYS.privateKey, this.privateKey);
       }
 
-      this.setPrivateKey(privateKey);
     }
+
+    this.createDevice();
   }
 
   public async reset(): Promise<void> {
-    const privateKey = generateRandomPrivateKey();
+    this.privateKey = generateRandomPrivateKey();
 
     if (this.storage) {
-      await this.storage.setItem(DeviceService.STORAGE_KEYS.privateKey, privateKey);
+      await this.storage.setItem(DeviceService.STORAGE_KEYS.privateKey, this.privateKey);
     }
 
-    this.setPrivateKey(privateKey);
+    this.createDevice();
   }
 
   public async signPersonalMessage(message: string | Buffer): Promise<Buffer> {
     return signPersonalMessage(message, this.privateKey);
   }
 
-  private setPrivateKey(privateKey: Buffer): void {
+  private createDevice(): void {
     const { device$ } = this.state;
-    this.privateKey = privateKey;
     const address = privateKeyToAddress(this.privateKey);
 
     device$.next({

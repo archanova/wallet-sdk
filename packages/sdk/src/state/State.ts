@@ -2,7 +2,7 @@ import { IBN } from 'bn.js';
 import { from, Subscription } from 'rxjs';
 import { UniqueBehaviorSubject, TUniqueBehaviorSubject } from 'rxjs-addons';
 import { skip, switchMap } from 'rxjs/operators';
-import { IAccount, IAccountDevice, IDevice, IFaucet } from '../services';
+import { IAccount, IAccountDevice, IDevice } from '../services';
 import { IStorage } from '../storage';
 import { IState } from './interfaces';
 
@@ -13,11 +13,10 @@ export class State implements IState {
   public accountDevice$ = new UniqueBehaviorSubject<IAccountDevice>();
   public accountBalance$ = new UniqueBehaviorSubject<IBN>();
   public device$ = new UniqueBehaviorSubject<IDevice>();
-  public faucet$ = new UniqueBehaviorSubject<IFaucet>();
   public network$ = new UniqueBehaviorSubject<string>();
-  public completed$ = new UniqueBehaviorSubject<boolean>(false);
-  public ready$ = new UniqueBehaviorSubject<boolean>(false);
-  public online$ = new UniqueBehaviorSubject<boolean>(null);
+  public initialized$ = new UniqueBehaviorSubject<boolean>(false);
+  public authenticated$ = new UniqueBehaviorSubject<boolean>(false);
+  public connected$ = new UniqueBehaviorSubject<boolean>(null);
 
   private subscriptions: Subscription[] = [];
 
@@ -45,24 +44,20 @@ export class State implements IState {
     return this.device ? this.device.address : null;
   }
 
-  public get faucet(): IFaucet {
-    return this.faucet$.getValue();
-  }
-
   public get network(): string {
     return this.network$.getValue();
   }
 
-  public get completed(): boolean {
-    return this.completed$.getValue();
+  public get initialized(): boolean {
+    return this.initialized$.getValue();
   }
 
-  public get ready(): boolean {
-    return this.ready$.getValue();
+  public get authenticated(): boolean {
+    return this.authenticated$.getValue();
   }
 
-  public get online(): boolean {
-    return this.online$.getValue();
+  public get connected(): boolean {
+    return this.connected$.getValue();
   }
 
   constructor(public storage: IStorage) {
@@ -77,7 +72,6 @@ export class State implements IState {
         this.attachToStorage(this.account$, 'account'),
         this.attachToStorage(this.accountDevice$, 'accountDevice'),
         this.attachToStorage(this.network$, 'network'),
-        this.attachToStorage(this.device$, 'device'),
       ]);
     }
   }
@@ -93,15 +87,16 @@ export class State implements IState {
     this.accountDevice$.next(null);
     this.accountBalance$.next(null);
     this.device$.next(null);
-    this.faucet$.next(null);
     this.network$.next(null);
-    this.completed$.next(false);
-    this.ready$.next(false);
-    this.online$.next(null);
+    this.initialized$.next(false);
+    this.authenticated$.next(false);
+    this.connected$.next(null);
   }
 
   private async attachToStorage(subject: TUniqueBehaviorSubject, key: string): Promise<void> {
-    const value = await this.storage.getItem(`${State.STORAGE_NAMESPACE}/${key}`);
+    key = `${State.STORAGE_NAMESPACE}/${key}`;
+
+    const value = await this.storage.getItem(key);
     if (value) {
       subject.next(value);
     }

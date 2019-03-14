@@ -40,22 +40,18 @@ export class Sdk implements ISdk {
     //
   }
 
-  public async setup(): Promise<void> {
+  public async initialize(): Promise<void> {
     this.require({
-      uncompleted: true,
+      notInitialized: true,
     });
 
-    const { completed$ } = this.state;
+    const { initialized$ } = this.state;
 
     await this.state.setup();
     await this.deviceService.setup();
     await this.sessionService.createSession();
 
-    completed$.next(true);
-  }
-
-  public async reset(): Promise<void> {
-    this.require();
+    initialized$.next(true);
   }
 
   public async getGasPrice(): Promise<IBN> {
@@ -107,16 +103,16 @@ export class Sdk implements ISdk {
   }
 
   private require(options: {
-    uncompleted?: boolean;
+    notInitialized?: boolean;
     connectedAccount?: boolean;
     disconnectedAccount?: boolean;
   } = {}): void {
-    const { account, completed } = this.state;
+    const { account, initialized } = this.state;
 
-    if (!options.uncompleted && !completed) {
+    if (!options.notInitialized && !initialized) {
       throw new Error('Setup uncompleted');
     }
-    if (options.uncompleted && completed) {
+    if (options.notInitialized && initialized) {
       throw new Error('Setup already completed');
     }
 

@@ -1,37 +1,22 @@
 import { IBN } from 'bn.js';
-import { from } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
 import { IApi } from '../../api';
 import { IState } from '../../state';
-import { IStorage } from '../../storage';
-import { IFaucetService, IFaucet } from './interfaces';
+import { IFaucetService } from './interfaces';
 
 export class FaucetService implements IFaucetService {
-  public static STORAGE_NAMESPACE = 'FaucetService';
 
   constructor(
     private api: IApi,
     private state: IState,
-    private storage: IStorage,
   ) {
-    state
-      .account$
-      .pipe(
-        switchMap(() => from(this.getState())),
-      )
-      .subscribe(state.faucet$);
+    //
   }
 
-  public async getFunds(): Promise<IFaucet> {
-    let result: IFaucet = null;
-    const { accountAddress, faucet, faucet$ } = this.state;
+  public async getFunds(): Promise<IFaucetService.IReceipt> {
+    let result: IFaucetService.IReceipt = null;
+    const { accountAddress } = this.state;
 
-    if (
-      accountAddress && (
-        !faucet ||
-        faucet.lockedTo < Date.now()
-      )
-    ) {
+    if (accountAddress) {
       const { value, ...receipt } = await this.api.sendHttpRequest<{
         hash: string;
         value: IBN;
@@ -49,31 +34,8 @@ export class FaucetService implements IFaucetService {
         value,
         lockedTo: calledAt + receipt.lockedTo - receipt.calledAt,
       };
-
-      if (this.storage) {
-        await this.storage.setItem<IFaucet>(`${FaucetService.STORAGE_NAMESPACE}/${accountAddress}`, result);
-      }
-
-      faucet$.next(result);
     }
 
     return result;
-  }
-
-  private async getState(): Promise<IFaucet> {
-    let result: IFaucet = null;
-
-    const { accountAddress } = this.state;
-
-    if (
-      this.storage &&
-      accountAddress
-    ) {
-      result = await this.storage.getItem<IFaucet>(
-        `${FaucetService.STORAGE_NAMESPACE}/${accountAddress}`,
-      );
-    }
-
-    return result || null;
   }
 }

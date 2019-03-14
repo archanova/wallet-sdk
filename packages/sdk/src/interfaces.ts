@@ -29,9 +29,7 @@ export interface ISdk {
   readonly sessionService: ISessionService;
   readonly urlService: IUrlService;
 
-  setup(): Promise<void>;
-
-  reset(): Promise<void>;
+  initialize(): Promise<void>;
 
   getGasPrice(): Promise<IBN>;
 

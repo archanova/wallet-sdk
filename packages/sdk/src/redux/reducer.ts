@@ -7,9 +7,8 @@ export const reduxReducer = combineReducers({
   accountBalance: createReducer(ReduxActionTypes.SetAccountBalance),
   accountDevice: createReducer(ReduxActionTypes.SetAccountDevice),
   device: createReducer(ReduxActionTypes.SetDevice),
-  faucet: createReducer(ReduxActionTypes.SetFaucet),
   network: createReducer(ReduxActionTypes.SetNetwork),
-  completed: createReducer(ReduxActionTypes.SetCompleted),
-  ready: createReducer(ReduxActionTypes.SetReady),
-  online: createReducer(ReduxActionTypes.SetOnline),
+  initialized: createReducer(ReduxActionTypes.SetInitialized),
+  authenticated: createReducer(ReduxActionTypes.SetAuthenticated),
+  connected: createReducer(ReduxActionTypes.SetConnected),
 }) as any;

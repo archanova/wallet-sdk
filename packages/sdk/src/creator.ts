@@ -49,7 +49,7 @@ export function createSdk(
     const actionService = new ActionService();
     const ethService = new EthService(environment.getOptions('eth'), state, storage);
     const eventService = new EventService(api, state);
-    const faucetService = new FaucetService(api, state, storage);
+    const faucetService = new FaucetService(api, state);
     const secureService = new SecureService(api, state, deviceService);
     const sessionService = new SessionService(api, state, deviceService);
     const urlService = new UrlService(environment.getOptions('url'), actionService);

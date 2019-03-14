@@ -22,6 +22,10 @@ export class UrlService implements IUrlService {
       )
       .subscribe(actionService.$incoming);
 
+    this
+      .incoming$
+      .subscribe(console.log);
+
     const { listener, opener } = options;
 
     if (listener) {

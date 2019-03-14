@@ -20,7 +20,7 @@ export class EventService implements IEventService {
     const { connected$, message$ } = this.api.buildWsSubjects();
 
     connected$
-      .subscribe(this.state.online$);
+      .subscribe(this.state.connected$);
 
     this.$incoming = message$;
   }

@@ -1,10 +1,12 @@
 import { IBN } from 'bn.js';
 
 export interface IFaucetService {
-  getFunds(): Promise<IFaucet>;
+  getFunds(): Promise<IFaucetService.IReceipt>;
 }
 
-export interface IFaucet {
-  lockedTo: number;
-  value: IBN;
+export namespace IFaucetService {
+  export interface IReceipt {
+    lockedTo: number;
+    value: IBN;
+  }
 }
