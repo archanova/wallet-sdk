@@ -5,12 +5,14 @@ import {
   IAccountProviderService,
   IAccountProxyService,
   IActionService,
+  IApiService,
   IDeviceService,
   IEthService,
   IEventService,
   IFaucetService,
   ISecureService,
   ISessionService,
+  IStorageService,
   IUrlService,
   IAccount,
 } from './services';
@@ -21,12 +23,14 @@ export interface ISdk {
   readonly accountProviderService: IAccountProviderService;
   readonly accountProxyService: IAccountProxyService;
   readonly actionService: IActionService;
+  readonly apiService: IApiService;
   readonly deviceService: IDeviceService;
   readonly ethService: IEthService;
   readonly eventService: IEventService;
   readonly faucetService: IFaucetService;
   readonly secureService: ISecureService;
   readonly sessionService: ISessionService;
+  readonly storageService: IStorageService;
   readonly urlService: IUrlService;
 
   initialize(): Promise<void>;

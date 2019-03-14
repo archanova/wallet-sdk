@@ -1,13 +1,13 @@
 import { IBN } from 'bn.js';
-import { IApi } from '../../api';
 import { IState } from '../../state';
+import { IApiService } from '../api';
 import { IFaucetService } from './interfaces';
 
 export class FaucetService implements IFaucetService {
 
   constructor(
-    private api: IApi,
     private state: IState,
+    private apiService: IApiService,
   ) {
     //
   }
@@ -17,7 +17,7 @@ export class FaucetService implements IFaucetService {
     const { accountAddress } = this.state;
 
     if (accountAddress) {
-      const { value, ...receipt } = await this.api.sendHttpRequest<{
+      const { value, ...receipt } = await this.apiService.sendHttpRequest<{
         hash: string;
         value: IBN;
         calledAt: number;

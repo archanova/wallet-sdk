@@ -1,57 +1,53 @@
 import { IEnvironment, Environment, availableEnvironments } from './environment';
-import { Api } from './api';
 import {
   AccountProviderService,
   AccountProxyService,
   AccountService,
   ActionService,
+  ApiService,
   DeviceService,
   EventService,
   EthService,
   FaucetService,
   SecureService,
   SessionService,
+  StorageService,
   UrlService,
 } from './services';
 import { State } from './state';
-import { IStorage } from './storage';
 import { ISdk } from './interfaces';
 import { Sdk } from './Sdk';
 
-export function createSdk(
-  options: {
-    environment?: IEnvironment | 'development';
-    storage?: IStorage;
-  } = {},
-): ISdk {
+export function createSdk(env?: IEnvironment | 'development'): ISdk {
   let result: ISdk = null;
+
   let environment: IEnvironment = null;
 
-  switch (options.environment) {
+  switch (env) {
     case 'development':
       environment = availableEnvironments.development;
       break;
 
     default:
-      if (options.environment instanceof Environment) {
-        environment = options.environment;
+      if (env instanceof Environment) {
+        environment = env;
       }
   }
 
   if (environment) {
-    const api = new Api(environment.getOptions('api'));
-    const storage = options.storage || null;
-    const state = new State(storage);
-    const accountService = new AccountService(api, state);
-    const deviceService = new DeviceService(state, storage);
-    const accountProviderService = new AccountProviderService(environment.getOptions('accountProvider'), api, state);
-    const accountProxyService = new AccountProxyService(environment.getOptions('accountProxy'), api, state, deviceService);
+    const apiService = new ApiService(environment.getOptions('api'));
+    const storageService = new StorageService(environment.getOptions('storage'));
+    const state = new State(storageService);
+    const accountService = new AccountService(state, apiService);
+    const deviceService = new DeviceService(state, storageService);
+    const accountProviderService = new AccountProviderService(environment.getOptions('accountProvider'), state, apiService);
+    const accountProxyService = new AccountProxyService(environment.getOptions('accountProxy'), state, apiService, deviceService);
     const actionService = new ActionService();
-    const ethService = new EthService(environment.getOptions('eth'), state, storage);
-    const eventService = new EventService(api, state);
-    const faucetService = new FaucetService(api, state);
-    const secureService = new SecureService(api, state, deviceService);
-    const sessionService = new SessionService(api, state, deviceService);
+    const ethService = new EthService(environment.getOptions('eth'), state);
+    const eventService = new EventService(state, apiService);
+    const faucetService = new FaucetService(state, apiService);
+    const secureService = new SecureService(state, apiService, deviceService);
+    const sessionService = new SessionService(state, apiService, deviceService);
     const urlService = new UrlService(environment.getOptions('url'), actionService);
 
     result = new Sdk(
@@ -60,12 +56,14 @@ export function createSdk(
       accountProviderService,
       accountProxyService,
       actionService,
+      apiService,
       deviceService,
       ethService,
       eventService,
       faucetService,
       secureService,
       sessionService,
+      storageService,
       urlService,
     );
   }

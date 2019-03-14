@@ -8,37 +8,27 @@ import { URL_DEFAULT_ENDPOINT } from './constants';
 export class UrlService implements IUrlService {
 
   public incoming$ = new UniqueBehaviorSubject<string>(null);
-  public outgoing$ = new UniqueBehaviorSubject<string>(null);
 
   constructor(
-    private options: IUrlService.IOptions = {},
-    actionService: IActionService,
+    private options: IUrlService.IOptions,
+    private actionService: IActionService,
   ) {
+    //
+  }
+
+  public setup(): void {
     this
       .incoming$
       .pipe(
         map(url => urlToAction(url)),
         filter(action => !!action),
       )
-      .subscribe(actionService.$incoming);
+      .subscribe(this.actionService.$incoming);
 
-    this
-      .incoming$
-      .subscribe(console.log);
-
-    const { listener, opener } = options;
+    const { listener } = this.options;
 
     if (listener) {
       listener(url => this.incoming$.next(url || null));
-    }
-
-    if (opener) {
-      this
-        .outgoing$
-        .pipe(
-          filter(url => !!url),
-        )
-        .subscribe(opener);
     }
   }
 
@@ -48,9 +38,5 @@ export class UrlService implements IUrlService {
     }
 
     return actionToUrl(action, endpoint);
-  }
-
-  public openActionUrl(action: IAction, endpoint = null): void {
-    this.outgoing$.next(this.buildActionUrl(action, endpoint));
   }
 }

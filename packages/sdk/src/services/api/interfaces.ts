@@ -1,15 +1,15 @@
 import { Subject } from 'rxjs';
 import { TUniqueBehaviorSubject } from 'rxjs-addons';
 
-export interface IApi {
+export interface IApiService {
   setSessionToken(sessionToken?: string): void;
 
-  buildWsSubjects(): IApi.IWsSubjects;
+  buildWsSubjects(): IApiService.IWsSubjects;
 
-  sendHttpRequest<T = any, B = any>(req: IApi.IHttpRequest<B>): Promise<T>;
+  sendHttpRequest<T = any, B = any>(req: IApiService.IHttpRequest<B>): Promise<T>;
 }
 
-export namespace IApi {
+export namespace IApiService {
   export interface IOptions {
     host: string;
     port: number;

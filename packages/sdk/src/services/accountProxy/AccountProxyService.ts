@@ -1,6 +1,6 @@
 import { IBN } from 'bn.js';
 import { abiEncodePacked, getMethodSignature } from '@netgum/utils';
-import { IApi } from '../../api';
+import { IApiService } from '../api';
 import { IState } from '../../state';
 import { IDeviceService } from '../device';
 import { IAccountProxyService } from './interfaces';
@@ -8,8 +8,8 @@ import { IAccountProxyService } from './interfaces';
 export class AccountProxyService implements IAccountProxyService {
   constructor(
     private options: IAccountProxyService.IOptions,
-    private api: IApi,
     private state: IState,
+    private apiService: IApiService,
     private deviceService: IDeviceService,
   ) {
     //
@@ -22,7 +22,7 @@ export class AccountProxyService implements IAccountProxyService {
       const { contractAddress } = this.options;
       const { accountAddress } = this.state;
 
-      result = await this.api.sendHttpRequest<IAccountProxyService.IEstimatedTransaction>({
+      result = await this.apiService.sendHttpRequest<IAccountProxyService.IEstimatedTransaction>({
         path: `account-proxy/${contractAddress}/account/${accountAddress}/transaction`,
         method: 'POST',
         body: {
@@ -46,7 +46,7 @@ export class AccountProxyService implements IAccountProxyService {
       const { contractAddress } = this.options;
       const { accountAddress } = this.state;
 
-      result = await this.api.sendHttpRequest<IAccountProxyService.IEstimatedTransaction>({
+      result = await this.apiService.sendHttpRequest<IAccountProxyService.IEstimatedTransaction>({
         path: `account-proxy/${contractAddress}/account/${accountAddress}/device/${deviceAddress}`,
         method: 'POST',
         body: {
@@ -88,7 +88,7 @@ export class AccountProxyService implements IAccountProxyService {
     const signature = await this.deviceService.signPersonalMessage(message);
 
     try {
-      const { hash } = await this.api.sendHttpRequest<{
+      const { hash } = await this.apiService.sendHttpRequest<{
         hash: string;
       }>({
         path: `account-proxy/${contractAddress}/account/${accountAddress}/transaction`,
@@ -137,7 +137,7 @@ export class AccountProxyService implements IAccountProxyService {
     const signature = await this.deviceService.signPersonalMessage(message);
 
     try {
-      const { hash } = await this.api.sendHttpRequest<{
+      const { hash } = await this.apiService.sendHttpRequest<{
         hash: string;
       }>({
         path: `account-proxy/${contractAddress}/account/${accountAddress}/device/${deviceAddress}`,

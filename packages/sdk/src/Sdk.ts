@@ -6,12 +6,14 @@ import {
   IAccountProxyService,
   IAccountService,
   IActionService,
+  IApiService,
   IDeviceService,
   IEthService,
   IEventService,
   IFaucetService,
   ISecureService,
   ISessionService,
+  IStorageService,
   IUrlService,
   ActionTypes,
   actionPayload,
@@ -29,12 +31,14 @@ export class Sdk implements ISdk {
     public readonly accountProviderService: IAccountProviderService,
     public readonly accountProxyService: IAccountProxyService,
     public readonly actionService: IActionService,
+    public readonly apiService: IApiService,
     public readonly deviceService: IDeviceService,
     public readonly ethService: IEthService,
     public readonly eventService: IEventService,
     public readonly faucetService: IFaucetService,
     public readonly secureService: ISecureService,
     public readonly sessionService: ISessionService,
+    public readonly storageService: IStorageService,
     public readonly urlService: IUrlService,
   ) {
     //
@@ -49,7 +53,10 @@ export class Sdk implements ISdk {
 
     await this.state.setup();
     await this.deviceService.setup();
+    this.actionService.setup();
+    this.eventService.setup();
     await this.sessionService.createSession();
+    this.urlService.setup();
 
     initialized$.next(true);
   }

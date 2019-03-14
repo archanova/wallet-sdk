@@ -1,13 +1,13 @@
 import { anyToHex } from '@netgum/utils';
-import { IApi } from '../../api';
 import { IState } from '../../state';
+import { IApiService } from '../api';
 import { IDeviceService } from '../device';
 import { ISessionService } from './interfaces';
 
 export class SessionService implements ISessionService {
   constructor(
-    private api: IApi,
     private state: IState,
+    private apiService: IApiService,
     private deviceService: IDeviceService,
   ) {
     //
@@ -21,7 +21,7 @@ export class SessionService implements ISessionService {
     }
 
     // create session code
-    const { code } = await this.api.sendHttpRequest<{
+    const { code } = await this.apiService.sendHttpRequest<{
       code: string;
     }, {
       deviceAddress: string;
@@ -38,7 +38,7 @@ export class SessionService implements ISessionService {
     });
 
     // create session token
-    const { token } = await this.api.sendHttpRequest<{
+    const { token } = await this.apiService.sendHttpRequest<{
       token: string;
     }, {
       code: string;
@@ -52,7 +52,7 @@ export class SessionService implements ISessionService {
       },
     });
 
-    this.api.setSessionToken(token);
+    this.apiService.setSessionToken(token);
 
     authenticated$.next(true);
   }
@@ -67,14 +67,14 @@ export class SessionService implements ISessionService {
 
     authenticated$.next(false);
 
-    await this.api.sendHttpRequest<{
+    await this.apiService.sendHttpRequest<{
       success: boolean;
     }>({
       method: 'DELETE',
       path: 'auth',
     });
 
-    this.api.setSessionToken();
+    this.apiService.setSessionToken();
 
     await this.createSession();
   }

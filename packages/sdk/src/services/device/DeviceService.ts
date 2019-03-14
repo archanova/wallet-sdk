@@ -1,6 +1,6 @@
 import { generateRandomPrivateKey, privateKeyToAddress, signPersonalMessage } from '@netgum/utils';
 import { IState } from '../../state';
-import { IStorage } from '../../storage';
+import { IStorageService } from '../storage';
 import { IDeviceService } from './interfaces';
 
 export class DeviceService implements IDeviceService {
@@ -12,22 +12,18 @@ export class DeviceService implements IDeviceService {
 
   constructor(
     private state: IState,
-    private storage: IStorage,
+    private storageService: IStorageService,
   ) {
     //
   }
 
   public async setup(): Promise<void> {
-    if (this.storage) {
-      this.privateKey = await this.storage.getItem<Buffer>(DeviceService.STORAGE_KEYS.privateKey);
-    }
+    this.privateKey = await this.storageService.getItem<Buffer>(DeviceService.STORAGE_KEYS.privateKey);
 
     if (!this.privateKey) {
       this.privateKey = generateRandomPrivateKey();
 
-      if (this.storage) {
-        await this.storage.setItem(DeviceService.STORAGE_KEYS.privateKey, this.privateKey);
-      }
+      await this.storageService.setItem(DeviceService.STORAGE_KEYS.privateKey, this.privateKey);
 
     }
 
@@ -37,9 +33,7 @@ export class DeviceService implements IDeviceService {
   public async reset(): Promise<void> {
     this.privateKey = generateRandomPrivateKey();
 
-    if (this.storage) {
-      await this.storage.setItem(DeviceService.STORAGE_KEYS.privateKey, this.privateKey);
-    }
+    await this.storageService.setItem(DeviceService.STORAGE_KEYS.privateKey, this.privateKey);
 
     this.createDevice();
   }

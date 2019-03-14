@@ -1,20 +1,20 @@
 import { anyToHex } from '@netgum/utils';
-import { IApi } from '../../api';
 import { IState } from '../../state';
+import { IApiService } from '../api';
 import { IDeviceService } from '../device';
 import { ISecureService } from './interfaces';
 
 export class SecureService implements ISecureService {
   constructor(
-    private api: IApi,
     private state: IState,
+    private apiService: IApiService,
     private deviceService: IDeviceService,
   ) {
     //
   }
 
   public async createSecureCode(): Promise<string> {
-    const { code } = await this.api.sendHttpRequest<{
+    const { code } = await this.apiService.sendHttpRequest<{
       code: string;
     }>({
       method: 'POST',
@@ -30,7 +30,7 @@ export class SecureService implements ISecureService {
       await this.deviceService.signPersonalMessage(code), { add0x: true },
     );
 
-    const { success } = await this.api.sendHttpRequest<{
+    const { success } = await this.apiService.sendHttpRequest<{
       success: boolean;
     }, {
       creatorAddress: string;
@@ -48,7 +48,7 @@ export class SecureService implements ISecureService {
   }
 
   public async destroySecureCode(): Promise<boolean> {
-    const { success } = await this.api.sendHttpRequest<{
+    const { success } = await this.apiService.sendHttpRequest<{
       success: boolean;
     }>({
       method: 'DELETE',

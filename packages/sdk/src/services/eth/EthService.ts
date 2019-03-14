@@ -3,7 +3,6 @@ import { UniqueBehaviorSubject } from 'rxjs-addons';
 import * as BN from 'bn.js';
 import * as Eth from 'ethjs';
 import { IState } from '../../state';
-import { IStorage } from '../../storage';
 import { EthError } from './EthError';
 import { IEthService } from './interfaces';
 
@@ -17,7 +16,6 @@ export class EthService implements IEthService {
   constructor(
     options: IEthService.IOptions,
     private state: IState,
-    private storage: IStorage,
     private readonly eth: Eth.IEth = null,
   ) {
     if (!this.eth) {

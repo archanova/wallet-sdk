@@ -7,8 +7,31 @@ export class ActionService implements IActionService {
   public $incoming = new Subject<IAction>();
   public $accepted = new Subject<IAction>();
 
+  constructor(private options: IActionService.IOptions = {}) {
+    //
+  }
+
+  public setup(): void {
+    const { autoAccept } = this.options;
+
+    if (autoAccept) {
+      this
+        .$incoming
+        .pipe(
+          filter(action => !!action),
+        )
+        .subscribe(this.$accepted);
+    }
+  }
+
   public acceptAction(action: IAction): void {
+    this.$incoming.next(null);
     this.$accepted.next(action);
+  }
+
+  public dismissAction(): void {
+    this.$incoming.next(null);
+    this.$accepted.next(null);
   }
 
   public createAction<T = any>(type: ActionTypes, payload: T): IAction<T> {
@@ -21,7 +44,7 @@ export class ActionService implements IActionService {
 
   public ofType<T = any>(type: ActionTypes): Observable<T> {
     return this
-      .$incoming
+      .$accepted
       .pipe(
         filter((action: IAction<T>) => (
           action &&

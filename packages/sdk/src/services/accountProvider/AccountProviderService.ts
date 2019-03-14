@@ -1,6 +1,6 @@
 import { IBN } from 'bn.js';
 import { IState } from '../../state';
-import { IApi } from '../../api';
+import { IApiService } from '../api';
 import { IAccount } from '../account';
 import { IAccountProviderService } from './interfaces';
 
@@ -8,15 +8,15 @@ export class AccountProviderService implements IAccountProviderService {
 
   constructor(
     private options: IAccountProviderService.IOptions,
-    private api: IApi,
     private state: IState,
+    private apiService: IApiService,
   ) {
     //
   }
 
   public async createAccount(ensName: string = null): Promise<IAccount> {
     const { contractAddress } = this.options;
-    const { item } = await this.api.sendHttpRequest<{
+    const { item } = await this.apiService.sendHttpRequest<{
       item: IAccount;
     }>({
       method: 'POST',
@@ -33,7 +33,7 @@ export class AccountProviderService implements IAccountProviderService {
     const { contractAddress } = this.options;
     const { accountAddress } = this.state;
 
-    const { item } = await this.api.sendHttpRequest<{
+    const { item } = await this.apiService.sendHttpRequest<{
       item: IAccount;
     }>({
       method: 'PUT',
@@ -49,7 +49,7 @@ export class AccountProviderService implements IAccountProviderService {
   public async estimateDeployAccountCost(gasPrice: IBN): Promise<IBN> {
     const { contractAddress } = this.options;
     const { accountAddress } = this.state;
-    const { refundAmount } = await this.api.sendHttpRequest<{
+    const { refundAmount } = await this.apiService.sendHttpRequest<{
       refundAmount: IBN;
     }>({
       method: 'POST',
@@ -65,7 +65,7 @@ export class AccountProviderService implements IAccountProviderService {
   public async deployAccount(gasPrice: IBN): Promise<boolean> {
     const { contractAddress } = this.options;
     const { accountAddress } = this.state;
-    const { hash } = await this.api.sendHttpRequest<{
+    const { hash } = await this.apiService.sendHttpRequest<{
       refundAmount: IBN;
       hash: string;
     }>({

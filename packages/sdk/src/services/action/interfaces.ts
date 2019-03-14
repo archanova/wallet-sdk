@@ -12,9 +12,19 @@ export interface IActionService {
 
   $accepted: Subject<IAction>;
 
+  setup(): void;
+
   acceptAction(action: IAction): void;
+
+  dismissAction(): void;
 
   createAction<T = any>(type: ActionTypes, payload: T): IAction<T>;
 
   ofType<T = any>(type: ActionTypes): Observable<T>;
+}
+
+export namespace IActionService {
+  export interface IOptions {
+    autoAccept?: boolean;
+  }
 }

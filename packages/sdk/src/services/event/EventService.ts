@@ -1,7 +1,7 @@
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
-import { IApi } from '../../api';
 import { IState } from '../../state';
+import { IApiService } from '../api';
 import { IEventService, IEvent } from './interfaces';
 import { EventTypes } from './constants';
 
@@ -10,14 +10,14 @@ export class EventService implements IEventService {
   public $incoming: Subject<IEvent> = null;
 
   constructor(
-    private api: IApi,
     private state: IState,
+    private apiService: IApiService,
   ) {
     //
   }
 
   public setup(): void {
-    const { connected$, message$ } = this.api.buildWsSubjects();
+    const { connected$, message$ } = this.apiService.buildWsSubjects();
 
     connected$
       .subscribe(this.state.connected$);

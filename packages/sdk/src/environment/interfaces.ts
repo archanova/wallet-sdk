@@ -1,9 +1,11 @@
-import { IApi } from '../api';
 import {
   IAccountProviderService,
   IAccountProxyService,
+  IActionService,
+  IApiService,
   IEthService,
   IUrlService,
+  IStorageService,
 } from '../services';
 
 export interface IEnvironment {
@@ -21,10 +23,12 @@ export namespace IEnvironment {
   export type TKeys = keyof IOptions;
 
   export interface IOptions {
-    api: IApi.IOptions;
     accountProvider: IAccountProviderService.IOptions;
     accountProxy: IAccountProxyService.IOptions;
+    action: IActionService.IOptions;
+    api: IApiService.IOptions;
     eth: IEthService.IOptions;
     url: IUrlService.IOptions;
+    storage: IStorageService.IOptions;
   }
 }

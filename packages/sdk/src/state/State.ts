@@ -2,8 +2,7 @@ import { IBN } from 'bn.js';
 import { from, Subscription } from 'rxjs';
 import { UniqueBehaviorSubject, TUniqueBehaviorSubject } from 'rxjs-addons';
 import { skip, switchMap } from 'rxjs/operators';
-import { IAccount, IAccountDevice, IDevice } from '../services';
-import { IStorage } from '../storage';
+import { IStorageService, IAccount, IAccountDevice, IDevice } from '../services';
 import { IState } from './interfaces';
 
 export class State implements IState {
@@ -60,20 +59,18 @@ export class State implements IState {
     return this.connected$.getValue();
   }
 
-  constructor(public storage: IStorage) {
+  constructor(public storageService: IStorageService) {
     //
   }
 
   public async setup(): Promise<void> {
     this.reset();
 
-    if (this.storage) {
-      await Promise.all([
-        this.attachToStorage(this.account$, 'account'),
-        this.attachToStorage(this.accountDevice$, 'accountDevice'),
-        this.attachToStorage(this.network$, 'network'),
-      ]);
-    }
+    await Promise.all([
+      this.attachToStorage(this.account$, 'account'),
+      this.attachToStorage(this.accountDevice$, 'accountDevice'),
+      this.attachToStorage(this.network$, 'network'),
+    ]);
   }
 
   public reset(): void {
@@ -96,7 +93,7 @@ export class State implements IState {
   private async attachToStorage(subject: TUniqueBehaviorSubject, key: string): Promise<void> {
     key = `${State.STORAGE_NAMESPACE}/${key}`;
 
-    const value = await this.storage.getItem(key);
+    const value = await this.storageService.getItem(key);
     if (value) {
       subject.next(value);
     }
@@ -106,7 +103,7 @@ export class State implements IState {
         .pipe(
           skip(1),
           switchMap(value =>
-            from(this.storage.setItem(key, value).catch(() => null)),
+            from(this.storageService.setItem(key, value).catch(() => null)),
           ),
         )
         .subscribe(),
