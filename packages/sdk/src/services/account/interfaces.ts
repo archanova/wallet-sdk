@@ -1,5 +1,4 @@
 import { IBN } from 'bn.js';
-import { IDevice } from '../device';
 import {
   AccountDeviceStates,
   AccountDeviceTypes,
@@ -12,17 +11,17 @@ export interface IAccountService {
 
   getAccounts(): Promise<IAccount[]>;
 
-  getAccount(accountAddress?: string): Promise<IAccount>;
+  getAccount(accountAddress: string): Promise<IAccount>;
 
-  getAccountDevices(): Promise<IAccountDevice[]>;
+  getAccountDevices(accountAddress: string): Promise<IAccountDevice[]>;
 
-  getAccountTransactions(): Promise<IAccountTransaction[]>;
+  getAccountTransactions(accountAddress: string): Promise<IAccountTransaction[]>;
 
-  getAccountDevice(deviceAddress: string): Promise<IAccountDevice>;
+  getAccountDevice(accountAddress: string, deviceAddress: string): Promise<IAccountDevice>;
 
-  createAccountDevice(deviceAddress: string): Promise<boolean>;
+  createAccountDevice(accountAddress: string, deviceAddress: string): Promise<boolean>;
 
-  removeAccountDevice(deviceAddress: string): Promise<boolean>;
+  removeAccountDevice(accountAddress: string, deviceAddress: string): Promise<boolean>;
 }
 
 export interface IAccount {
@@ -36,7 +35,7 @@ export interface IAccount {
 }
 
 export interface IAccountDevice {
-  device: IDevice;
+  deviceAddress: string;
   type: AccountDeviceTypes;
   state: AccountDeviceStates;
   nextState: AccountDeviceStates;

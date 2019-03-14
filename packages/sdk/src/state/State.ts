@@ -1,8 +1,8 @@
 import { IBN } from 'bn.js';
-import { from, Subscription } from 'rxjs';
+import { from } from 'rxjs';
 import { UniqueBehaviorSubject, TUniqueBehaviorSubject } from 'rxjs-addons';
 import { skip, switchMap } from 'rxjs/operators';
-import { IStorageService, IAccount, IAccountDevice, IDevice } from '../services';
+import { IStorageService, IAccount, IAccountDevice } from '../services';
 import { IState } from './interfaces';
 
 export class State implements IState {
@@ -11,13 +11,11 @@ export class State implements IState {
   public account$ = new UniqueBehaviorSubject<IAccount>();
   public accountDevice$ = new UniqueBehaviorSubject<IAccountDevice>();
   public accountBalance$ = new UniqueBehaviorSubject<IBN>();
-  public device$ = new UniqueBehaviorSubject<IDevice>();
+  public deviceAddress$ = new UniqueBehaviorSubject<string>();
   public networkVersion$ = new UniqueBehaviorSubject<string>();
   public initialized$ = new UniqueBehaviorSubject<boolean>(false);
   public authenticated$ = new UniqueBehaviorSubject<boolean>(false);
   public connected$ = new UniqueBehaviorSubject<boolean>(null);
-
-  private subscriptions: Subscription[] = [];
 
   public get account(): IAccount {
     return this.account$.getValue();
@@ -35,12 +33,8 @@ export class State implements IState {
     return this.accountBalance$.getValue();
   }
 
-  public get device(): IDevice {
-    return this.device$.getValue();
-  }
-
   public get deviceAddress(): string {
-    return this.device ? this.device.address : null;
+    return this.deviceAddress$.getValue();
   }
 
   public get networkVersion(): string {
@@ -86,15 +80,13 @@ export class State implements IState {
       subject.next(value);
     }
 
-    this.subscriptions.push(
-      subject
-        .pipe(
-          skip(1),
-          switchMap(value =>
-            from(this.storageService.setItem(key, value).catch(() => null)),
-          ),
-        )
-        .subscribe(),
-    );
+    subject
+      .pipe(
+        skip(1),
+        switchMap(value =>
+          from(this.storageService.setItem(key, value).catch(() => null)),
+        ),
+      )
+      .subscribe();
   }
 }

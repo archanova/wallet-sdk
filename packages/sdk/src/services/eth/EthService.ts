@@ -1,14 +1,12 @@
 import { targetToAddress } from '@netgum/utils';
 import * as BN from 'bn.js';
 import * as Eth from 'ethjs';
-import { IState } from '../../state';
 import { EthError } from './EthError';
 import { IEthService } from './interfaces';
 
 export class EthService implements IEthService {
   constructor(
     options: IEthService.IOptions,
-    private state: IState,
     private readonly eth: Eth.IEth = null,
   ) {
     if (!this.eth) {
@@ -39,25 +37,12 @@ export class EthService implements IEthService {
     }
   }
 
-  public async detectNetworkVersion(force = false): Promise<string> {
-    const { networkVersion$ } = this.state;
-    let { networkVersion } = this.state;
-    let result: string = networkVersion || null;
-
-    if (!networkVersion || force) {
-      networkVersion = await this.eth.net_version();
-
-      if (networkVersion) {
-        networkVersion$.next(networkVersion);
-        result = networkVersion;
-      }
-    }
-
-    return result;
+  public getNetworkVersion(): Promise<string> {
+    return this.eth.net_version().catch(() => null);
   }
 
   public getGasPrice(): Promise<BN.IBN> {
-    return this.eth.gasPrice();
+    return this.eth.gasPrice().catch(() => null);
   }
 
   public async getBalance(target: any): Promise<BN.IBN> {
@@ -65,7 +50,7 @@ export class EthService implements IEthService {
     const address: string = targetToAddress(target);
 
     if (address) {
-      result = await this.eth.getBalance(address, 'pending');
+      result = await this.eth.getBalance(address, 'pending').catch(() => null);
     }
 
     return result;

@@ -1,25 +1,17 @@
 import { anyToHex } from '@netgum/utils';
-import { IState } from '../../state';
 import { IApiService } from '../api';
 import { IDeviceService } from '../device';
 import { ISessionService } from './interfaces';
 
 export class SessionService implements ISessionService {
   constructor(
-    private state: IState,
     private apiService: IApiService,
     private deviceService: IDeviceService,
   ) {
     //
   }
 
-  public async createSession(): Promise<void> {
-    const { deviceAddress, authenticated$, authenticated } = this.state;
-
-    if (authenticated) {
-      throw new Error('Session already created');
-    }
-
+  public async createSession(deviceAddress: string): Promise<boolean> {
     // create session code
     const { code } = await this.apiService.sendHttpRequest<{
       code: string;
@@ -54,19 +46,10 @@ export class SessionService implements ISessionService {
 
     this.apiService.setSessionToken(token);
 
-    authenticated$.next(true);
+    return true;
   }
 
-  public async resetSession(): Promise<void> {
-    const { authenticated$, authenticated } = this.state;
-
-    if (!authenticated) {
-      await this.createSession();
-      return;
-    }
-
-    authenticated$.next(false);
-
+  public async resetSession(): Promise<boolean> {
     await this.apiService.sendHttpRequest<{
       success: boolean;
     }>({
@@ -76,6 +59,6 @@ export class SessionService implements ISessionService {
 
     this.apiService.setSessionToken();
 
-    await this.createSession();
+    return true;
   }
 }

@@ -1,13 +1,13 @@
 import { IBN } from 'bn.js';
 
 export interface IAccountProxyService {
-  estimateTransaction(to: string, value: IBN, data: Buffer, gasPrice: IBN): Promise<IAccountProxyService.IEstimatedTransaction>;
+  estimateTransaction(accountAddress: string, to: string, value: IBN, data: Buffer, gasPrice: IBN): Promise<IAccountProxyService.IEstimatedTransaction>;
 
-  estimateDeployDevice(deviceAddress: string, gasPrice: IBN): Promise<IAccountProxyService.IEstimatedTransaction>;
+  estimateDeployDevice(accountAddress: string, deviceAddress: string, gasPrice: IBN): Promise<IAccountProxyService.IEstimatedTransaction>;
 
-  executeTransaction(estimated: IAccountProxyService.IEstimatedTransaction, gasPrice: IBN): Promise<string>;
+  executeTransaction(accountAddress: string, estimated: IAccountProxyService.IEstimatedTransaction, gasPrice: IBN): Promise<string>;
 
-  deployDevice(deviceAddress: string, estimated: IAccountProxyService.IEstimatedTransaction, gasPrice: IBN): Promise<string>;
+  deployDevice(accountAddress: string, deviceAddress: string, estimated: IAccountProxyService.IEstimatedTransaction, gasPrice: IBN): Promise<string>;
 }
 
 export namespace IAccountProxyService {

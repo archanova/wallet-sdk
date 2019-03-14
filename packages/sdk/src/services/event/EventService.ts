@@ -16,13 +16,12 @@ export class EventService implements IEventService {
     //
   }
 
-  public setup(): void {
+  public setup(): Subject<boolean> {
     const { connected$, message$ } = this.apiService.buildWsSubjects();
 
-    connected$
-      .subscribe(this.state.connected$);
-
     this.$incoming = message$;
+
+    return connected$;
   }
 
   public ofType<T = any>(type: EventTypes): Observable<T> {

@@ -1,10 +1,8 @@
 import { IApiService } from '../api';
-import { IState } from '../../state';
 import { IAccount, IAccountDevice, IAccountService, IAccountTransaction } from './interfaces';
 
 export class AccountService implements IAccountService {
   constructor(
-    private state: IState,
     private apiService: IApiService,
   ) {
     //
@@ -39,9 +37,6 @@ export class AccountService implements IAccountService {
   }
 
   public async getAccount(accountAddress: string): Promise<IAccount> {
-    if (!accountAddress) {
-      ({ accountAddress } = this.state);
-    }
     const { item } = await this.apiService.sendHttpRequest<{
       item: IAccount;
     }>({
@@ -52,8 +47,7 @@ export class AccountService implements IAccountService {
     return item;
   }
 
-  public async getAccountDevices(): Promise<IAccountDevice[]> {
-    const { accountAddress } = this.state;
+  public async getAccountDevices(accountAddress: string): Promise<IAccountDevice[]> {
     const { items } = await this.apiService.sendHttpRequest<{
       items: IAccountDevice[];
     }>({
@@ -64,8 +58,7 @@ export class AccountService implements IAccountService {
     return items;
   }
 
-  public async getAccountTransactions(): Promise<IAccountTransaction[]> {
-    const { accountAddress } = this.state;
+  public async getAccountTransactions(accountAddress: string): Promise<IAccountTransaction[]> {
     const { items } = await this.apiService.sendHttpRequest<{
       items: IAccountTransaction[];
     }>({
@@ -76,8 +69,7 @@ export class AccountService implements IAccountService {
     return items;
   }
 
-  public async getAccountDevice(deviceAddress: string): Promise<IAccountDevice> {
-    const { accountAddress } = this.state;
+  public async getAccountDevice(accountAddress: string, deviceAddress: string): Promise<IAccountDevice> {
     const { item } = await this.apiService.sendHttpRequest<{
       item: IAccountDevice;
     }>({
@@ -88,8 +80,7 @@ export class AccountService implements IAccountService {
     return item;
   }
 
-  public async createAccountDevice(deviceAddress: string): Promise<boolean> {
-    const { accountAddress } = this.state;
+  public async createAccountDevice(accountAddress: string, deviceAddress: string): Promise<boolean> {
     const { success } = await this.apiService.sendHttpRequest<{
       success: boolean;
     }>({
@@ -100,8 +91,7 @@ export class AccountService implements IAccountService {
     return success;
   }
 
-  public async removeAccountDevice(deviceAddress: string): Promise<boolean> {
-    const { accountAddress } = this.state;
+  public async removeAccountDevice(accountAddress: string, deviceAddress: string): Promise<boolean> {
     const { success } = await this.apiService.sendHttpRequest<{
       success: boolean;
     }>({

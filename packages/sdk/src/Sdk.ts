@@ -1,7 +1,8 @@
-import { IBN } from 'bn.js';
-import { from, of, timer } from 'rxjs';
-import { switchMap, filter, map, tap, takeUntil } from 'rxjs/operators';
+import { Middleware, Store } from 'redux';
+import { from, merge, of, timer } from 'rxjs';
+import { switchMap, filter, takeUntil, map } from 'rxjs/operators';
 import { ISdk } from './interfaces';
+import { ReduxActionTypes } from './redux';
 import {
   IAccount,
   IAccountProviderService,
@@ -29,19 +30,19 @@ export class Sdk implements ISdk {
 
   constructor(
     public readonly state: IState,
-    public readonly accountService: IAccountService,
-    public readonly accountProviderService: IAccountProviderService,
-    public readonly accountProxyService: IAccountProxyService,
-    public readonly actionService: IActionService,
-    public readonly apiService: IApiService,
-    public readonly deviceService: IDeviceService,
-    public readonly ethService: IEthService,
-    public readonly eventService: IEventService,
-    public readonly faucetService: IFaucetService,
-    public readonly secureService: ISecureService,
-    public readonly sessionService: ISessionService,
-    public readonly storageService: IStorageService,
-    public readonly urlService: IUrlService,
+    private readonly accountService: IAccountService,
+    private readonly accountProviderService: IAccountProviderService,
+    private readonly accountProxyService: IAccountProxyService,
+    private readonly actionService: IActionService,
+    private readonly apiService: IApiService,
+    private readonly deviceService: IDeviceService,
+    private readonly ethService: IEthService,
+    private readonly eventService: IEventService,
+    private readonly faucetService: IFaucetService,
+    private readonly secureService: ISecureService,
+    private readonly sessionService: ISessionService,
+    private readonly storageService: IStorageService,
+    private readonly urlService: IUrlService,
   ) {
     //
   }
@@ -51,31 +52,34 @@ export class Sdk implements ISdk {
       notInitialized: true,
     });
 
-    const { initialized$ } = this.state;
+    const { initialized$, connected$, authenticated$, deviceAddress$ } = this.state;
+    const deviceAddress = await this.deviceService.setup();
+
+    deviceAddress$.next(deviceAddress);
 
     await this.state.setup();
-    await this.deviceService.setup();
     this.actionService.setup();
-    this.eventService.setup();
-    await this.sessionService.createSession();
-    this.urlService.setup();
 
-    this.subscribeAccountBalance();
+    if (await this.sessionService.createSession(deviceAddress)) {
+      authenticated$.next(true);
 
-    initialized$.next(true);
+      this.eventService.setup().subscribe(connected$);
+
+      this.urlService.setup();
+
+      this.subscribeAccountBalance();
+
+      initialized$.next(true);
+    }
   }
 
-  public async reset(): Promise<void> {
+  public reset(): void {
     this.require();
 
-    await this.state.reset();
+    this.state.reset();
   }
 
-  public async getGasPrice(): Promise<IBN> {
-    return this.ethService.getGasPrice();
-  }
-
-  public async createAccount(ensName: string = null): Promise<boolean> {
+  public async createAccount(ensName: string = null): Promise<IAccount> {
     this.require({
       disconnectedAccount: true,
     });
@@ -85,7 +89,7 @@ export class Sdk implements ISdk {
     return this.verifyAccount(account);
   }
 
-  public async connectAccount(accountAddress: string): Promise<boolean> {
+  public async connectAccount(accountAddress: string): Promise<IAccount> {
     this.require({
       disconnectedAccount: true,
     });
@@ -119,6 +123,35 @@ export class Sdk implements ISdk {
     return this.urlService.buildActionUrl(action, options.endpoint || null);
   }
 
+  public createReduxMiddleware(): Middleware {
+    const createActionCreator = (type: ReduxActionTypes) => (payload: any) => ({
+      type,
+      payload,
+    });
+
+    return (store: Store) => {
+      setTimeout(
+        () => {
+          merge(
+            this.state.account$.pipe(map(createActionCreator(ReduxActionTypes.SetAccount))),
+            this.state.accountDevice$.pipe(map(createActionCreator(ReduxActionTypes.SetAccountDevice))),
+            this.state.accountBalance$.pipe(map(createActionCreator(ReduxActionTypes.SetAccountBalance))),
+            this.state.deviceAddress$.pipe(map(createActionCreator(ReduxActionTypes.SetDeviceAddress))),
+            this.state.networkVersion$.pipe(map(createActionCreator(ReduxActionTypes.SetNetworkVersion))),
+            this.state.initialized$.pipe(map(createActionCreator(ReduxActionTypes.SetInitialized))),
+            this.state.authenticated$.pipe(map(createActionCreator(ReduxActionTypes.SetAuthenticated))),
+            this.state.connected$.pipe(map(createActionCreator(ReduxActionTypes.SetConnected))),
+            this.actionService.$incoming.pipe(map(createActionCreator(ReduxActionTypes.SetIncomingAction))),
+          )
+            .subscribe(store.dispatch);
+        },
+        0,
+      );
+
+      return next => action => next(action);
+    };
+  }
+
   private require(options: {
     notInitialized?: boolean;
     connectedAccount?: boolean;
@@ -141,21 +174,19 @@ export class Sdk implements ISdk {
     }
   }
 
-  private async verifyAccount(account: IAccount): Promise<boolean> {
-    let result = false;
+  private async verifyAccount(account: IAccount): Promise<IAccount> {
+    let result: IAccount = null;
     const { account$, accountDevice$, deviceAddress } = this.state;
 
     try {
       if (account) {
-        account$.next(account);
-
-        const accountDevice = await this.accountService.getAccountDevice(deviceAddress);
+        const accountDevice = await this.accountService.getAccountDevice(account.address, deviceAddress);
 
         if (accountDevice) {
           account$.next(account);
           accountDevice$.next(accountDevice);
 
-          result = true;
+          result = account;
         } else {
           account$.next(null);
         }
@@ -163,7 +194,8 @@ export class Sdk implements ISdk {
 
     } catch (err) {
       account$.next(null);
-      result = false;
+      accountDevice$.next(null);
+      result = null;
     }
 
     return result;

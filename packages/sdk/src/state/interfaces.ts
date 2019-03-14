@@ -1,12 +1,12 @@
 import { IBN } from 'bn.js';
 import { Subject } from 'rxjs';
-import { IAccount, IAccountDevice, IDevice } from '../services';
+import { IAccount, IAccountDevice } from '../services';
 
 export interface IState {
   readonly account$: Subject<IAccount>;
   readonly accountDevice$: Subject<IAccountDevice>;
   readonly accountBalance$: Subject<IBN>;
-  readonly device$: Subject<IDevice>;
+  readonly deviceAddress$: Subject<string>;
   readonly networkVersion$: Subject<string>;
   readonly initialized$: Subject<boolean>;
   readonly authenticated$: Subject<boolean>;
@@ -16,7 +16,6 @@ export interface IState {
   readonly accountAddress: string;
   readonly accountDevice: IAccountDevice;
   readonly accountBalance: IBN;
-  readonly device: IDevice;
   readonly deviceAddress: string;
   readonly networkVersion: string;
   readonly initialized: boolean;

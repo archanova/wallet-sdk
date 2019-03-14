@@ -1,5 +1,5 @@
 export interface ISessionService {
-  createSession(): Promise<void>;
+  createSession(deviceAddress: string): Promise<boolean>;
 
-  resetSession(): Promise<void>;
+  resetSession(): Promise<boolean>;
 }

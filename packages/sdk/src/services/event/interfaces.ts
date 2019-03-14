@@ -4,7 +4,7 @@ import { EventTypes } from './constants';
 export interface IEventService {
   $incoming: Subject<IEvent>;
 
-  setup(): void;
+  setup(): Subject<boolean>;
 
   ofType<T = any>(type: EventTypes): Observable<T>;
 }

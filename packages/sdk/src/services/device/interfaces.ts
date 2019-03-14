@@ -1,11 +1,7 @@
 export interface IDeviceService {
-  setup(): Promise<void>;
+  setup(): Promise<string>;
 
-  reset(): Promise<void>;
+  reset(): Promise<string>;
 
   signPersonalMessage(message: string | Buffer): Promise<Buffer>;
-}
-
-export interface IDevice {
-  address: string;
 }

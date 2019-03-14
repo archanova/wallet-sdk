@@ -38,16 +38,16 @@ export function createSdk(env?: IEnvironment | 'development'): ISdk {
     const apiService = new ApiService(environment.getOptions('api'));
     const storageService = new StorageService(environment.getOptions('storage'));
     const state = new State(storageService);
-    const accountService = new AccountService(state, apiService);
-    const deviceService = new DeviceService(state, storageService);
-    const accountProviderService = new AccountProviderService(environment.getOptions('accountProvider'), state, apiService);
-    const accountProxyService = new AccountProxyService(environment.getOptions('accountProxy'), state, apiService, deviceService);
+    const accountService = new AccountService(apiService);
+    const deviceService = new DeviceService(storageService);
+    const accountProviderService = new AccountProviderService(environment.getOptions('accountProvider'), apiService);
+    const accountProxyService = new AccountProxyService(environment.getOptions('accountProxy'), apiService, deviceService);
     const actionService = new ActionService();
-    const ethService = new EthService(environment.getOptions('eth'), state);
+    const ethService = new EthService(environment.getOptions('eth'));
     const eventService = new EventService(state, apiService);
-    const faucetService = new FaucetService(state, apiService);
-    const secureService = new SecureService(state, apiService, deviceService);
-    const sessionService = new SessionService(state, apiService, deviceService);
+    const faucetService = new FaucetService(apiService);
+    const secureService = new SecureService(apiService, deviceService);
+    const sessionService = new SessionService(apiService, deviceService);
     const urlService = new UrlService(environment.getOptions('url'), actionService);
 
     result = new Sdk(

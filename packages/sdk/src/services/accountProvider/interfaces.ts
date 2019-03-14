@@ -3,13 +3,13 @@ import { IAccount } from '../account';
 
 export interface IAccountProviderService {
 
-  createAccount(ensName?: string): Promise<IAccount>;
+  createAccount(ensLabel?: string): Promise<IAccount>;
 
-  updateAccount(ensName: string): Promise<IAccount>;
+  updateAccount(accountAddress: string, ensLabel: string): Promise<IAccount>;
 
-  estimateDeployAccountCost(gasPrice: IBN): Promise<IBN>;
+  estimateDeployAccountCost(accountAddress: string, gasPrice: IBN): Promise<IBN>;
 
-  deployAccount(gasPrice: IBN): Promise<boolean>;
+  deployAccount(accountAddress: string, gasPrice: IBN): Promise<string>;
 }
 
 export namespace IAccountProviderService {

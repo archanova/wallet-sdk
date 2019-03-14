@@ -1,7 +1,7 @@
 import { IBN } from 'bn.js';
 
 export interface IFaucetService {
-  getFunds(): Promise<IFaucetService.IReceipt>;
+  getFunds(accountAddress: string): Promise<IFaucetService.IReceipt>;
 }
 
 export namespace IFaucetService {

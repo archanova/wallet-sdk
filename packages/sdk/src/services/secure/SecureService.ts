@@ -1,12 +1,10 @@
 import { anyToHex } from '@netgum/utils';
-import { IState } from '../../state';
 import { IApiService } from '../api';
 import { IDeviceService } from '../device';
 import { ISecureService } from './interfaces';
 
 export class SecureService implements ISecureService {
   constructor(
-    private state: IState,
     private apiService: IApiService,
     private deviceService: IDeviceService,
   ) {

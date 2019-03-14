@@ -1,26 +1,29 @@
 import { IBN } from 'bn.js';
 import { abiEncodePacked, getMethodSignature } from '@netgum/utils';
 import { IApiService } from '../api';
-import { IState } from '../../state';
 import { IDeviceService } from '../device';
 import { IAccountProxyService } from './interfaces';
 
 export class AccountProxyService implements IAccountProxyService {
   constructor(
     private options: IAccountProxyService.IOptions,
-    private state: IState,
     private apiService: IApiService,
     private deviceService: IDeviceService,
   ) {
     //
   }
 
-  public async estimateTransaction(to: string, value: IBN, data: Buffer, gasPrice: IBN): Promise<IAccountProxyService.IEstimatedTransaction> {
+  public async estimateTransaction(
+    accountAddress: string,
+    to: string,
+    value: IBN,
+    data: Buffer,
+    gasPrice: IBN,
+  ): Promise<IAccountProxyService.IEstimatedTransaction> {
     let result: IAccountProxyService.IEstimatedTransaction = null;
 
     try {
       const { contractAddress } = this.options;
-      const { accountAddress } = this.state;
 
       result = await this.apiService.sendHttpRequest<IAccountProxyService.IEstimatedTransaction>({
         path: `account-proxy/${contractAddress}/account/${accountAddress}/transaction`,
@@ -39,12 +42,11 @@ export class AccountProxyService implements IAccountProxyService {
     return result;
   }
 
-  public async estimateDeployDevice(deviceAddress: string, gasPrice: IBN): Promise<IAccountProxyService.IEstimatedTransaction> {
+  public async estimateDeployDevice(accountAddress: string, deviceAddress: string, gasPrice: IBN): Promise<IAccountProxyService.IEstimatedTransaction> {
     let result: IAccountProxyService.IEstimatedTransaction = null;
 
     try {
       const { contractAddress } = this.options;
-      const { accountAddress } = this.state;
 
       result = await this.apiService.sendHttpRequest<IAccountProxyService.IEstimatedTransaction>({
         path: `account-proxy/${contractAddress}/account/${accountAddress}/device/${deviceAddress}`,
@@ -60,11 +62,10 @@ export class AccountProxyService implements IAccountProxyService {
     return result;
   }
 
-  public async executeTransaction(estimated: IAccountProxyService.IEstimatedTransaction, gasPrice: IBN): Promise<string> {
+  public async executeTransaction(accountAddress: string, estimated: IAccountProxyService.IEstimatedTransaction, gasPrice: IBN): Promise<string> {
     let result: string = null;
 
     const { contractAddress } = this.options;
-    const { accountAddress } = this.state;
     const { nonce, data, fixedGas } = estimated;
 
     const message = abiEncodePacked(
@@ -109,11 +110,15 @@ export class AccountProxyService implements IAccountProxyService {
     return result;
   }
 
-  public async deployDevice(deviceAddress: string, estimated: IAccountProxyService.IEstimatedTransaction, gasPrice: IBN): Promise<string> {
+  public async deployDevice(
+    accountAddress: string,
+    deviceAddress: string,
+    estimated: IAccountProxyService.IEstimatedTransaction,
+    gasPrice: IBN,
+  ): Promise<string> {
     let result: string = null;
 
     const { contractAddress } = this.options;
-    const { accountAddress } = this.state;
     const { nonce, data, fixedGas } = estimated;
 
     const message = abiEncodePacked(
