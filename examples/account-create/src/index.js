@@ -4,13 +4,22 @@ import { Provider } from 'react-redux';
 import { applyMiddleware, createStore } from 'redux';
 import thunk from 'redux-thunk';
 import { composeWithDevTools } from 'redux-devtools-extension';
-import { availableEnvironments, createSdk, createReduxMiddleware } from '@archanova/wallet-sdk';
-import './index.css';
+import { createSdk, availableEnvironments } from '@archanova/wallet-sdk';
 import App from './App';
 import reducers from './reducers';
+import './index.scss';
 
-const sdkStorage = null;
-let sdkEnvironment = availableEnvironments.development;
+export let sdkEnv = availableEnvironments
+  .development
+  .extendOptions('action', {
+    autoAccept: true,
+  })
+  .extendOptions('url', {
+    listener: (callback) => callback(document.location.toString()),
+  })
+  .extendOptions('storage', {
+    adapter: localStorage,
+  });
 
 // sdk env customizations for local development
 if (process.env.REACT_APP_SDK_API_HOST) {
@@ -21,7 +30,7 @@ if (process.env.REACT_APP_SDK_API_HOST) {
     REACT_APP_SDK_ETH_PROVIDER_ENDPOINT,
   } = process.env;
 
-  sdkEnvironment = sdkEnvironment
+  sdkEnv = sdkEnv
     .extendOptions('api', {
       host: REACT_APP_SDK_API_HOST,
       port: parseInt(REACT_APP_SDK_API_PORT, 10),
@@ -32,16 +41,16 @@ if (process.env.REACT_APP_SDK_API_HOST) {
     });
 }
 
-const sdk = new createSdk({
-  storage: sdkStorage,
-  environment: sdkEnvironment,
-});
+// creates sdk instance
+const sdk = new createSdk(sdkEnv);
+
+sdk.initialize().catch(console.error)
 
 const store = createStore(
   reducers,
   {},
   composeWithDevTools(applyMiddleware(
-    createReduxMiddleware(sdk),
+    sdk.createReduxMiddleware(), // adds sdk redux middleware
     thunk.withExtraArgument(sdk),
   )),
 );

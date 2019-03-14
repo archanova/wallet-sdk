@@ -1,39 +1,48 @@
-export const SET_SDK_SETUP_COMPLETED = 'SET_SDK_SETUP_COMPLETED';
-export const SET_SDK_SECURE_CODE_URL = 'SET_SDK_SECURE_CODE_URL';
+export const SET_SDK_ACCOUNTS = 'SET_SDK_ACCOUNTS';
 
-export function setSdkSetupCompleted() {
-  return {
-    type: SET_SDK_SETUP_COMPLETED,
+export function initializeSdk() {
+  return (dispatch, getState, sdk) => {
+    sdk
+      .initialize()
+      .catch(console.error);
   };
 }
 
-export function setSdkSecureCodeUrl(payload) {
+export function resetSdk() {
+  return (dispatch, getState, sdk) => {
+    sdk.reset();
+  };
+}
+
+export function createSdkAccount(ensLabel = null) {
+  return (dispatch, getState, sdk) => {
+    sdk
+      .createAccount(ensLabel)
+      .catch(console.error);
+  };
+}
+
+
+export function setSdkAccounts(payload) {
   return {
-    type: SET_SDK_SECURE_CODE_URL,
+    type: SET_SDK_ACCOUNTS,
     payload,
   };
 }
 
-export function createSdkAccount() {
+export function fetchSdkAccounts() {
   return (dispatch, getState, sdk) => {
     sdk
-      .createAccount()
+      .getAccounts()
+      .then(accounts => dispatch(setSdkAccounts(accounts)))
       .catch(console.error);
   };
 }
 
-export function createSdkSecureUrl() {
-  return (dispatch, getState, sdk) => {
-    dispatch(setSdkSecureCodeUrl('test'));
-  };
-}
-
-export function sdkSetup() {
+export function connectSdkAccount(accountAddress) {
   return (dispatch, getState, sdk) => {
     sdk
-      .setup()
-      .then(() => dispatch(setSdkSetupCompleted()))
+      .connectAccount(accountAddress)
       .catch(console.error);
   };
 }
-

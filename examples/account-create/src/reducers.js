@@ -1,20 +1,14 @@
 import { combineReducers } from 'redux';
-import { reduxReducer as sdk } from '@archanova/wallet-sdk';
-import { SET_SDK_SETUP_COMPLETED, SET_SDK_SECURE_CODE_URL } from './actions';
+import { reduxReducer as sdk, ReduxActionTypes } from '@archanova/wallet-sdk';
+import { SET_SDK_ACCOUNTS } from './actions';
 
-function sdkSetupCompleted(state = false, action) {
-  switch (action.type) {
-    case SET_SDK_SETUP_COMPLETED:
-      return true;
+function sdkAccounts(state = null, {type, payload}) {
+  switch (type) {
+    case SET_SDK_ACCOUNTS:
+      return payload;
 
-    default:
-      return state;
-  }
-}
-function sdkSecureCodeUrl(state = null, action) {
-  switch (action.type) {
-    case SET_SDK_SECURE_CODE_URL:
-      return action.payload;
+    case ReduxActionTypes.SetAccount:
+      return null;
 
     default:
       return state;
@@ -23,6 +17,5 @@ function sdkSecureCodeUrl(state = null, action) {
 
 export default combineReducers({
   sdk,
-  sdkSetupCompleted,
-  sdkSecureCodeUrl,
+  sdkAccounts,
 });

@@ -6,13 +6,16 @@
     "@archanova/wallet-sdk": "^0.0.3",
     "@netgum/utils": "^0.0.5",
     "qrcode.react": "^0.9.2",
+    "bootstrap": "^4.3.1",
     "react": "^16.8.1",
+    "react-bootstrap": "^1.0.0-beta.5",
     "react-dom": "^16.8.1",
     "react-scripts": "2.1.5",
     "react-redux": "^6.0.0",
     "redux": "^4.0.0",
     "redux-devtools-extension": "^2.13.8",
-    "redux-thunk": "^2.3.0"
+    "redux-thunk": "^2.3.0",
+    "node-sass": "^4.11.0"
   },
   "scripts": {
     "start": "react-scripts start"
