@@ -1,7 +1,7 @@
 import { IBN } from 'bn.js';
 import { Middleware } from 'redux';
 import { IState } from './state';
-import { IAccount, IFaucetService } from './services';
+import { IAccount, IAccountDevice, IFaucetService } from './services';
 
 export interface ISdk {
   readonly state: IState;
@@ -19,6 +19,8 @@ export interface ISdk {
   connectAccount(accountAddress: string): Promise<IAccount>;
 
   getAccounts(): Promise<IAccount[]>;
+
+  createAccountDevice(deviceAddress: string): Promise<IAccountDevice>;
 
   topUpAccount(): Promise<IFaucetService.IReceipt>;
 

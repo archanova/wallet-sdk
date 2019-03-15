@@ -38,11 +38,11 @@ export class EthService implements IEthService {
   }
 
   public getNetworkVersion(): Promise<string> {
-    return this.eth.net_version().catch(() => null);
+    return this.eth.net_version();
   }
 
   public getGasPrice(): Promise<BN.IBN> {
-    return this.eth.gasPrice().catch(() => null);
+    return this.eth.gasPrice();
   }
 
   public async getBalance(target: any): Promise<BN.IBN> {

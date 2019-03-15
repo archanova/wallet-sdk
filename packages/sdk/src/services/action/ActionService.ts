@@ -1,11 +1,11 @@
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { UniqueBehaviorSubject } from 'rxjs-addons';
+import { filter, map, tap } from 'rxjs/operators';
 import { IAction, IActionService } from './interfaces';
 import { ActionTypes } from './constants';
 
 export class ActionService implements IActionService {
-  public $incoming = new BehaviorSubject<IAction>(null);
-  public $accepted = new Subject<IAction>();
+  public $incoming = new UniqueBehaviorSubject<IAction>(null);
+  public $accepted = new UniqueBehaviorSubject<IAction>(null);
 
   constructor(private options: IActionService.IOptions = {}) {
     //
@@ -19,8 +19,9 @@ export class ActionService implements IActionService {
         .$incoming
         .pipe(
           filter(action => !!action),
+          tap(() => this.acceptAction()),
         )
-        .subscribe(this.$accepted);
+        .subscribe();
     }
   }
 
@@ -47,19 +48,5 @@ export class ActionService implements IActionService {
       payload,
       timestamp: Date.now(),
     };
-  }
-
-  public ofType<T = any>(type: ActionTypes): Observable<T> {
-    return this
-      .$accepted
-      .pipe(
-        filter((action: IAction<T>) => (
-          action &&
-          typeof action === 'object' &&
-          action.payload &&
-          action.type === type
-        )),
-        map(({ payload }) => payload),
-      );
   }
 }

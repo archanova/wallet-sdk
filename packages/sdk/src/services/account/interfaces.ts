@@ -19,7 +19,7 @@ export interface IAccountService {
 
   getAccountDevice(accountAddress: string, deviceAddress: string): Promise<IAccountDevice>;
 
-  createAccountDevice(accountAddress: string, deviceAddress: string): Promise<boolean>;
+  createAccountDevice(accountAddress: string, deviceAddress: string): Promise<IAccountDevice>;
 
   removeAccountDevice(accountAddress: string, deviceAddress: string): Promise<boolean>;
 }

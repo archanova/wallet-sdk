@@ -1,5 +1,5 @@
 import { IBN } from 'bn.js';
-import { from } from 'rxjs';
+import { from, Subject } from 'rxjs';
 import { UniqueBehaviorSubject, TUniqueBehaviorSubject } from 'rxjs-addons';
 import { skip, switchMap } from 'rxjs/operators';
 import { IStorageService, IAccount, IAccountDevice } from '../services';
@@ -8,6 +8,7 @@ import { IState } from './interfaces';
 export class State implements IState {
   public static STORAGE_NAMESPACE = 'State';
 
+  public error$ = new Subject<any>();
   public account$ = new UniqueBehaviorSubject<IAccount>();
   public accountDevice$ = new UniqueBehaviorSubject<IAccountDevice>();
   public accountBalance$ = new UniqueBehaviorSubject<IBN>();

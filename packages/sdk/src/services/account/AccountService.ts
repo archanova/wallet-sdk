@@ -80,15 +80,15 @@ export class AccountService implements IAccountService {
     return item;
   }
 
-  public async createAccountDevice(accountAddress: string, deviceAddress: string): Promise<boolean> {
-    const { success } = await this.apiService.sendHttpRequest<{
-      success: boolean;
+  public async createAccountDevice(accountAddress: string, deviceAddress: string): Promise<IAccountDevice> {
+    const { item } = await this.apiService.sendHttpRequest<{
+      item: IAccountDevice;
     }>({
       method: 'POST',
       path: `account/${accountAddress}/device/${deviceAddress}`,
     });
 
-    return success;
+    return item;
   }
 
   public async removeAccountDevice(accountAddress: string, deviceAddress: string): Promise<boolean> {

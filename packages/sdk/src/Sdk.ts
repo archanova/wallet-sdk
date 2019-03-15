@@ -1,26 +1,31 @@
 import { IBN } from 'bn.js';
 import { Middleware, Store } from 'redux';
-import { from, merge, of, timer } from 'rxjs';
-import { switchMap, filter, takeUntil, map } from 'rxjs/operators';
+import { from, merge, of, Subscription, timer } from 'rxjs';
+import { filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { ISdk } from './interfaces';
 import { ReduxActionTypes } from './redux';
 import {
+  actionPayload,
+  ActionTypes,
+  EventTypes,
   IAccount,
+  IAccountDevice,
   IAccountProviderService,
   IAccountProxyService,
   IAccountService,
+  IAction,
   IActionService,
   IApiService,
   IDeviceService,
   IEthService,
+  IEvent,
   IEventService,
   IFaucetService,
   ISecureService,
   ISessionService,
   IStorageService,
   IUrlService,
-  ActionTypes,
-  actionPayload,
+  eventPayload,
 } from './services';
 import { IState } from './state';
 
@@ -45,12 +50,13 @@ export class Sdk implements ISdk {
     private readonly storageService: IStorageService,
     private readonly urlService: IUrlService,
   ) {
-    //
+    this.catchError = this.catchError.bind(this);
   }
 
   public async initialize(): Promise<void> {
     this.require({
       initialized: false,
+      accountConnected: false,
     });
 
     const { initialized$, connected$, authenticated$, deviceAddress$ } = this.state;
@@ -59,23 +65,27 @@ export class Sdk implements ISdk {
     deviceAddress$.next(deviceAddress);
 
     await this.state.setup();
-    this.actionService.setup();
 
     if (await this.sessionService.createSession(deviceAddress)) {
       authenticated$.next(true);
 
       this.eventService.setup().subscribe(connected$);
 
-      this.urlService.setup();
-
       this.subscribeAccountBalance();
+      this.subscribeIncomingActions();
+      this.subscribeIncomingEvents();
 
       initialized$.next(true);
+
+      this.urlService.setup();
+      this.actionService.setup();
     }
   }
 
   public async reset(options: { device?: boolean, session?: boolean } = {}): Promise<void> {
-    this.require();
+    this.require({
+      accountConnected: null,
+    });
 
     this.state.reset();
 
@@ -109,7 +119,7 @@ export class Sdk implements ISdk {
         gasPrice$.next(result);
       }
     } catch (err) {
-      //
+      this.catchError(err);
     }
 
     return result;
@@ -127,7 +137,7 @@ export class Sdk implements ISdk {
           networkVersion$.next(networkVersion);
         }
       } catch (err) {
-        //
+        this.catchError(err);
       }
     }
 
@@ -136,7 +146,7 @@ export class Sdk implements ISdk {
 
   public async createAccount(ensName: string = null): Promise<IAccount> {
     this.require({
-      accountDisconnected: true,
+      accountConnected: false,
     });
 
     const account = await this.accountProviderService.createAccount(ensName);
@@ -146,7 +156,7 @@ export class Sdk implements ISdk {
 
   public async connectAccount(accountAddress: string): Promise<IAccount> {
     this.require({
-      accountDisconnected: true,
+      accountConnected: false,
     });
 
     const account = await this.accountService.getAccount(accountAddress);
@@ -156,16 +166,22 @@ export class Sdk implements ISdk {
 
   public async getAccounts(): Promise<IAccount[]> {
     this.require({
-      accountDisconnected: true,
+      accountConnected: false,
     });
 
     return this.accountService.getAccounts();
   }
 
+  public async createAccountDevice(deviceAddress: string): Promise<IAccountDevice> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.accountService.createAccountDevice(accountAddress, deviceAddress);
+  }
+
   public async topUpAccount(): Promise<IFaucetService.IReceipt> {
-    this.require({
-      accountConnected: true,
-    });
+    this.require();
 
     const { accountAddress } = this.state;
 
@@ -174,7 +190,7 @@ export class Sdk implements ISdk {
 
   public createRequestAddAccountDeviceUrl(options: { accountAddress?: string, endpoint?: string, callbackEndpoint?: string } = {}): string {
     this.require({
-      accountDisconnected: true,
+      accountConnected: false,
     });
 
     const { deviceAddress } = this.state;
@@ -223,26 +239,28 @@ export class Sdk implements ISdk {
   private require(options: {
     initialized?: boolean;
     accountConnected?: boolean;
-    accountDisconnected?: boolean;
   } = {}): void {
     const { account, initialized } = this.state;
 
     options = {
-      ...options,
       initialized: true,
+      accountConnected: true,
+      ...options,
     };
 
-    if (!options.initialized && !initialized) {
+    if (options.initialized && !initialized) {
       throw new Error('Setup uncompleted');
     }
+
     if (!options.initialized && initialized) {
       throw new Error('Setup already completed');
     }
 
-    if (options.accountConnected && !account) {
+    if (options.accountConnected === true && !account) {
       throw new Error('Account disconnected');
     }
-    if (options.accountDisconnected && account) {
+
+    if (options.accountConnected === false && account) {
       throw new Error('Account already connected');
     }
   }
@@ -266,6 +284,8 @@ export class Sdk implements ISdk {
       }
 
     } catch (err) {
+      this.catchError(err);
+
       account$.next(null);
       accountDevice$.next(null);
       result = null;
@@ -291,5 +311,118 @@ export class Sdk implements ISdk {
         ),
       )
       .subscribe(accountBalance$);
+  }
+
+  private subscribeIncomingActions(): void {
+    const { account$ } = this.state;
+
+    let hasAccount = null;
+    let subscription: Subscription = null;
+
+    account$
+      .subscribe((account) => {
+        if (hasAccount === !!account) {
+          return;
+        }
+
+        hasAccount = !!account;
+
+        if (subscription) {
+          subscription.unsubscribe();
+        }
+
+        const actionProcessor = async (action: IAction) => {
+          const { accountAddress } = this.state;
+
+          if (hasAccount) {
+            switch (action.type) {
+              case ActionTypes.RequestAddAccountDevice: {
+                const { payload: { callbackEndpoint, ...payload } } = action as IAction<actionPayload.IRequestAddAccountDevice>;
+                if (
+                  payload.deviceAddress &&
+                  (
+                    !payload.accountAddress ||
+                    payload.accountAddress === accountAddress
+                  )
+                ) {
+                  if (
+                    await this.createAccountDevice(payload.deviceAddress) &&
+                    callbackEndpoint
+                  ) {
+                    const action = this.actionService.createAction<actionPayload.IAccountDeviceAdded>(
+                      ActionTypes.AccountDeviceAdded, {
+                        accountAddress,
+                      },
+                    );
+
+                    this.urlService.openActionUrl(action, callbackEndpoint);
+                  }
+                }
+                break;
+              }
+            }
+          } else {
+            switch (action.type) {
+              case ActionTypes.AccountDeviceAdded: {
+                const { accountAddress } = action.payload as actionPayload.IAccountDeviceAdded;
+                if (accountAddress) {
+                  await this.connectAccount(accountAddress);
+                }
+                break;
+              }
+            }
+          }
+        };
+
+        subscription = this
+          .actionService
+          .$accepted
+          .pipe(
+            filter(action => !!action),
+            switchMap(action => from(
+              actionProcessor(action).catch(this.catchError),
+            )),
+            map(() => null),
+          )
+          .subscribe(this.actionService.$accepted);
+      });
+  }
+
+  private subscribeIncomingEvents(): void {
+    const eventProcessor = async (event: IEvent) => {
+      const { accountAddress, deviceAddress } = this.state;
+
+      switch (event.type) {
+        case EventTypes.AccountDeviceCreated: {
+          const { payload } = event as IEvent<eventPayload.IAccountDevice>;
+          if (
+            !accountAddress &&
+            payload.accountAddress &&
+            payload.deviceAddress &&
+            payload.deviceAddress === deviceAddress
+          ) {
+            await this.connectAccount(payload.accountAddress);
+          }
+        }
+          break;
+      }
+    };
+
+    this
+      .eventService
+      .$incoming
+      .pipe(
+        filter(event => !!event),
+        switchMap(event => from(
+          eventProcessor(event).catch(this.catchError),
+        )),
+        map(() => null),
+      )
+      .subscribe(this.eventService.$incoming);
+  }
+
+  private catchError(err): any {
+    this.state.error$.next(err);
+    return null;
   }
 }

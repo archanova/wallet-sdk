@@ -6,7 +6,6 @@ export interface IRequestAddAccountDevice {
 
 export interface IAccountDeviceAdded {
   accountAddress: string;
-  callbackEndpoint?: string;
 }
 
 export interface IRequestSignSecureCode {

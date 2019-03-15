@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import { IAccount, IAccountDevice } from '../services';
 
 export interface IState {
+  readonly error$: Subject<any>;
   readonly account$: Subject<IAccount>;
   readonly accountDevice$: Subject<IAccountDevice>;
   readonly accountBalance$: Subject<IBN>;

@@ -10,6 +10,7 @@ export interface IReduxState {
   accountBalance: IBN;
   accountDevice: IAccountDevice;
   deviceAddress: string;
+  gasPrice: IBN;
   networkVersion: string;
   initialized: boolean;
   authenticated: boolean;

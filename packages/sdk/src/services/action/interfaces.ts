@@ -1,4 +1,4 @@
-import { Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { ActionTypes } from './constants';
 
 export interface IAction<T = any> {
@@ -19,8 +19,6 @@ export interface IActionService {
   dismissAction(): void;
 
   createAction<T = any>(type: ActionTypes, payload: T): IAction<T>;
-
-  ofType<T = any>(type: ActionTypes): Observable<T>;
 }
 
 export namespace IActionService {
