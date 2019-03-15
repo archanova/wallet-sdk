@@ -17,6 +17,7 @@ export const reduxReducer = combineReducers({
   accountBalance: createReducer(ReduxActionTypes.SetAccountBalance),
   accountDevice: createReducer(ReduxActionTypes.SetAccountDevice),
   deviceAddress: createReducer(ReduxActionTypes.SetDeviceAddress),
+  gasPrice: createReducer(ReduxActionTypes.SetGasPrice),
   networkVersion: createReducer(ReduxActionTypes.SetNetworkVersion),
   initialized: createReducer(ReduxActionTypes.SetInitialized),
   authenticated: createReducer(ReduxActionTypes.SetAuthenticated),

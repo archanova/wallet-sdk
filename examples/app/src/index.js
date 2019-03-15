@@ -8,6 +8,7 @@ import { createSdk, availableEnvironments } from '@archanova/wallet-sdk';
 import App from './App';
 import reducers from './reducers';
 import './index.scss';
+import 'prismjs/themes/prism.css';
 
 export let sdkEnv = availableEnvironments
   .development
@@ -18,6 +19,7 @@ export let sdkEnv = availableEnvironments
     listener: (callback) => callback(document.location.toString()),
   })
   .extendOptions('storage', {
+    namespace: '@wallet',
     adapter: localStorage,
   });
 
@@ -44,7 +46,9 @@ if (process.env.REACT_APP_SDK_API_HOST) {
 // creates sdk instance
 const sdk = new createSdk(sdkEnv);
 
-sdk.initialize().catch(console.error)
+if (process.env.REACT_APP_SDK_AUTO_INITIALIZE) {
+  sdk.initialize().catch(console.error);
+}
 
 const store = createStore(
   reducers,

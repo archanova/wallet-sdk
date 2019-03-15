@@ -8,12 +8,6 @@
 $ npm i @archanova/wallet-sdk -S
 ```
 
-## Docs
-
-- [Usage](docs/usage.md)
-- [Storage Interface](docs/storage-interface.md)
-- [Services API](docs/services-api.md)
-
 ## Examples
 
 ```bash
@@ -24,11 +18,11 @@ $ npm run build
 
 ### Available examples:
 
-- [Creating new SDK Account](examples/account-create)
+- [Example Wallet](examples/wallet)
   ```bash
-  $ npm run start:example:account-create
+  $ npm run start:example:wallet
   ```
-- [Connecting to existing SDK Account](examples/account-connect)
+- [Example App](examples/app)
   ```bash
-  $ npm run start:example:account-connect
+  $ npm run start:example:app
   ```

@@ -12,6 +12,7 @@ export class State implements IState {
   public accountDevice$ = new UniqueBehaviorSubject<IAccountDevice>();
   public accountBalance$ = new UniqueBehaviorSubject<IBN>();
   public deviceAddress$ = new UniqueBehaviorSubject<string>();
+  public gasPrice$ = new UniqueBehaviorSubject<IBN>();
   public networkVersion$ = new UniqueBehaviorSubject<string>();
   public initialized$ = new UniqueBehaviorSubject<boolean>(false);
   public authenticated$ = new UniqueBehaviorSubject<boolean>(false);
@@ -35,6 +36,10 @@ export class State implements IState {
 
   public get deviceAddress(): string {
     return this.deviceAddress$.getValue();
+  }
+
+  public get gasPrice(): IBN {
+    return this.gasPrice$.getValue();
   }
 
   public get networkVersion(): string {
@@ -64,6 +69,7 @@ export class State implements IState {
       this.attachToStorage(this.account$, 'account'),
       this.attachToStorage(this.accountDevice$, 'accountDevice'),
       this.attachToStorage(this.networkVersion$, 'networkVersion'),
+      this.attachToStorage(this.gasPrice$, 'gasPrice'),
     ]);
   }
 

@@ -2,6 +2,7 @@ import { IBN } from 'bn.js';
 import {
   IAccount,
   IAccountDevice,
+  IAction,
 } from '../services';
 
 export interface IReduxState {
@@ -13,4 +14,5 @@ export interface IReduxState {
   initialized: boolean;
   authenticated: boolean;
   connected: boolean;
+  incomingAction: IAction;
 }

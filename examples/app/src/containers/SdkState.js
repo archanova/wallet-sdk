@@ -9,7 +9,7 @@ class SdkState extends Component {
     const { sdk, resetSdk } = this.props;
     return (
       <Block title="SDK State">
-        <Code trim={false}>{JSON.stringify(sdk, null, 2)}</Code>
+        <Code data={sdk} />
         <Button variant="danger" onClick={resetSdk}>
           Reset SDK
         </Button>

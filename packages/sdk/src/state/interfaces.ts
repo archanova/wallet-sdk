@@ -7,6 +7,7 @@ export interface IState {
   readonly accountDevice$: Subject<IAccountDevice>;
   readonly accountBalance$: Subject<IBN>;
   readonly deviceAddress$: Subject<string>;
+  readonly gasPrice$: Subject<IBN>;
   readonly networkVersion$: Subject<string>;
   readonly initialized$: Subject<boolean>;
   readonly authenticated$: Subject<boolean>;
@@ -17,6 +18,7 @@ export interface IState {
   readonly accountDevice: IAccountDevice;
   readonly accountBalance: IBN;
   readonly deviceAddress: string;
+  readonly gasPrice: IBN;
   readonly networkVersion: string;
   readonly initialized: boolean;
   readonly authenticated: boolean;

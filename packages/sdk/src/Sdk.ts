@@ -1,3 +1,4 @@
+import { IBN } from 'bn.js';
 import { Middleware, Store } from 'redux';
 import { from, merge, of, timer } from 'rxjs';
 import { switchMap, filter, takeUntil, map } from 'rxjs/operators';
@@ -49,7 +50,7 @@ export class Sdk implements ISdk {
 
   public async initialize(): Promise<void> {
     this.require({
-      notInitialized: true,
+      initialized: false,
     });
 
     const { initialized$, connected$, authenticated$, deviceAddress$ } = this.state;
@@ -73,15 +74,69 @@ export class Sdk implements ISdk {
     }
   }
 
-  public reset(): void {
+  public async reset(options: { device?: boolean, session?: boolean } = {}): Promise<void> {
     this.require();
 
     this.state.reset();
+
+    if (options.session || options.device) {
+      const { authenticated$, deviceAddress$ } = this.state;
+      let { deviceAddress } = this.state;
+
+      if (await this.sessionService.resetSession()) {
+        authenticated$.next(false);
+
+        if (options.device) {
+          deviceAddress = await this.deviceService.reset();
+          deviceAddress$.next(deviceAddress);
+        }
+
+        if (await this.sessionService.createSession(deviceAddress)) {
+          authenticated$.next(true);
+        }
+      }
+    }
+  }
+
+  public async getGasPrice(): Promise<IBN> {
+    const { gasPrice, gasPrice$ } = this.state;
+    let result: IBN = gasPrice;
+
+    try {
+      const currentGasPrice = await this.ethService.getGasPrice();
+      if (currentGasPrice) {
+        result = currentGasPrice;
+        gasPrice$.next(result);
+      }
+    } catch (err) {
+      //
+    }
+
+    return result;
+  }
+
+  public async getNetworkVersion(): Promise<string> {
+    const { networkVersion, networkVersion$ } = this.state;
+    let result: string = networkVersion || null;
+
+    if (!networkVersion) {
+      try {
+        const networkVersion = await this.ethService.getNetworkVersion();
+        if (networkVersion) {
+          result = networkVersion;
+          networkVersion$.next(networkVersion);
+        }
+      } catch (err) {
+        //
+      }
+    }
+
+    return result;
   }
 
   public async createAccount(ensName: string = null): Promise<IAccount> {
     this.require({
-      disconnectedAccount: true,
+      accountDisconnected: true,
     });
 
     const account = await this.accountProviderService.createAccount(ensName);
@@ -91,7 +146,7 @@ export class Sdk implements ISdk {
 
   public async connectAccount(accountAddress: string): Promise<IAccount> {
     this.require({
-      disconnectedAccount: true,
+      accountDisconnected: true,
     });
 
     const account = await this.accountService.getAccount(accountAddress);
@@ -100,14 +155,26 @@ export class Sdk implements ISdk {
   }
 
   public async getAccounts(): Promise<IAccount[]> {
-    this.require();
+    this.require({
+      accountDisconnected: true,
+    });
 
     return this.accountService.getAccounts();
   }
 
+  public async topUpAccount(): Promise<IFaucetService.IReceipt> {
+    this.require({
+      accountConnected: true,
+    });
+
+    const { accountAddress } = this.state;
+
+    return this.faucetService.getFunds(accountAddress);
+  }
+
   public createRequestAddAccountDeviceUrl(options: { accountAddress?: string, endpoint?: string, callbackEndpoint?: string } = {}): string {
     this.require({
-      disconnectedAccount: true,
+      accountDisconnected: true,
     });
 
     const { deviceAddress } = this.state;
@@ -137,6 +204,7 @@ export class Sdk implements ISdk {
             this.state.accountDevice$.pipe(map(createActionCreator(ReduxActionTypes.SetAccountDevice))),
             this.state.accountBalance$.pipe(map(createActionCreator(ReduxActionTypes.SetAccountBalance))),
             this.state.deviceAddress$.pipe(map(createActionCreator(ReduxActionTypes.SetDeviceAddress))),
+            this.state.gasPrice$.pipe(map(createActionCreator(ReduxActionTypes.SetGasPrice))),
             this.state.networkVersion$.pipe(map(createActionCreator(ReduxActionTypes.SetNetworkVersion))),
             this.state.initialized$.pipe(map(createActionCreator(ReduxActionTypes.SetInitialized))),
             this.state.authenticated$.pipe(map(createActionCreator(ReduxActionTypes.SetAuthenticated))),
@@ -153,23 +221,28 @@ export class Sdk implements ISdk {
   }
 
   private require(options: {
-    notInitialized?: boolean;
-    connectedAccount?: boolean;
-    disconnectedAccount?: boolean;
+    initialized?: boolean;
+    accountConnected?: boolean;
+    accountDisconnected?: boolean;
   } = {}): void {
     const { account, initialized } = this.state;
 
-    if (!options.notInitialized && !initialized) {
+    options = {
+      ...options,
+      initialized: true,
+    };
+
+    if (!options.initialized && !initialized) {
       throw new Error('Setup uncompleted');
     }
-    if (options.notInitialized && initialized) {
+    if (!options.initialized && initialized) {
       throw new Error('Setup already completed');
     }
 
-    if (options.connectedAccount && !account) {
+    if (options.accountConnected && !account) {
       throw new Error('Account disconnected');
     }
-    if (options.disconnectedAccount && account) {
+    if (options.accountDisconnected && account) {
       throw new Error('Account already connected');
     }
   }

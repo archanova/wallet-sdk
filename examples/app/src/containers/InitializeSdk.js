@@ -2,22 +2,24 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Button } from 'react-bootstrap';
 import { initializeSdk } from '../actions';
+import { Block, Code } from '../components';
 
 class InitializeSdk extends Component {
   render() {
     const { initializeSdk } = this.props;
     return (
-      <div>
-        <h4>Initialize SDK</h4>
-        <pre>
-            <code>
-              sdk.initialize().catch(console.error);{'\n'}
-            </code>
-          </pre>
+      <Block title="Initialize SDK">
+        <Code data={
+          `
+            sdk
+            .initialize()
+            .catch(console.error);
+          `
+        } />
         <Button variant="primary" onClick={initializeSdk}>
           Initialize
         </Button>
-      </div>
+      </Block>
     );
   }
 }
