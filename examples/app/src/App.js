@@ -21,7 +21,7 @@ class App extends Component {
     return (
       <div>
         <Container>
-          <h2>Example Wallet</h2>
+          <h2>Example App</h2>
           {content}
           <SdkState />
         </Container>

@@ -17,6 +17,7 @@ export let sdkEnv = availableEnvironments
   })
   .extendOptions('url', {
     listener: (callback) => callback(document.location.toString()),
+    opener: (url) => document.location = url,
   })
   .extendOptions('storage', {
     namespace: '@wallet',

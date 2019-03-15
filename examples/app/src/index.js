@@ -19,7 +19,7 @@ export let sdkEnv = availableEnvironments
     listener: (callback) => callback(document.location.toString()),
   })
   .extendOptions('storage', {
-    namespace: '@wallet',
+    namespace: '@app',
     adapter: localStorage,
   });
 

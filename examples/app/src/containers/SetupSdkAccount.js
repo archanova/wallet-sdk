@@ -22,11 +22,11 @@ class SetupSdkAccount extends Component {
             const callbackEndpoint = 'http://localhost:5200';
 
             // for redirect
-            const url = sdk
+            const redirectUrl = sdk
               .createRequestAddAccountDeviceUrl({ endpoint, callbackEndpoint });
 
             // for qr code
-            const url = sdk
+            const qrCodeUrl = sdk
               .createRequestAddAccountDeviceUrl();
             `
           } />
