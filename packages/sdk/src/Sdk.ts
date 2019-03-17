@@ -73,7 +73,7 @@ export class Sdk implements ISdk {
       this.eventService.setup().subscribe(connected$);
 
       this.subscribeAccountBalance();
-      this.subscribeIncomingActions();
+      this.subscribeAcceptedActions();
       this.subscribeIncomingEvents();
 
       initialized$.next(true);
@@ -415,7 +415,6 @@ export class Sdk implements ISdk {
 
     account$
       .pipe(
-        filter(account => !!account),
         switchMap(account => account
           ? timer(0, 5000)
             .pipe(
@@ -429,7 +428,7 @@ export class Sdk implements ISdk {
       .subscribe(accountBalance$);
   }
 
-  private subscribeIncomingActions(): void {
+  private subscribeAcceptedActions(): void {
     const { account$ } = this.state;
 
     let hasAccount = null;
