@@ -7,12 +7,14 @@ import { ReduxActionTypes } from './redux';
 import {
   actionPayload,
   ActionTypes,
+  eventPayload,
   EventTypes,
   IAccount,
   IAccountDevice,
   IAccountProviderService,
   IAccountProxyService,
   IAccountService,
+  IAccountTransaction,
   IAction,
   IActionService,
   IApiService,
@@ -25,7 +27,6 @@ import {
   ISessionService,
   IStorageService,
   IUrlService,
-  eventPayload,
 } from './services';
 import { IState } from './state';
 
@@ -144,14 +145,34 @@ export class Sdk implements ISdk {
     return result;
   }
 
-  public async createAccount(ensName: string = null): Promise<IAccount> {
+  public async getAccounts(): Promise<IAccount[]> {
     this.require({
       accountConnected: false,
     });
 
-    const account = await this.accountProviderService.createAccount(ensName);
+    return this.accountService.getAccounts();
+  }
 
-    return this.verifyAccount(account);
+  public async createAccount(ensLabel: string = null): Promise<IAccount> {
+    this.require({
+      accountConnected: false,
+    });
+
+    const account = await this.accountProviderService.createAccount(ensLabel);
+
+    return this.setAccount(account);
+  }
+
+  public async setAccountEnsLabel(ensLabel: string): Promise<IAccount> {
+    this.require();
+
+    const { accountAddress, account$ } = this.state;
+
+    const account = await this.accountProviderService.updateAccount(accountAddress, ensLabel);
+
+    account$.next(account);
+
+    return account;
   }
 
   public async connectAccount(accountAddress: string): Promise<IAccount> {
@@ -161,15 +182,42 @@ export class Sdk implements ISdk {
 
     const account = await this.accountService.getAccount(accountAddress);
 
-    return this.verifyAccount(account);
+    return this.setAccount(account);
   }
 
-  public async getAccounts(): Promise<IAccount[]> {
-    this.require({
-      accountConnected: false,
-    });
+  public async verifyAccount(): Promise<IAccount> {
+    this.require();
 
-    return this.accountService.getAccounts();
+    const { account } = this.state;
+
+    return this.setAccount(account);
+  }
+
+  public async disconnectAccount(): Promise<void> {
+    this.require();
+
+    const { accountAddress, deviceAddress, account$, accountDevice$ } = this.state;
+
+    await this.accountService.removeAccountDevice(accountAddress, deviceAddress);
+
+    account$.next(null);
+    accountDevice$.next(null);
+  }
+
+  public async topUpAccount(): Promise<IFaucetService.IReceipt> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.faucetService.getFunds(accountAddress);
+  }
+
+  public async getAccountDevices(): Promise<IAccountDevice[]> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.accountService.getAccountDevices(accountAddress);
   }
 
   public async createAccountDevice(deviceAddress: string): Promise<IAccountDevice> {
@@ -180,12 +228,80 @@ export class Sdk implements ISdk {
     return this.accountService.createAccountDevice(accountAddress, deviceAddress);
   }
 
-  public async topUpAccount(): Promise<IFaucetService.IReceipt> {
+  public async removeAccountDevice(deviceAddress: string): Promise<void> {
     this.require();
 
     const { accountAddress } = this.state;
 
-    return this.faucetService.getFunds(accountAddress);
+    await this.accountService.removeAccountDevice(accountAddress, deviceAddress);
+  }
+
+  public async getAccountTransactions(): Promise<IAccountTransaction[]> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.accountService.getAccountTransactions(accountAddress);
+  }
+
+  public async estimateAccountDeployment(gasPrice: IBN): Promise<IBN> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.accountProviderService.estimateDeployAccountCost(accountAddress, gasPrice);
+  }
+
+  public async estimateAccountDeviceDeployment(deviceAddress: string, gasPrice: IBN): Promise<IAccountProxyService.IEstimatedTransaction> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.accountProxyService.estimateDeployDevice(accountAddress, deviceAddress, gasPrice);
+  }
+
+  public async estimateAccountTransaction(
+    to: string,
+    value: IBN,
+    data: Buffer,
+    gasPrice: IBN,
+  ): Promise<IAccountProxyService.IEstimatedTransaction> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.accountProxyService.estimateTransaction(accountAddress, to, value, data, gasPrice);
+  }
+
+  public async deployAccount(gasPrice: IBN): Promise<string> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.accountProviderService.deployAccount(accountAddress, gasPrice);
+  }
+
+  public async deployAccountDevice(
+    deviceAddress: string,
+    estimated: IAccountProxyService.IEstimatedTransaction,
+    gasPrice: IBN,
+  ): Promise<string> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.accountProxyService.deployDevice(accountAddress, deviceAddress, estimated, gasPrice);
+  }
+
+  public async executeAccountTransaction(
+    estimated: IAccountProxyService.IEstimatedTransaction,
+    gasPrice: IBN,
+  ): Promise<string> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.accountProxyService.executeTransaction(accountAddress, estimated, gasPrice);
   }
 
   public createRequestAddAccountDeviceUrl(options: { accountAddress?: string, endpoint?: string, callbackEndpoint?: string } = {}): string {
@@ -265,7 +381,7 @@ export class Sdk implements ISdk {
     }
   }
 
-  private async verifyAccount(account: IAccount): Promise<IAccount> {
+  private async setAccount(account: IAccount): Promise<IAccount> {
     let result: IAccount = null;
     const { account$, accountDevice$, deviceAddress } = this.state;
 
@@ -370,6 +486,12 @@ export class Sdk implements ISdk {
                 }
                 break;
               }
+
+              case ActionTypes.RequestSignSecureCode: {
+                const { creatorAddress, code } = action.payload as actionPayload.IRequestSignSecureCode;
+                await this.secureService.signSecureCode(creatorAddress, code);
+                break;
+              }
             }
           }
         };
@@ -393,18 +515,68 @@ export class Sdk implements ISdk {
       const { accountAddress, deviceAddress } = this.state;
 
       switch (event.type) {
-        case EventTypes.AccountDeviceCreated: {
+        case EventTypes.AccountUpdated:
+        case EventTypes.AccountDeviceCreated:
+        case EventTypes.AccountDeviceUpdated:
+        case EventTypes.AccountDeviceRemoved: {
           const { payload } = event as IEvent<eventPayload.IAccountDevice>;
-          if (
-            !accountAddress &&
-            payload.accountAddress &&
-            payload.deviceAddress &&
-            payload.deviceAddress === deviceAddress
-          ) {
-            await this.connectAccount(payload.accountAddress);
+
+          switch (event.type) {
+            case EventTypes.AccountUpdated: {
+              if (accountAddress === payload.accountAddress) {
+                const account = await this.accountService.getAccount(accountAddress);
+                await this.setAccount(account);
+              }
+              break;
+            }
+            case EventTypes.AccountDeviceCreated: {
+              if (
+                !accountAddress &&
+                payload.accountAddress &&
+                payload.deviceAddress &&
+                payload.deviceAddress === deviceAddress
+              ) {
+                await this.connectAccount(payload.accountAddress);
+              }
+              break;
+            }
+            case EventTypes.AccountDeviceRemoved: {
+              if (
+                payload.accountAddress === accountAddress &&
+                payload.deviceAddress === deviceAddress
+              ) {
+                await this.reset();
+              }
+              break;
+            }
+            case EventTypes.AccountDeviceUpdated: {
+              await this.verifyAccount();
+              break;
+            }
           }
-        }
           break;
+        }
+
+        case EventTypes.SecureCodeSigned: {
+          const { payload: { code, signerAddress } } = event as IEvent<eventPayload.ISecureCode>;
+
+          if (
+            accountAddress &&
+            signerAddress &&
+            this.secureService.verifySecureCode(code)
+          ) {
+            const action = this.actionService.createAction<actionPayload.IRequestAddAccountDevice>(
+              ActionTypes.RequestAddAccountDevice, {
+                accountAddress,
+                deviceAddress: signerAddress,
+              },
+            );
+
+            this.actionService.$incoming.next(action);
+          }
+
+          break;
+        }
       }
     };
 

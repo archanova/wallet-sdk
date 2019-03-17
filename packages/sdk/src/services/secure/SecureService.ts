@@ -4,6 +4,8 @@ import { IDeviceService } from '../device';
 import { ISecureService } from './interfaces';
 
 export class SecureService implements ISecureService {
+  private code: string = null;
+
   constructor(
     private apiService: IApiService,
     private deviceService: IDeviceService,
@@ -19,6 +21,8 @@ export class SecureService implements ISecureService {
       path: 'secure',
       body: {},
     });
+
+    this.code = code;
 
     return code;
   }
@@ -45,7 +49,17 @@ export class SecureService implements ISecureService {
     return success;
   }
 
+  public verifySecureCode(code: string): boolean {
+    return (
+      code &&
+      this.code &&
+      this.code === code
+    );
+  }
+
   public async destroySecureCode(): Promise<boolean> {
+    this.code = null;
+
     const { success } = await this.apiService.sendHttpRequest<{
       success: boolean;
     }>({

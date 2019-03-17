@@ -3,5 +3,7 @@ export interface ISecureService {
 
   signSecureCode(creatorAddress: string, code: string): Promise<boolean>;
 
+  verifySecureCode(code: string): boolean;
+
   destroySecureCode(): Promise<boolean>;
 }
