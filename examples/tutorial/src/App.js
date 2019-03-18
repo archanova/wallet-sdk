@@ -46,7 +46,7 @@ class App extends Component {
         screen === screenTypes.SETUP_ACCOUNT ||
         !screen
       ) {
-        screen = screenTypes.ACCOUNT_TRANSACTIONS;
+        screen = screenTypes.MANAGE_ACCOUNT;
       }
     }
 
