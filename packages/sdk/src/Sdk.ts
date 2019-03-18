@@ -304,6 +304,14 @@ export class Sdk implements ISdk {
     return this.accountProxyService.executeTransaction(accountAddress, estimated, gasPrice);
   }
 
+  public acceptIncomingAction(): void {
+    this.actionService.acceptAction();
+  }
+
+  public dismissIncomingAction(): void {
+    this.actionService.dismissAction();
+  }
+
   public createRequestAddAccountDeviceUrl(options: { accountAddress?: string, endpoint?: string, callbackEndpoint?: string } = {}): string {
     this.require({
       accountConnected: false,

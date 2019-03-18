@@ -17,8 +17,8 @@
     "precompile:watch": "npm run compile",
     "compile:watch": "lerna run compile:watch --parallel",
     "test": "lerna run test --stream",
-    "start:example:wallet": "cross-env PORT=5100 lerna run start --scope \"@examples/wallet\"",
-    "start:example:app": "cross-env PORT=5200 lerna run start --scope \"@examples/app\""
+    "start:example:tutorial:5100": "cross-env PORT=5100 lerna run start --scope \"@examples/tutorial\"",
+    "start:example:tutorial:5200": "cross-env PORT=5200 lerna run start --scope \"@examples/tutorial\""
   },
   "dependencies": {
     "cross-env": "^5.2.0",

@@ -60,6 +60,10 @@ export interface ISdk {
     gasPrice: IBN,
   ): Promise<string>;
 
+  acceptIncomingAction(): void;
+
+  dismissIncomingAction(): void;
+
   createRequestAddAccountDeviceUrl(options?: { accountAddress?: string, endpoint?: string, callbackEndpoint?: string }): string;
 
   createReduxMiddleware(): Middleware;
