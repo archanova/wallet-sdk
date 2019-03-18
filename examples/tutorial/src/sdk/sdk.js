@@ -1,6 +1,5 @@
 import { availableEnvironments, createSdk } from '@archanova/wallet-sdk';
 
-
 const {
   REACT_APP_SDK_API_HOST,
   REACT_APP_SDK_API_PORT,
