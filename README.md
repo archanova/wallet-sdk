@@ -18,11 +18,11 @@ $ npm run build
 
 ### Available examples:
 
-- [Example Wallet](examples/wallet)
+- [Tutorial](examples/tutorial)
   ```bash
-  $ npm run start:example:wallet
-  ```
-- [Example App](examples/app)
-  ```bash
-  $ npm run start:example:app
+  # start instance on port 5100
+  $ npm run start:example:tutorial:5100
+
+  # start instance on port 5200
+  $ npm run start:example:tutorial:5200
   ```
