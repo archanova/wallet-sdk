@@ -10,7 +10,7 @@ const {
 } = process.env;
 
 let environment = availableEnvironments
-  .development
+  .staging
   .extendOptions('action', {
     autoAccept: !!REACT_APP_SDK_AUTO_ACCEPT_ACTION,
   })

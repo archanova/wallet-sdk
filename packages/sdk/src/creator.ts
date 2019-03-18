@@ -18,14 +18,14 @@ import { State } from './state';
 import { ISdk } from './interfaces';
 import { Sdk } from './Sdk';
 
-export function createSdk(env?: IEnvironment | 'development'): ISdk {
+export function createSdk(env: IEnvironment | 'staging' = 'staging'): ISdk {
   let result: ISdk = null;
 
   let environment: IEnvironment = null;
 
   switch (env) {
-    case 'development':
-      environment = availableEnvironments.development;
+    case 'staging':
+      environment = availableEnvironments.staging;
       break;
 
     default:

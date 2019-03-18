@@ -1,7 +1,7 @@
 import { Environment } from './Environment';
 
 export const availableEnvironments = {
-  development: new Environment({
+  staging: new Environment({
     accountProvider: {
       contractAddress: '0x13266E4C16c279741f3cF0d9FE90D2d36B3669a2',
     },
@@ -10,13 +10,13 @@ export const availableEnvironments = {
     },
     action: {},
     api: {
-      host: 'api.development.archanova.run',
+      host: 'api.staging.archanova.run',
       port: null,
       useSsl: true,
       reconnectTimeout: 3000,
     },
     eth: {
-      providerEndpoint: 'https://eth.development.archanova.run',
+      providerEndpoint: 'https://parity.staging.archanova.run/',
     },
     url: {},
     storage: {},
