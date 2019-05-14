@@ -1,4 +1,24 @@
+@import "~normalize-scss/sass/normalize";
+
+@include normalize();
+
 body {
-  margin: 20px;
-  padding: 0;
+  background-color: #C7D1BF;
+  color: black;
+  font-size: 18px;
+  font-family: Roboto, sans-serif;
+  font-weight: 400;
+  line-height: 1.5em;
+}
+
+html,
+body {
+  height: 100%;
+  min-height: 530px;
+}
+
+body,
+:global #root {
+  display: flex;
+  flex: 1;
 }

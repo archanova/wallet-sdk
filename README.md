@@ -1,6 +1,8 @@
-# Archanova monorepo
+# Archanova
 
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
+
+> Archanova monorepo
 
 ## Packages
 

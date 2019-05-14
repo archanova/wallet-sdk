@@ -1,4 +1,6 @@
 import './index.scss';
+import 'highlight.js/styles/atom-one-dark.css';
+
 
 import React from 'react';
 import { render } from 'react-dom';

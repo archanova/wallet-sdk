@@ -189,11 +189,6 @@ createRequestSignSecureCodeUrl(): Promise<string>
 
 ## Utils
 
-### `createContractInstance`
-```
-createContractInstance<T = string>(abi: TAbi, address: string = null): Contract.ContractInstance<T>
-```
-
 ### `signPersonalMessage`
 ```
 signPersonalMessage(message: string | Buffer): Buffer

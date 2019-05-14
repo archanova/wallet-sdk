@@ -1,6 +1,5 @@
 import BN from 'bn.js';
 import EthJs from 'ethjs';
-import { TAbi } from 'ethjs-abi';
 import { BehaviorSubject, from, Subscription, timer } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { AccountDeviceStates, AccountDeviceTypes, AccountStates } from './constants';
@@ -29,10 +28,11 @@ import {
  */
 export class Sdk {
   public readonly api: Api;
+  public readonly contract: Contract;
   public readonly state: State;
 
-  public error$ = new BehaviorSubject<any>(null);
-  public event$ = new BehaviorSubject<Sdk.IEvent>(null);
+  public readonly error$ = new BehaviorSubject<any>(null);
+  public readonly event$ = new BehaviorSubject<Sdk.IEvent>(null);
 
   private readonly account: Account;
   private readonly accountDevice: AccountDevice;
@@ -40,7 +40,6 @@ export class Sdk {
   private readonly accountTransaction: AccountTransaction;
   private readonly action: Action;
   private readonly app: App;
-  private readonly contract: Contract;
   private readonly device: Device;
   private readonly ens: Ens;
   private readonly eth: Eth & EthJs;
@@ -211,6 +210,8 @@ export class Sdk {
     await this.account.createAccount(
       this.ens.buildName(ensLabel, ensRootName),
     );
+
+    await this.verifyAccount();
 
     return this.state.account;
   }
@@ -580,19 +581,6 @@ export class Sdk {
   }
 
 // Utils
-
-  /**
-   * creates contract instance
-   * @param abi
-   * @param address
-   */
-  public createContractInstance<T = string>(abi: TAbi, address: string = null): Contract.ContractInstance<T> {
-    this.require({
-      accountConnected: null,
-    });
-
-    return Contract.createContractInstance(abi, address, this.eth);
-  }
 
   /**
    * signs personal message
