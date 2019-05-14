@@ -649,6 +649,7 @@ export class Sdk {
                     },
                   };
                 }),
+                filter(account => !!account),
               )
               .subscribe(account$);
           }
