@@ -1,27 +1,24 @@
+import './index.scss';
+
 import React from 'react';
-import { createReduxSdkMiddleware } from '@archanova/sdk';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
-import { applyMiddleware, createStore } from 'redux';
-import { composeWithDevTools } from 'redux-devtools-extension';
-import './index.scss';
 import App from './App';
-import { SdkProvider, sdk } from './sdk';
 import reducers from './reducers';
+import { configureSdk, configureStore } from './configure';
+import { logger, context } from './shared';
 
-const store = createStore(
-  reducers,
-  {},
-  composeWithDevTools(applyMiddleware(
-    createReduxSdkMiddleware(sdk),
-  )),
-);
+const sdk = configureSdk(logger);
+const store = configureStore(reducers, sdk);
 
 render(
   <Provider store={store}>
-    <SdkProvider sdk={sdk}>
+    <context.Provider value={{
+      sdk,
+      logger,
+    }}>
       <App />
-    </SdkProvider>
+    </context.Provider>
   </Provider>,
   document.getElementById('root'),
 );

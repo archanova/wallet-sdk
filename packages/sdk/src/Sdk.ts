@@ -1,10 +1,10 @@
 import BN from 'bn.js';
 import EthJs from 'ethjs';
 import { TAbi } from 'ethjs-abi';
-import { BehaviorSubject, from, of, Subscription, timer } from 'rxjs';
-import { filter, map, switchMap, takeUntil } from 'rxjs/operators';
-import { AccountDeviceStates, AccountDeviceTypes, AccountGamePlayers, AccountGameStates, AccountStates } from './constants';
-import { IAccount, IAccountDevice, IAccountGame, IAccountGameHistory, IAccountTransaction, IApp, IPaginated } from './interfaces';
+import { BehaviorSubject, from, Subscription, timer } from 'rxjs';
+import { filter, map, switchMap } from 'rxjs/operators';
+import { AccountDeviceStates, AccountDeviceTypes, AccountStates } from './constants';
+import { IAccount, IAccountDevice, IAccountGame, IAccountTransaction, IApp, IPaginated } from './interfaces';
 import {
   Account,
   AccountDevice,
@@ -220,10 +220,7 @@ export class Sdk {
    * @param accountAddress
    */
   public async connectAccount(accountAddress: string): Promise<IAccount> {
-    this.require({
-      accountConnected: false,
-    });
-
+    await this.disconnectAccount();
     await this.verifyAccount(accountAddress);
 
     return this.state.account;
@@ -233,12 +230,6 @@ export class Sdk {
    * disconnects account
    */
   public async disconnectAccount(): Promise<void> {
-    this.require({
-      accountDeviceOwner: true,
-    });
-
-    const { deviceAddress } = this.state;
-    await this.removeAccountDevice(deviceAddress);
     await this.reset();
   }
 
