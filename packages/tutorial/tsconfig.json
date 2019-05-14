@@ -3,7 +3,6 @@
   "compilerOptions": {
     "jsx": "preserve",
     "typeRoots": [
-      "./src/@types",
       "./node_modules/@types",
       "./node_modules/@netgum/types/react",
       "./node_modules/@netgum/types/node"
