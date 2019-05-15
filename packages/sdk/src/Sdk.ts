@@ -109,14 +109,15 @@ export class Sdk {
 
   /**
    * initializes sdk
+   * @param options
    */
-  public async initialize(): Promise<void> {
+  public async initialize(options: { device?: Device.ISetupOptions } = {}): Promise<void> {
     this.require({
       initialized: false,
       accountConnected: false,
     });
 
-    await this.device.setup();
+    await this.device.setup(options.device || {});
     await this.state.setup();
     await this.session.setup();
 

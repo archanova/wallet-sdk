@@ -105,7 +105,6 @@ export class State {
     await Promise.all([
       this.attachToStorage(this.account$, State.StorageKeys.Account),
       this.attachToStorage(this.accountDevice$, State.StorageKeys.AccountDevice),
-      this.attachToStorage(this.session$, State.StorageKeys.Session),
     ]);
   }
 
@@ -130,7 +129,6 @@ export namespace State {
   export enum StorageKeys {
     Account = 'account',
     AccountDevice = 'account_device',
-    Session = 'session',
   }
 
   export interface IEns {
