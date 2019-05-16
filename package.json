@@ -19,7 +19,8 @@
     "precompile:watch": "npm run compile",
     "compile:watch": "lerna run compile:watch --parallel",
     "test": "npm run lint",
-    "start:tutorial": "lerna run --stream --scope \"@archanova/tutorial\" start"
+    "start:sdk:playground:5100": "cross-env PORT=5100 lerna run --stream --scope \"@archanova/tutorial\" start",
+    "start:sdk:playground:5200": "cross-env PORT=5200 lerna run --stream --scope \"@archanova/tutorial\" start"
   },
   "dependencies": {
     "cross-env": "^5.2.0",

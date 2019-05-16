@@ -3,13 +3,13 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { ObjectInspector } from 'react-inspector';
 import { ContextComponent, ILoggerEvent } from '../shared';
-import styles from './LoggerEvents.module.scss';
+import styles from './Footer.module.scss';
 
 interface IState {
   events: ILoggerEvent[];
 }
 
-export default class LoggerEvents extends ContextComponent<{}, IState> {
+export default class Footer extends ContextComponent<{}, IState> {
   public state = {
     events: [],
   };

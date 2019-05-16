@@ -1,3 +1,4 @@
+import { anyToBN, anyToBuffer } from '@netgum/utils';
 import BN from 'bn.js';
 import EthJs from 'ethjs';
 import { BehaviorSubject, from, Subscription, timer } from 'rxjs';
@@ -102,7 +103,7 @@ export class Sdk {
 
     this.accountTransaction = new AccountTransaction(this.api, this.contract, this.device, this.state);
     this.accountPayment = new AccountPayment(this.api, this.contract, this.device, this.state);
-    this.accountDevice = new AccountDevice(this.accountTransaction, this.api, this.contract, this.state);
+    this.accountDevice = new AccountDevice(this.accountTransaction, this.api, this.state);
     this.accountGame = new AccountGame(this.api, this.contract, this.device, this.state);
 
     this.state.incomingAction$ = this.action.$incoming;
@@ -287,11 +288,11 @@ export class Sdk {
   }
 
   /**
-   * estimates deposit to account virtual balance
+   * estimates top-up account virtual balance
    * @param value
    * @param transactionSpeed
    */
-  public async estimateDepositToAccountVirtualBalance(
+  public async estimateTopUpAccountVirtualBalance(
     value: number | string | BN,
     transactionSpeed: Eth.TransactionSpeeds = null,
   ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
@@ -383,9 +384,16 @@ export class Sdk {
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
     });
+    const { account } = this.contract;
 
-    return this.accountDevice.estimateAccountDeviceDeployment(
+    const data = account.encodeMethodInput(
+      'addDevice',
       deviceAddress,
+      true,
+    );
+
+    return this.accountTransaction.estimateAccountProxyTransaction(
+      data,
       this.eth.getGasPrice(transactionSpeed),
     );
   }
@@ -403,9 +411,15 @@ export class Sdk {
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
     });
+    const { account } = this.contract;
 
-    return this.accountDevice.estimateAccountDeviceUnDeployment(
+    const data = account.encodeMethodInput(
+      'removeDevice',
       deviceAddress,
+    );
+
+    return this.accountTransaction.estimateAccountProxyTransaction(
+      data,
       this.eth.getGasPrice(transactionSpeed),
     );
   }
@@ -465,10 +479,16 @@ export class Sdk {
       accountDeviceDeployed: true,
     });
 
-    return this.accountTransaction.estimateAccountTransaction(
+    const { account } = this.contract;
+    const proxyData = account.encodeMethodInput(
+      'executeTransaction',
       recipient,
-      value,
-      data,
+      anyToBN(value, { defaults: new BN(0) }),
+      anyToBuffer(data, { defaults: Buffer.alloc(0) }),
+    );
+
+    return this.accountTransaction.estimateAccountProxyTransaction(
+      proxyData,
       this.eth.getGasPrice(transactionSpeed),
     );
   }
@@ -510,21 +530,99 @@ export class Sdk {
 
   /**
    * creates account payment
-   * @param recipient
+   * @param receiver
    * @param value
    */
   public async createAccountPayment(
-    recipient: string = null,
+    receiver: string,
     value: number | string | BN,
   ): Promise<IAccountPayment> {
     this.require({
       accountDeviceOwner: true,
-      accountDeviceDeployed: !!recipient,
+      accountDeviceDeployed: !!receiver,
     });
 
     return this.accountPayment.createAccountPayment(
-      recipient,
+      receiver,
       value,
+    );
+  }
+
+  /**
+   * grab account payment
+   * @param hash
+   * @param receiver
+   */
+  public async grabAccountPayment(hash: string, receiver: string = null): Promise<IAccountPayment> {
+    this.require();
+
+    return this.accountPayment.grabAccountPayment(hash, receiver);
+  }
+
+  /**
+   * estimates deposit account payment
+   * @param hash
+   * @param transactionSpeed
+   */
+  public async estimateDepositAccountPayment(
+    hash: string,
+    transactionSpeed: Eth.TransactionSpeeds = null,
+  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+    this.require({
+      accountDeviceOwner: true,
+      accountDeviceDeployed: true,
+    });
+    const { sender, receiver, guardian, value } = await this.accountPayment.getConnectedAccountPayment(hash);
+    const { virtualPaymentManager } = this.contract;
+    const data = virtualPaymentManager.encodeMethodInput(
+      'depositPayment',
+      sender.account.address,
+      receiver.address || receiver.account.address,
+      hash,
+      value,
+      sender.signature,
+      guardian.signature,
+    );
+
+    return this.estimateAccountTransaction(
+      virtualPaymentManager.address,
+      null,
+      data,
+      transactionSpeed,
+    );
+  }
+
+  /**
+   * estimate withdraw account payment
+   * @param hash
+   * @param transactionSpeed
+   */
+  public async estimateWithdrawAccountPayment(
+    hash: string,
+    transactionSpeed: Eth.TransactionSpeeds = null,
+  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+    this.require({
+      accountDeviceOwner: true,
+      accountDeviceDeployed: true,
+    });
+
+    const { sender, receiver, guardian, value } = await this.accountPayment.getConnectedAccountPayment(hash);
+    const { virtualPaymentManager } = this.contract;
+    const data = virtualPaymentManager.encodeMethodInput(
+      'withdrawPayment',
+      sender.account.address,
+      receiver.address || receiver.account.address,
+      hash,
+      value,
+      sender.signature,
+      guardian.signature,
+    );
+
+    return this.estimateAccountTransaction(
+      virtualPaymentManager.address,
+      null,
+      data,
+      transactionSpeed,
     );
   }
 

@@ -1,9 +1,8 @@
 import React from 'react';
 import { Example, InputText, Screen } from '../../components';
 import { generateRandomEnsLabel } from '../../shared';
-
 const code = (ensLabel: string) => `
-const ensLabel = "${ensLabel}";
+const ensLabel = ${ensLabel ? `"${ensLabel}"` : 'null'};
 
 sdk
   .updateAccount(ensLabel)

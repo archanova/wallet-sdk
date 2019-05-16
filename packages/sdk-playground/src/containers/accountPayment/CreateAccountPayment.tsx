@@ -3,56 +3,62 @@ import { ethToWei } from '@netgum/utils';
 import { Example, Screen, InputText } from '../../components';
 import { generateRandomAddress } from '../../shared';
 
-const code1 = (recipient: string, value: number) => `
+const code = (receiver: string, value: number) => `
 import { ethToWei } from '@netgum/utils';
 
-const recipient = "${recipient}";
+const receiver = ${receiver ? `"${receiver}"` : 'null'};
 const value = ethToWei(${value});
+
 sdk
-  .createAccountPayment(recipient, value)
-  .then(estimated => console.log('estimated', estimated));
+  .createAccountPayment(receiver, value)
+  .then(accountPayment => console.log('accountPayment', accountPayment));
   .catch(console.error);
 `;
 
 interface IState {
   value: string;
   valueParsed: number;
-  recipient: string;
+  receiver: string;
 }
 
 export class CreateAccountPayment extends Screen<IState> {
   public state = {
-    recipient: generateRandomAddress(),
+    receiver: '',
     value: '0',
     valueParsed: 0,
   };
 
   public componentWillMount(): void {
-    this.estimateAccountDeployment = this.estimateAccountDeployment.bind(this);
+    this.run = this.run.bind(this);
+
     this.valueChanged = this.valueChanged.bind(this);
+    this.receiverChanged = this.receiverChanged.bind(this);
+    this.generateReceiver = this.generateReceiver.bind(this);
   }
 
   public renderContent(): any {
     const { enabled } = this.props;
-    const { value, valueParsed, recipient } = this.state;
+    const { value, valueParsed, receiver } = this.state;
     return (
       <div>
         <Example
-          title="Create"
-          code={code1(recipient, valueParsed)}
+          title="Create Account Payment"
+          code={code(receiver, valueParsed)}
           enabled={enabled}
-          run={this.estimateAccountDeployment}
+          run={this.run}
         >
           <InputText
-            value={recipient}
-            label="recipient"
+            value={receiver}
+            label="receiver"
             type="text"
-            onChange={this.recipientChanged}
+            onChange={this.receiverChanged}
+            onRandomClick={this.generateReceiver}
           />
           <InputText
             value={value}
             label="value"
             type="number"
+            decimal={true}
             onChange={this.valueChanged}
           />
         </Example>
@@ -67,19 +73,26 @@ export class CreateAccountPayment extends Screen<IState> {
     });
   }
 
-  private recipientChanged(value: string): void {
+  private receiverChanged(receiver: string): void {
     this.setState({
-      value,
+      receiver,
     });
   }
 
-  private estimateAccountDeployment(): void {
+  private generateReceiver(): void {
+    this.setState({
+      receiver: generateRandomAddress(),
+    });
+  }
+
+  private run(): void {
+    const { valueParsed, receiver } = this.state;
     this
       .logger
-      .wrapSync('sdk.estimateDepositToAccountVirtualBalance', async (console) => {
+      .wrapSync('sdk.createAccountPayment', async (console) => {
         console.log('accountPayment', await this.sdk.createAccountPayment(
-          '0x9d1259623Bf0f08e7F1B6129d3D173fE98dBf753',
-          ethToWei(0.001)),
+          receiver || null,
+          ethToWei(valueParsed)),
         );
       });
   }

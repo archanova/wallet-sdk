@@ -1,14 +1,12 @@
-# Archanova
+# Archanova monorepo
 
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
-
-> Archanova monorepo
 
 ## Packages
 
 - [@archanova/cli](packages/cli)
 - [@archanova/sdk](packages/sdk)
-- [@archanova/tutorial](packages/tutorial)
+- [@archanova/sdk-playground](packages/sdk-playground)
 
 ## Docs
 

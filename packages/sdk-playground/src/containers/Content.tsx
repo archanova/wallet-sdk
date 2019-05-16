@@ -3,11 +3,11 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Menu } from '../components';
 import { Screens } from './constants';
-import styles from './ScreenRouter.module.scss';
+import styles from './Content.module.scss';
 import { Initialize, Reset } from './sdk';
-import { CreateAccount, ConnectAccount, UpdateAccount, DisconnectAccount, DeployAccount, DepositToAccountVirtualBalance } from './account';
+import { CreateAccount, ConnectAccount, UpdateAccount, DisconnectAccount, DeployAccount, TopUpAccountVirtualBalance } from './account';
 import { GetConnectedAccountTransactions } from './accountTransaction';
-import { GetConnectedAccountPayments, CreateAccountPayment } from './accountPayment';
+import { GetConnectedAccountPayments, CreateAccountPayment, GrabAccountPayment, DepositAccountPayment, WithdrawAccountPayment } from './accountPayment';
 
 interface IProps {
   sdk: ISdkReduxState;
@@ -17,7 +17,7 @@ interface IState {
   screen: string;
 }
 
-class ScreenRouter extends React.Component<IProps, IState> {
+class Content extends React.Component<IProps, IState> {
   private static getScreenNode(screen: string, enabledScreens: { [key: string]: boolean }): React.ReactNode {
     // tslint:disable-next-line:variable-name
     let Screen: React.JSXElementConstructor<{
@@ -51,12 +51,12 @@ class ScreenRouter extends React.Component<IProps, IState> {
         Screen = DisconnectAccount;
         break;
 
-      case Screens.DepositToAccountVirtualBalance:
-        Screen = DepositToAccountVirtualBalance;
-        break;
-
       case Screens.DeployAccount:
         Screen = DeployAccount;
+        break;
+
+      case Screens.TopUpAccountVirtualBalance:
+        Screen = TopUpAccountVirtualBalance;
         break;
 
       // account transactions
@@ -72,6 +72,18 @@ class ScreenRouter extends React.Component<IProps, IState> {
       case Screens.CreateAccountPayment:
         Screen = CreateAccountPayment;
         break;
+
+      case Screens.GrabAccountPayment:
+        Screen = GrabAccountPayment;
+        break;
+
+      case Screens.DepositAccountPayment:
+        Screen = DepositAccountPayment;
+        break;
+
+      case Screens.WithdrawAccountPayment:
+        Screen = WithdrawAccountPayment;
+        break;
     }
 
     return Screen
@@ -83,7 +95,7 @@ class ScreenRouter extends React.Component<IProps, IState> {
   }
 
   public state = {
-    screen: Screens.GetConnectedAccountTransactions,
+    screen: Screens.Initialize,
   };
 
   public componentWillMount(): void {
@@ -94,7 +106,7 @@ class ScreenRouter extends React.Component<IProps, IState> {
     const { screen } = this.state;
 
     const enabledScreens = this.getEnabledScreens();
-    const screenNode = ScreenRouter.getScreenNode(screen, enabledScreens);
+    const screenNode = Content.getScreenNode(screen, enabledScreens);
 
     return (
       <div className={styles.content}>
@@ -112,7 +124,7 @@ class ScreenRouter extends React.Component<IProps, IState> {
               Screens.ConnectAccount,
               Screens.DisconnectAccount,
               Screens.DeployAccount,
-              Screens.DepositToAccountVirtualBalance,
+              Screens.TopUpAccountVirtualBalance,
             ],
           }, {
             header: 'Account Transaction',
@@ -124,6 +136,9 @@ class ScreenRouter extends React.Component<IProps, IState> {
             screens: [
               Screens.GetConnectedAccountPayments,
               Screens.CreateAccountPayment,
+              Screens.GrabAccountPayment,
+              Screens.DepositAccountPayment,
+              Screens.WithdrawAccountPayment,
             ],
           }]}
           enabledScreens={enabledScreens}
@@ -155,7 +170,7 @@ class ScreenRouter extends React.Component<IProps, IState> {
       [Screens.ConnectAccount]: initialized,
       [Screens.DisconnectAccount]: accountConnected,
       [Screens.DeployAccount]: accountUpdated && accountCreated,
-      [Screens.DepositToAccountVirtualBalance]: accountDeployed,
+      [Screens.TopUpAccountVirtualBalance]: accountDeployed,
 
       // account transaction
       [Screens.GetConnectedAccountTransactions]: accountConnected,
@@ -163,6 +178,9 @@ class ScreenRouter extends React.Component<IProps, IState> {
       // account payment
       [Screens.GetConnectedAccountPayments]: accountConnected,
       [Screens.CreateAccountPayment]: accountDeployed,
+      [Screens.GrabAccountPayment]: accountConnected,
+      [Screens.DepositAccountPayment]: accountDeployed,
+      [Screens.WithdrawAccountPayment]: accountDeployed,
     };
   }
 
@@ -175,4 +193,4 @@ class ScreenRouter extends React.Component<IProps, IState> {
 
 export default connect<IProps, {}, {}, IProps>(
   state => state,
-)(ScreenRouter);
+)(Content);

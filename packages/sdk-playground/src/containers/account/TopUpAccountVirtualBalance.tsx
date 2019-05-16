@@ -1,6 +1,5 @@
 import React from 'react';
 import { ethToWei } from '@netgum/utils';
-import { sdkModules } from '@archanova/sdk';
 import { Example, Screen, InputText, InputTransactionSpeed } from '../../components';
 import { mergeMethodArgs } from '../../shared';
 
@@ -12,7 +11,7 @@ const value = ethToWei(${value});
 ${!transactionSpeed ? '' : `const transactionSpeed = ${transactionSpeed};`}
 
 sdk
-  .estimateDepositToAccountVirtualBalance(${mergeMethodArgs('value', transactionSpeed && 'transactionSpeed')})
+  .estimateTopUpAccountVirtualBalance(${mergeMethodArgs('value', transactionSpeed && 'transactionSpeed')})
   .then(estimated => console.log('estimated', estimated));
   .catch(console.error);
 `;
@@ -28,12 +27,12 @@ sdk
 
 interface IState {
   transactionSpeed: any;
-  estimated: sdkModules.AccountTransaction.IEstimatedProxyTransaction;
+  estimated: any;
   value: string;
   valueParsed: number;
 }
 
-export class DepositToAccountVirtualBalance extends Screen<IState> {
+export class TopUpAccountVirtualBalance extends Screen<IState> {
   public state = {
     transactionSpeed: null,
     estimated: null,
@@ -55,7 +54,7 @@ export class DepositToAccountVirtualBalance extends Screen<IState> {
     return (
       <div>
         <Example
-          title="Estimate Deposit To Account Virtual Balance"
+          title="Estimate Top-Up Account Virtual Balance"
           code={code1(valueParsed, InputTransactionSpeed.selectedToText(transactionSpeed))}
           enabled={enabled}
           run={this.run1}
@@ -99,8 +98,8 @@ export class DepositToAccountVirtualBalance extends Screen<IState> {
     const { valueParsed, transactionSpeed } = this.state;
     this
       .logger
-      .wrapSync('sdk.estimateDepositToAccountVirtualBalance', async (console) => {
-        const estimated = console.log('estimated', await this.sdk.estimateDepositToAccountVirtualBalance(
+      .wrapSync('sdk.estimateTopUpAccountVirtualBalance', async (console) => {
+        const estimated = console.log('estimated', await this.sdk.estimateTopUpAccountVirtualBalance(
           ethToWei(valueParsed),
           transactionSpeed,
         ));

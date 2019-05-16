@@ -56,12 +56,12 @@ estimateAccountDeployment(transactionSpeed: Eth.TransactionSpeeds = null): Promi
 deployAccount(transactionSpeed: Eth.TransactionSpeeds = null): Promise<string>
 ```
 
-### `estimateDepositToAccountVirtualBalance`
+### `estimateTopUpAccountVirtualBalance`
 ```
-estimateDepositToAccountVirtualBalance(
+estimateTopUpAccountVirtualBalance(
   value: number | string | BN,
   transactionSpeed: Eth.TransactionSpeeds = null,
-): Promise<AccountTransaction.IEstimatedProxyTransaction> 
+): Promise<AccountTransaction.IEstimatedProxyTransaction>
 ```
 
 ## Account Device

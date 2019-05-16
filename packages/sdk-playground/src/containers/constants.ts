@@ -9,13 +9,15 @@ export enum Screens {
   ConnectAccount = 'connectAccount',
   DisconnectAccount = 'disconnectAccount',
   DeployAccount = 'deployAccount',
-  SearchAccount = 'searchAccount',
-  DepositToAccountVirtualBalance = 'depositToAccountVirtualBalance',
+  TopUpAccountVirtualBalance = 'topUpAccountVirtualBalance',
 
   // account transaction
   GetConnectedAccountTransactions = 'getConnectedAccountTransactions',
 
   // account payment
-  CreateAccountPayment = 'createAccountPayment',
   GetConnectedAccountPayments = 'getConnectedAccountPayments',
+  CreateAccountPayment = 'createAccountPayment',
+  GrabAccountPayment = 'grabAccountPayment',
+  DepositAccountPayment = 'depositAccountPayment',
+  WithdrawAccountPayment = 'withdrawAccountPayment',
 }

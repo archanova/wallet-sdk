@@ -2,13 +2,13 @@ import React from 'react';
 import { ISdkReduxState } from '@archanova/sdk';
 import { connect } from 'react-redux';
 import { formatBalance } from '../shared';
-import styles from './SdkStatus.module.scss';
+import styles from './Header.module.scss';
 
 interface IProps {
   sdk: ISdkReduxState;
 }
 
-class SdkStatus extends React.Component<IProps> {
+class Header extends React.Component<IProps> {
   public render() {
     const { sdk: { account, accountDevice, device } } = this.props;
     return (
@@ -52,4 +52,4 @@ class SdkStatus extends React.Component<IProps> {
 
 export default connect<IProps, {}, {}, IProps>(
   state => state,
-)(SdkStatus);
+)(Header);

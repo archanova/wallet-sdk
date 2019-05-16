@@ -72,10 +72,19 @@ export class AccountPayment {
           signature,
         },
       });
-
-      console.log(payment);
     }
 
     return payment;
+  }
+
+  public async grabAccountPayment(hash: string, receiver: string): Promise<IAccountPayment> {
+    const { accountAddress } = this.state;
+    return this.api.sendRequest({
+      method: 'PUT',
+      path: `account/${accountAddress}/payment/${hash}`,
+      body: {
+        receiver,
+      },
+    });
   }
 }
