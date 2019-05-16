@@ -1,5 +1,5 @@
 import BN from 'bn.js';
-import { generateRandomPrivateKey, privateKeyToAddress, weiToEth } from '@netgum/utils';
+import { anyToHex, generateRandomPrivateKey, privateKeyToAddress, weiToEth } from '@netgum/utils';
 
 export function generateRandomAddress() {
   return privateKeyToAddress(
@@ -40,4 +40,25 @@ export function mergeMethodArgs(...args: any[]): string {
     .filter(arg => !!arg)
     .map(arg => `${arg}`)
     .join(', ');
+}
+
+function jsonReplacer(key: string, value: any): any {
+  const data = this[key];
+
+  if (
+    Buffer.isBuffer(data) ||
+    BN.isBN(data)
+  ) {
+    value = anyToHex(data, {
+      add0x: true,
+    });
+  }
+
+  return value;
+}
+
+export function toRawObject(data: any): any {
+  return JSON.parse(
+    JSON.stringify(data, jsonReplacer),
+  );
 }

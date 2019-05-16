@@ -18,7 +18,6 @@ export interface ILogger {
 }
 
 export interface ILoggerEvent {
-  id: number;
   type: 'info' | 'error';
   args: any[];
 }
