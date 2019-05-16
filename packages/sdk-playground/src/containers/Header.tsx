@@ -1,7 +1,7 @@
 import React from 'react';
 import { ISdkReduxState } from '@archanova/sdk';
 import { connect } from 'react-redux';
-import { formatBalance } from '../shared';
+import { formatBalance, getLocationPort } from '../shared';
 import styles from './Header.module.scss';
 
 interface IProps {
@@ -13,6 +13,10 @@ class Header extends React.Component<IProps> {
     const { sdk: { account, accountDevice, device } } = this.props;
     return (
       <div className={styles.content}>
+        <div>
+          <div>Instance Port</div>
+          <div>{getLocationPort()}</div>
+        </div>
         {!account || !accountDevice ? null : (
           <React.Fragment>
             <div>
