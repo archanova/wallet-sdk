@@ -1,5 +1,8 @@
 .content {
   margin-bottom: 30px;
+  &:last-child {
+    margin-bottom: 0;
+  }
   h5 {
     padding-top: 10px;
     color: #6024FC;

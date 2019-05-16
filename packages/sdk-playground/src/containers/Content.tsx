@@ -15,8 +15,19 @@ import {
   TopUpAccountVirtualBalance,
   WithdrawFromAccountVirtualBalance,
 } from './account';
-import { GetConnectedAccountTransactions } from './accountTransaction';
-import { GetConnectedAccountPayments, CreateAccountPayment, GrabAccountPayment, DepositAccountPayment, WithdrawAccountPayment } from './accountPayment';
+import {
+  GetConnectedAccountTransactions,
+  GetConnectedAccountTransaction,
+  SendAccountTransaction,
+} from './accountTransaction';
+import {
+  GetConnectedAccountPayments,
+  GetConnectedAccountPayment,
+  CreateAccountPayment,
+  GrabAccountPayment,
+  DepositAccountPayment,
+  WithdrawAccountPayment,
+} from './accountPayment';
 
 interface IProps {
   sdk: ISdkReduxState;
@@ -81,9 +92,21 @@ class Content extends React.Component<IProps, IState> {
         Screen = GetConnectedAccountTransactions;
         break;
 
+      case Screens.GetConnectedAccountTransaction:
+        Screen = GetConnectedAccountTransaction;
+        break;
+
+      case Screens.SendAccountTransaction:
+        Screen = SendAccountTransaction;
+        break;
+
       // account payments
       case Screens.GetConnectedAccountPayments:
         Screen = GetConnectedAccountPayments;
+        break;
+
+      case Screens.GetConnectedAccountPayment:
+        Screen = GetConnectedAccountPayment;
         break;
 
       case Screens.CreateAccountPayment:
@@ -149,11 +172,14 @@ class Content extends React.Component<IProps, IState> {
             header: 'Account Transaction',
             screens: [
               Screens.GetConnectedAccountTransactions,
+              Screens.GetConnectedAccountTransaction,
+              Screens.SendAccountTransaction,
             ],
           }, {
             header: 'Account Payment',
             screens: [
               Screens.GetConnectedAccountPayments,
+              Screens.GetConnectedAccountPayment,
               Screens.CreateAccountPayment,
               Screens.GrabAccountPayment,
               Screens.DepositAccountPayment,
@@ -170,13 +196,16 @@ class Content extends React.Component<IProps, IState> {
   }
 
   private getEnabledScreens(): { [key: string]: boolean } {
-    const { sdk: { account, initialized } } = this.props;
+    const { sdk: { account, accountDevice, initialized } } = this.props;
 
     const accountConnected = initialized && !!account;
     const accountDisconnected = initialized && !account;
     const accountUpdated = accountConnected && !!account.ensName;
     const accountCreated = accountConnected && !account.nextState && account.state === sdkConstants.AccountStates.Created;
     const accountDeployed = accountConnected && !account.nextState && account.state === sdkConstants.AccountStates.Deployed;
+    const accountDeviceDeployed = (
+      accountConnected && accountDevice && !accountDevice.nextState && accountDevice.state === sdkConstants.AccountDeviceStates.Deployed
+    );
 
     return {
       // sdk
@@ -190,18 +219,21 @@ class Content extends React.Component<IProps, IState> {
       [Screens.ConnectAccount]: initialized,
       [Screens.DisconnectAccount]: accountConnected,
       [Screens.DeployAccount]: accountUpdated && accountCreated,
-      [Screens.TopUpAccountVirtualBalance]: accountDeployed,
-      [Screens.WithdrawFromAccountVirtualBalance]: accountDeployed,
+      [Screens.TopUpAccountVirtualBalance]: accountDeviceDeployed,
+      [Screens.WithdrawFromAccountVirtualBalance]: accountDeviceDeployed,
 
       // account transaction
       [Screens.GetConnectedAccountTransactions]: accountConnected,
+      [Screens.GetConnectedAccountTransaction]: accountConnected,
+      [Screens.SendAccountTransaction]: accountDeviceDeployed,
 
       // account payment
       [Screens.GetConnectedAccountPayments]: accountConnected,
+      [Screens.GetConnectedAccountPayment]: accountConnected,
       [Screens.CreateAccountPayment]: accountDeployed,
       [Screens.GrabAccountPayment]: accountConnected,
-      [Screens.DepositAccountPayment]: accountDeployed,
-      [Screens.WithdrawAccountPayment]: accountDeployed,
+      [Screens.DepositAccountPayment]: accountDeviceDeployed,
+      [Screens.WithdrawAccountPayment]: accountDeviceDeployed,
     };
   }
 
