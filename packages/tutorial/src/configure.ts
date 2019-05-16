@@ -5,15 +5,17 @@ import {
   sdkModules,
   createSdk,
   Sdk,
+  reduxSdkReducer,
   createReduxSdkMiddleware,
 } from '@archanova/sdk';
-import { applyMiddleware, createStore, Store } from 'redux';
+import { applyMiddleware, createStore, Store, combineReducers } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { ILogger } from './shared';
 
 const {
   REACT_APP_SDK_ENV,
   REACT_APP_SDK_LOCAL_ENV_HOST,
+  REACT_APP_SDK_LOCAL_ENV_PORT,
   REACT_APP_SDK_AUTO_INITIALIZE,
   REACT_APP_SDK_AUTO_ACCEPT_ACTION,
 } = process.env;
@@ -29,7 +31,10 @@ export function configureSdk(logger: ILogger): Sdk {
       break;
 
     case 'local':
-      sdkEnv = createLocalSdkEnvironment(REACT_APP_SDK_LOCAL_ENV_HOST || 'localhost');
+      sdkEnv = createLocalSdkEnvironment({
+        host: REACT_APP_SDK_LOCAL_ENV_HOST || null,
+        port: parseInt(REACT_APP_SDK_LOCAL_ENV_PORT, 10) || null,
+      });
       break;
   }
 
@@ -50,17 +55,21 @@ export function configureSdk(logger: ILogger): Sdk {
   );
 
   if (REACT_APP_SDK_AUTO_INITIALIZE) {
-    sdk
-      .initialize()
-      .catch(err => logger.error(err));
+    logger
+      .wrapSync('sdk.initialize', async (console) => {
+        await sdk.initialize();
+        console.log('initialized');
+      });
   }
 
   return sdk;
 }
 
-export function configureStore(reducers: any, sdk: Sdk): Store<any> {
+export function configureStore(sdk: Sdk): Store<any> {
   return createStore(
-    reducers,
+    combineReducers({
+      sdk: reduxSdkReducer,
+    }),
     {},
     composeWithDevTools(applyMiddleware(
       createReduxSdkMiddleware(sdk),

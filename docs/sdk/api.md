@@ -2,7 +2,11 @@
 
 ### `initialize`
 ```
-sdk.initialize(): Promise<void>
+initialize(options?: { 
+  device?: {
+    privateKey?: Buffer | string;
+  };
+}): Promise<void>;
 ```
 
 ### `reset`
@@ -50,6 +54,14 @@ estimateAccountDeployment(transactionSpeed: Eth.TransactionSpeeds = null): Promi
 ### `deployAccount`
 ```
 deployAccount(transactionSpeed: Eth.TransactionSpeeds = null): Promise<string>
+```
+
+### `estimateDepositToAccountVirtualBalance`
+```
+estimateDepositToAccountVirtualBalance(
+  value: number | string | BN,
+  transactionSpeed: Eth.TransactionSpeeds = null,
+): Promise<AccountTransaction.IEstimatedProxyTransaction> 
 ```
 
 ## Account Device

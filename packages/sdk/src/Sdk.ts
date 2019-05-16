@@ -3,11 +3,12 @@ import EthJs from 'ethjs';
 import { BehaviorSubject, from, Subscription, timer } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { AccountDeviceStates, AccountDeviceTypes, AccountStates } from './constants';
-import { IAccount, IAccountDevice, IAccountGame, IAccountTransaction, IApp, IPaginated } from './interfaces';
+import { IAccount, IAccountDevice, IAccountGame, IAccountPayment, IAccountTransaction, IApp, IPaginated } from './interfaces';
 import {
   Account,
   AccountDevice,
   AccountGame,
+  AccountPayment,
   AccountTransaction,
   Action,
   Api,
@@ -37,6 +38,7 @@ export class Sdk {
   private readonly account: Account;
   private readonly accountDevice: AccountDevice;
   private readonly accountGame: AccountGame;
+  private readonly accountPayment: AccountPayment;
   private readonly accountTransaction: AccountTransaction;
   private readonly action: Action;
   private readonly app: App;
@@ -99,6 +101,7 @@ export class Sdk {
     );
 
     this.accountTransaction = new AccountTransaction(this.api, this.contract, this.device, this.state);
+    this.accountPayment = new AccountPayment(this.api, this.contract, this.device, this.state);
     this.accountDevice = new AccountDevice(this.accountTransaction, this.api, this.contract, this.state);
     this.accountGame = new AccountGame(this.api, this.contract, this.device, this.state);
 
@@ -151,7 +154,7 @@ export class Sdk {
     }
 
     await this.session.reset({
-      token: options.session,
+      token: options.device || options.session,
     });
   }
 
@@ -283,6 +286,30 @@ export class Sdk {
     );
   }
 
+  /**
+   * estimates deposit to account virtual balance
+   * @param value
+   * @param transactionSpeed
+   */
+  public async estimateDepositToAccountVirtualBalance(
+    value: number | string | BN,
+    transactionSpeed: Eth.TransactionSpeeds = null,
+  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+    this.require({
+      accountDeviceOwner: true,
+      accountDeviceDeployed: true,
+    });
+
+    const { address } = this.contract.virtualPaymentManager;
+
+    return this.estimateAccountTransaction(
+      address,
+      value,
+      Buffer.alloc(0),
+      transactionSpeed,
+    );
+  }
+
 // Account Device
 
   /**
@@ -400,7 +427,9 @@ export class Sdk {
    * @param hash
    */
   public async getConnectedAccountTransaction(hash: string): Promise<IAccountTransaction> {
-    this.require();
+    this.require({
+      accountConnected: true,
+    });
 
     const { accountAddress } = this.state;
     return this.accountTransaction.getAccountTransaction(accountAddress, hash);
@@ -455,6 +484,48 @@ export class Sdk {
     });
 
     return this.accountTransaction.submitAccountProxyTransaction(estimated);
+  }
+
+// Account Payment
+
+  /**
+   * gets connected account payments
+   * @param page
+   */
+  public async getConnectedAccountPayments(page = 0): Promise<IPaginated<IAccountPayment>> {
+    this.require();
+
+    return this.accountPayment.getConnectedAccountPayments(page);
+  }
+
+  /**
+   * get connected account payment
+   * @param hash
+   */
+  public async getConnectedAccountPayment(hash: string): Promise<IAccountPayment> {
+    this.require();
+
+    return this.accountPayment.getConnectedAccountPayment(hash);
+  }
+
+  /**
+   * creates account payment
+   * @param recipient
+   * @param value
+   */
+  public async createAccountPayment(
+    recipient: string = null,
+    value: number | string | BN,
+  ): Promise<IAccountPayment> {
+    this.require({
+      accountDeviceOwner: true,
+      accountDeviceDeployed: !!recipient,
+    });
+
+    return this.accountPayment.createAccountPayment(
+      recipient,
+      value,
+    );
   }
 
 // App
@@ -732,6 +803,10 @@ export class Sdk {
             }
             case Api.EventNames.AccountPaymentUpdated: {
               const { account, hash } = payload;
+              if (accountAddress === account) {
+                const accountPayment = await this.accountPayment.getConnectedAccountPayment(hash);
+                this.emitEvent(Sdk.EventNames.AccountPaymentUpdated, accountPayment);
+              }
               break;
             }
             case Api.EventNames.SecureCodeSigned: {
@@ -927,6 +1002,7 @@ export namespace Sdk {
     AccountDeviceUpdated = 'AccountDeviceUpdated',
     AccountDeviceRemoved = 'AccountDeviceRemoved',
     AccountTransactionUpdated = 'AccountTransactionUpdated',
+    AccountPaymentUpdated = 'AccountPaymentUpdated',
     AccountGameUpdated = 'AccountGameUpdated',
   }
 
