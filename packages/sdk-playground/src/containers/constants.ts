@@ -4,12 +4,14 @@ export enum Screens {
   Reset = 'reset',
 
   // account
+  SearchAccount = 'searchAccount',
   CreateAccount = 'createAccount',
   UpdateAccount = 'updateAccount',
   ConnectAccount = 'connectAccount',
   DisconnectAccount = 'disconnectAccount',
   DeployAccount = 'deployAccount',
   TopUpAccountVirtualBalance = 'topUpAccountVirtualBalance',
+  WithdrawFromAccountVirtualBalance = 'withdrawFromAccountVirtualBalance',
 
   // account transaction
   GetConnectedAccountTransactions = 'getConnectedAccountTransactions',

@@ -46,7 +46,7 @@ const wrapSync: ILogger['wrapSync'] = (label, fun) => {
   console.info(`// ${label}`);
 
   const log: ILoggerConsole['log'] = (key, data) => {
-    if (data) {
+    if (data || data === null) {
       wrappedConsole.info(key, JSON.parse(
         JSON.stringify(data, jsonReplacer),
       ));

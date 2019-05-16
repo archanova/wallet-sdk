@@ -51,7 +51,7 @@ export function configureSdk(logger: ILogger): Sdk {
         },
       })
       .extendConfig('actionOptions', {
-        autoAccept: !!REACT_APP_SDK_AUTO_ACCEPT_ACTION,
+        autoAccept: !!parseInt(REACT_APP_SDK_AUTO_ACCEPT_ACTION, 10),
       }),
   );
 
@@ -64,7 +64,7 @@ export function configureSdk(logger: ILogger): Sdk {
     .pipe(filter(value => !!value))
     .subscribe(err => console.error('sdk.error$', err));
 
-  if (REACT_APP_SDK_AUTO_INITIALIZE) {
+  if (parseInt(REACT_APP_SDK_AUTO_INITIALIZE, 10)) {
     logger
       .wrapSync('sdk.initialize', async (console) => {
         await sdk.initialize();

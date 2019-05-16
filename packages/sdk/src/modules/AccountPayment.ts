@@ -47,34 +47,39 @@ export class AccountPayment {
     });
 
     if (payment && receiver) {
-      const { hash } = payment;
-      const { address } = this.contract.virtualPaymentManager;
-      const message = abiEncodePacked(
-        'address',
-        'address',
-        'address',
-        'bytes',
-        'uint256',
-      )(
-        address,
-        accountAddress,
-        receiver,
-        hash,
-        value,
-      );
-
-      const signature = this.device.signPersonalMessage(message);
-
-      payment = await this.api.sendRequest({
-        method: 'PUT',
-        path: `account/${accountAddress}/payment/${hash}`,
-        body: {
-          signature,
-        },
-      });
+      payment = await this.signAccountPayment(payment);
     }
 
     return payment;
+  }
+
+  public async signAccountPayment(payment: IAccountPayment): Promise<IAccountPayment> {
+    const { accountAddress } = this.state;
+    const { hash, value, receiver } = payment;
+    const { address } = this.contract.virtualPaymentManager;
+    const message = abiEncodePacked(
+      'address',
+      'address',
+      'address',
+      'bytes',
+      'uint256',
+    )(
+      address,
+      accountAddress,
+      receiver.address || receiver.account.address,
+      hash,
+      value,
+    );
+
+    const signature = this.device.signPersonalMessage(message);
+
+    return this.api.sendRequest({
+      method: 'PUT',
+      path: `account/${accountAddress}/payment/${hash}`,
+      body: {
+        signature,
+      },
+    });
   }
 
   public async grabAccountPayment(hash: string, receiver: string): Promise<IAccountPayment> {

@@ -311,6 +311,30 @@ export class Sdk {
     );
   }
 
+  /**
+   * estimates withdraw from account virtual balance
+   * @param value
+   * @param transactionSpeed
+   */
+  public async estimateWithdrawFromAccountVirtualBalance(
+    value: number | string | BN,
+    transactionSpeed: Eth.TransactionSpeeds = null,
+  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+    this.require({
+      accountDeviceOwner: true,
+      accountDeviceDeployed: true,
+    });
+
+    const { accountAddress } = this.state;
+    const payment = await this.createAccountPayment(accountAddress, value);
+    const { hash } = await this.accountPayment.signAccountPayment(payment);
+
+    return this.estimateWithdrawAccountPayment(
+      hash,
+      transactionSpeed,
+    );
+  }
+
 // Account Device
 
   /**

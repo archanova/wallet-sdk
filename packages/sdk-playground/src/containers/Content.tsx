@@ -5,7 +5,16 @@ import { Menu } from '../components';
 import { Screens } from './constants';
 import styles from './Content.module.scss';
 import { Initialize, Reset } from './sdk';
-import { CreateAccount, ConnectAccount, UpdateAccount, DisconnectAccount, DeployAccount, TopUpAccountVirtualBalance } from './account';
+import {
+  SearchAccount,
+  CreateAccount,
+  ConnectAccount,
+  UpdateAccount,
+  DisconnectAccount,
+  DeployAccount,
+  TopUpAccountVirtualBalance,
+  WithdrawFromAccountVirtualBalance,
+} from './account';
 import { GetConnectedAccountTransactions } from './accountTransaction';
 import { GetConnectedAccountPayments, CreateAccountPayment, GrabAccountPayment, DepositAccountPayment, WithdrawAccountPayment } from './accountPayment';
 
@@ -35,6 +44,10 @@ class Content extends React.Component<IProps, IState> {
         break;
 
       // account
+      case Screens.SearchAccount:
+        Screen = SearchAccount;
+        break;
+
       case Screens.CreateAccount:
         Screen = CreateAccount;
         break;
@@ -57,6 +70,10 @@ class Content extends React.Component<IProps, IState> {
 
       case Screens.TopUpAccountVirtualBalance:
         Screen = TopUpAccountVirtualBalance;
+        break;
+
+      case Screens.WithdrawFromAccountVirtualBalance:
+        Screen = WithdrawFromAccountVirtualBalance;
         break;
 
       // account transactions
@@ -119,12 +136,14 @@ class Content extends React.Component<IProps, IState> {
           }, {
             header: 'Account',
             screens: [
+              Screens.SearchAccount,
               Screens.CreateAccount,
               Screens.UpdateAccount,
               Screens.ConnectAccount,
               Screens.DisconnectAccount,
               Screens.DeployAccount,
               Screens.TopUpAccountVirtualBalance,
+              Screens.WithdrawFromAccountVirtualBalance,
             ],
           }, {
             header: 'Account Transaction',
@@ -165,12 +184,14 @@ class Content extends React.Component<IProps, IState> {
       [Screens.Reset]: initialized,
 
       // account
+      [Screens.SearchAccount]: initialized,
       [Screens.CreateAccount]: accountDisconnected,
       [Screens.UpdateAccount]: accountCreated,
       [Screens.ConnectAccount]: initialized,
       [Screens.DisconnectAccount]: accountConnected,
       [Screens.DeployAccount]: accountUpdated && accountCreated,
       [Screens.TopUpAccountVirtualBalance]: accountDeployed,
+      [Screens.WithdrawFromAccountVirtualBalance]: accountDeployed,
 
       // account transaction
       [Screens.GetConnectedAccountTransactions]: accountConnected,
