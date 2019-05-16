@@ -15,10 +15,29 @@ export class Code extends React.Component<IProps> {
   public render(): any {
     const { language, children } = this.props;
 
+    let empty = false;
+    const code = children
+      .trim()
+      .split('\n')
+      .filter((line) => {
+        let result = true;
+        if (!line.trim()) {
+          if (empty) {
+            result = false;
+          } else {
+            empty = true;
+          }
+        } else {
+          empty = false;
+        }
+        return result;
+      })
+      .join('\n');
+
     return (
       <div className={styles.content}>
         <Highlight language={language}>
-          {children.trim()}
+          {code}
         </Highlight>
       </div>
     );

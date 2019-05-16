@@ -34,3 +34,10 @@ export function formatBalance(balance: BN): string {
     ? `${weiToEth(balance).toFixed(6)} ETH`
     : '-';
 }
+
+export function mergeMethodArgs(...args: any[]): string {
+  return args
+    .filter(arg => !!arg)
+    .map(arg => `${arg}`)
+    .join(', ');
+}

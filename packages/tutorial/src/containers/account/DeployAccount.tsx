@@ -1,14 +1,15 @@
 import React from 'react';
 import { Example, Screen, InputTransactionSpeed } from '../../components';
+import { mergeMethodArgs } from '../../shared';
 
 const code1 = (transactionSpeed: string) => `
 ${!transactionSpeed ? '' : `
 import { sdkModules } from '@archanova/sdk';
 
-const transactionSpeed = ${transactionSpeed}
+const transactionSpeed = ${transactionSpeed};
 `}
 sdk
-  .estimateAccountDeployment(${transactionSpeed ? 'transactionSpeed' : ''})
+  .estimateAccountDeployment(${mergeMethodArgs(transactionSpeed && 'transactionSpeed')})
   .then(estimated => console.log('estimated', estimated));
   .catch(console.error);
 `;
@@ -16,10 +17,10 @@ const code2 = (transactionSpeed: string) => `
 ${!transactionSpeed ? '' : `
 import { sdkModules } from '@archanova/sdk';
 
-const transactionSpeed = ${transactionSpeed}
-  `}
+const transactionSpeed = ${transactionSpeed};
+`}
 sdk
-  .deployAccount(${transactionSpeed ? 'transactionSpeed' : ''})
+  .deployAccount(${mergeMethodArgs(transactionSpeed && 'transactionSpeed')})
   .then(hash => console.log('hash', hash));
   .catch(console.error);
 `;

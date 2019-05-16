@@ -1,11 +1,12 @@
 import React from 'react';
 import { Example, Screen, InputSelect, InputText } from '../../components';
+import { mergeMethodArgs } from '../../shared';
 
-const code1 = (page = 0) => `
+const code1 = (page: number) => `
 ${page ? `const page = ${page};` : ''}
 
 sdk
-  .getConnectedAccounts(${page ? 'page' : ''})
+  .getConnectedAccounts(${mergeMethodArgs(page && 'page')})
   .then(accounts => console.log('accounts', accounts));
   .catch(console.error);
 `;

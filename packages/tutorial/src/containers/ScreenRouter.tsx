@@ -83,7 +83,7 @@ class ScreenRouter extends React.Component<IProps, IState> {
   }
 
   public state = {
-    screen: Screens.DeployAccount,
+    screen: Screens.GetConnectedAccountTransactions,
   };
 
   public componentWillMount(): void {

@@ -1,12 +1,12 @@
 import React from 'react';
 import { Example, Screen, InputText } from '../../components';
-import { generateRandomEnsLabel } from '../../shared';
+import { generateRandomEnsLabel, mergeMethodArgs } from '../../shared';
 
 const code = (ensLabel: string) => `
 ${ensLabel ? `const ensLabel = "${ensLabel}";` : ''}
 
 sdk
-  .createAccount(${ensLabel ? 'ensLabel' : ''})
+  .createAccount(${mergeMethodArgs(ensLabel && 'ensLabel')})
   .then(account => console.log('account', account)
   .catch(console.error);
 `;
