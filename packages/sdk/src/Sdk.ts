@@ -99,6 +99,7 @@ export class Sdk {
       environment.getConfig('urlOptions'),
       environment.getConfig('urlAdapter'),
       this.action,
+      this.eth,
     );
 
     this.accountTransaction = new AccountTransaction(this.api, this.contract, this.device, this.state);
