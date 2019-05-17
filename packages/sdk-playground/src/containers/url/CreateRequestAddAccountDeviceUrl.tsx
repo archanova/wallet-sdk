@@ -1,9 +1,10 @@
 import React from 'react';
+import QrCode from 'qrcode.react';
 import { Example, Screen, InputText } from '../../components';
 import { getCurrentEndpoint, getTargetEndpoint } from '../../shared';
 
 const code1 = () => `
-console.log('url', sdk.createRequestAddAccountDeviceUrl());
+console.log('mobileUrl', sdk.createRequestAddAccountDeviceUrl());
 `;
 const code2 = (endpoint: string, callbackEndpoint: string) => `
 const options = {
@@ -13,18 +14,21 @@ ${callbackEndpoint ? `  callbackEndpoint: "${callbackEndpoint}",` : ''}
   `.trim()}
 };
 
-console.log('url', sdk.createRequestAddAccountDeviceUrl(options));
+console.log('redirectUrl', sdk.createRequestAddAccountDeviceUrl(options));
+console.log('mobileUrl', sdk.createRequestAddAccountDeviceUrl());
 `;
 
 interface IState {
   endpoint: string;
   callbackEndpoint: string;
+  mobileUrl: string;
 }
 
 export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
   public state = {
     endpoint: getTargetEndpoint(),
     callbackEndpoint: getCurrentEndpoint(),
+    mobileUrl: '',
   };
 
   public componentWillMount(): void {
@@ -36,7 +40,7 @@ export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
 
   public renderContent(): any {
     const { enabled } = this.props;
-    const { endpoint, callbackEndpoint } = this.state;
+    const { endpoint, callbackEndpoint, mobileUrl } = this.state;
     return (
       <div>
         <Example
@@ -61,6 +65,11 @@ export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
             onChange={this.callbackEndpointChanged}
           />
         </Example>
+        {enabled && mobileUrl && (
+          <div style={{ marginBottom: 20 }}>
+            <QrCode value={mobileUrl} size={250} />
+          </div>
+        )}
       </div>
     );
   }
@@ -82,10 +91,16 @@ export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
     this
       .logger
       .wrapSync('sdk.createRequestAddAccountDeviceUrl', async (console) => {
-        console.log('url', this.sdk.createRequestAddAccountDeviceUrl({
+        console.log('redirectUrl', this.sdk.createRequestAddAccountDeviceUrl({
           endpoint: endpoint || null,
           callbackEndpoint: callbackEndpoint || null,
         }));
+
+        const mobileUrl = console.log('mobileUrl', this.sdk.createRequestAddAccountDeviceUrl());
+
+        this.setState({
+          mobileUrl,
+        });
       });
   }
 }

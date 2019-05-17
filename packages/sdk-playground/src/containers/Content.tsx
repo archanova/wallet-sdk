@@ -30,6 +30,7 @@ import {
 } from './accountPayment';
 import {
   CreateRequestAddAccountDeviceUrl,
+  CreateRequestSignSecureCodeUrl,
 } from './url';
 import {
   SignPersonalMessage,
@@ -137,6 +138,10 @@ class Content extends React.Component<IProps, IState> {
         Screen = CreateRequestAddAccountDeviceUrl;
         break;
 
+      case Screens.CreateRequestSignSecureCodeUrl:
+        Screen = CreateRequestSignSecureCodeUrl;
+        break;
+
       // utils
       case Screens.SignPersonalMessage:
         Screen = SignPersonalMessage;
@@ -206,6 +211,7 @@ class Content extends React.Component<IProps, IState> {
             header: 'Url',
             screens: [
               Screens.CreateRequestAddAccountDeviceUrl,
+              Screens.CreateRequestSignSecureCodeUrl,
             ],
           }, {
             header: 'Utils',
@@ -235,6 +241,9 @@ class Content extends React.Component<IProps, IState> {
     const accountDeployed = accountConnected && !account.nextState && account.state === sdkConstants.AccountStates.Deployed;
     const accountDeviceDeployed = (
       accountConnected && accountDevice && !accountDevice.nextState && accountDevice.state === sdkConstants.AccountDeviceStates.Deployed
+    );
+    const accountDeviceOwner = (
+      accountConnected && accountDevice && accountDevice.type === sdkConstants.AccountDeviceTypes.Owner
     );
 
     return {
@@ -267,6 +276,7 @@ class Content extends React.Component<IProps, IState> {
 
       // url
       [Screens.CreateRequestAddAccountDeviceUrl]: accountDisconnected,
+      [Screens.CreateRequestSignSecureCodeUrl]: accountDeviceOwner,
 
       // utils
       [Screens.SignPersonalMessage]: initialized,

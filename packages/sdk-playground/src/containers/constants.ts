@@ -28,6 +28,7 @@ export enum Screens {
 
   // url
   CreateRequestAddAccountDeviceUrl = 'createRequestAddAccountDeviceUrl',
+  CreateRequestSignSecureCodeUrl = 'createRequestSignSecureCodeUrl',
 
   // utils
   SignPersonalMessage = 'signPersonalMessage',
