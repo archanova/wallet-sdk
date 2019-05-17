@@ -3,4 +3,9 @@
   flex: 1;
   flex-direction: row;
   overflow: auto;
+  .wrapper {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
 }

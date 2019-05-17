@@ -25,4 +25,7 @@ export enum Screens {
   GrabAccountPayment = 'grabAccountPayment',
   DepositAccountPayment = 'depositAccountPayment',
   WithdrawAccountPayment = 'withdrawAccountPayment',
+
+  // url
+  CreateRequestAddAccountDeviceUrl = 'createRequestAddAccountDeviceUrl',
 }

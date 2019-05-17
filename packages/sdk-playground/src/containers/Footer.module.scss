@@ -1,10 +1,10 @@
 .wrapper {
-  height: 250px;
+  max-height: 250px;
   display: flex;
   flex-direction: column;
-  position: relative;
   background: white;
   padding: 10px 0;
+  position: relative;
 }
 
 .tabs {
@@ -19,9 +19,9 @@
     margin-right: 2px;
     border-width: 0;
     padding: 0 20px;
-    opacity: 0.5;
+    background-color: #F4F4F4;
     &.active {
-      opacity: 1;
+      background-color: white;
     }
   }
 }
@@ -33,6 +33,7 @@
   > div {
     padding: 10px;
     border-bottom: 1px solid #E8E8E8;
+    overflow: auto;
     &:last-child {
       border-bottom: 0;
     }

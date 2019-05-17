@@ -129,11 +129,11 @@ export class Sdk {
       await this.verifyAccount();
     }
 
+    this.state.initialized$.next(true);
+
     this.subscribeAccountBalance();
     this.subscribeApiEvents();
     this.subscribeAcceptedActions();
-
-    this.state.initialized$.next(true);
   }
 
   /**

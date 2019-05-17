@@ -28,6 +28,10 @@ import {
   DepositAccountPayment,
   WithdrawAccountPayment,
 } from './accountPayment';
+import {
+  CreateRequestAddAccountDeviceUrl,
+} from './url';
+import Footer from './Footer';
 
 interface IProps {
   sdk: ISdkReduxState;
@@ -124,6 +128,11 @@ class Content extends React.Component<IProps, IState> {
       case Screens.WithdrawAccountPayment:
         Screen = WithdrawAccountPayment;
         break;
+
+      // url
+      case Screens.CreateRequestAddAccountDeviceUrl:
+        Screen = CreateRequestAddAccountDeviceUrl;
+        break;
     }
 
     return Screen
@@ -135,7 +144,7 @@ class Content extends React.Component<IProps, IState> {
   }
 
   public state = {
-    screen: Screens.Initialize,
+    screen: Screens.CreateRequestAddAccountDeviceUrl,
   };
 
   public componentWillMount(): void {
@@ -185,12 +194,20 @@ class Content extends React.Component<IProps, IState> {
               Screens.DepositAccountPayment,
               Screens.WithdrawAccountPayment,
             ],
+          }, {
+            header: 'Url',
+            screens: [
+              Screens.CreateRequestAddAccountDeviceUrl,
+            ],
           }]}
           enabledScreens={enabledScreens}
           activeScreen={screen}
           openScreen={this.openScreen}
         />
-        {screenNode}
+        <div className={styles.wrapper}>
+          {screenNode}
+          <Footer/>
+        </div>
       </div>
     );
   }
@@ -234,6 +251,9 @@ class Content extends React.Component<IProps, IState> {
       [Screens.GrabAccountPayment]: accountConnected,
       [Screens.DepositAccountPayment]: accountDeviceDeployed,
       [Screens.WithdrawAccountPayment]: accountDeviceDeployed,
+
+      // url
+      [Screens.CreateRequestAddAccountDeviceUrl]: accountDisconnected,
     };
   }
 

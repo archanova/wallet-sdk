@@ -87,6 +87,7 @@ export default class Footer extends ContextComponent<{}, IState> {
                 </div>
               );
             })}
+            {loggerEvents.length ? null : <div>Not found</div>}
           </div>
         );
         break;
@@ -103,6 +104,7 @@ export default class Footer extends ContextComponent<{}, IState> {
                 </div>
               );
             })}
+            {sdkEvents.length ? null : <div>Not found</div>}
           </div>
         );
         break;

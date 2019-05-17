@@ -60,7 +60,7 @@ export class DeployAccount extends Screen<IState> {
           />
         </Example>
         <Example
-          title="Deploy account"
+          title="Deploy Account"
           code={code2(InputTransactionSpeed.selectedToText(transactionSpeed))}
           enabled={enabled && !!estimated}
           run={this.run2}
