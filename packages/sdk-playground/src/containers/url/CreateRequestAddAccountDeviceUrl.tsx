@@ -40,7 +40,7 @@ export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
     return (
       <div>
         <Example
-          title="Get Connected Account Transaction"
+          title="Create Request Add Account Device Url"
           code={endpoint || callbackEndpoint
             ? code2(endpoint, callbackEndpoint)
             : code1()

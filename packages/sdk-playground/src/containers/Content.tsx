@@ -31,6 +31,9 @@ import {
 import {
   CreateRequestAddAccountDeviceUrl,
 } from './url';
+import {
+  SignPersonalMessage,
+} from './utils';
 import Footer from './Footer';
 
 interface IProps {
@@ -133,6 +136,11 @@ class Content extends React.Component<IProps, IState> {
       case Screens.CreateRequestAddAccountDeviceUrl:
         Screen = CreateRequestAddAccountDeviceUrl;
         break;
+
+      // utils
+      case Screens.SignPersonalMessage:
+        Screen = SignPersonalMessage;
+        break;
     }
 
     return Screen
@@ -144,7 +152,7 @@ class Content extends React.Component<IProps, IState> {
   }
 
   public state = {
-    screen: Screens.CreateRequestAddAccountDeviceUrl,
+    screen: Screens.Initialize,
   };
 
   public componentWillMount(): void {
@@ -198,6 +206,11 @@ class Content extends React.Component<IProps, IState> {
             header: 'Url',
             screens: [
               Screens.CreateRequestAddAccountDeviceUrl,
+            ],
+          }, {
+            header: 'Utils',
+            screens: [
+              Screens.SignPersonalMessage,
             ],
           }]}
           enabledScreens={enabledScreens}
@@ -254,6 +267,9 @@ class Content extends React.Component<IProps, IState> {
 
       // url
       [Screens.CreateRequestAddAccountDeviceUrl]: accountDisconnected,
+
+      // utils
+      [Screens.SignPersonalMessage]: initialized,
     };
   }
 
