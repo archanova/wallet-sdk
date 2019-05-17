@@ -1,6 +1,5 @@
 import React from 'react';
-import QrCode from 'qrcode.react';
-import { Example, Screen, InputText } from '../../components';
+import { Example, Screen, InputText, Url } from '../../components';
 import { getCurrentEndpoint, getTargetEndpoint } from '../../shared';
 
 const code1 = () => `
@@ -22,6 +21,7 @@ interface IState {
   endpoint: string;
   callbackEndpoint: string;
   mobileUrl: string;
+  redirectUrl: string;
 }
 
 export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
@@ -29,6 +29,7 @@ export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
     endpoint: getTargetEndpoint(),
     callbackEndpoint: getCurrentEndpoint(),
     mobileUrl: '',
+    redirectUrl: '',
   };
 
   public componentWillMount(): void {
@@ -40,7 +41,7 @@ export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
 
   public renderContent(): any {
     const { enabled } = this.props;
-    const { endpoint, callbackEndpoint, mobileUrl } = this.state;
+    const { endpoint, callbackEndpoint, mobileUrl, redirectUrl } = this.state;
     return (
       <div>
         <Example
@@ -66,9 +67,10 @@ export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
           />
         </Example>
         {enabled && mobileUrl && (
-          <div style={{ marginBottom: 20 }}>
-            <QrCode value={mobileUrl} size={250} />
-          </div>
+          <Url
+            mobile={mobileUrl}
+            redirect={redirectUrl}
+          />
         )}
       </div>
     );
@@ -77,12 +79,14 @@ export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
   private endpointChanged(endpoint: string): void {
     this.setState({
       endpoint,
+      mobileUrl: null,
     });
   }
 
   private callbackEndpointChanged(callbackEndpoint: string): void {
     this.setState({
       callbackEndpoint,
+      mobileUrl: null,
     });
   }
 
@@ -91,15 +95,18 @@ export class CreateRequestAddAccountDeviceUrl extends Screen<IState> {
     this
       .logger
       .wrapSync('sdk.createRequestAddAccountDeviceUrl', async (console) => {
-        console.log('redirectUrl', this.sdk.createRequestAddAccountDeviceUrl({
+        const redirectUrl = this.sdk.createRequestAddAccountDeviceUrl({
           endpoint: endpoint || null,
           callbackEndpoint: callbackEndpoint || null,
-        }));
+        });
+        const mobileUrl = this.sdk.createRequestAddAccountDeviceUrl();
 
-        const mobileUrl = console.log('mobileUrl', this.sdk.createRequestAddAccountDeviceUrl());
+        console.log('redirectUrl', `${redirectUrl.slice(0, 100)}...`);
+        console.log('mobileUrl', `${mobileUrl.slice(0, 100)}...`);
 
         this.setState({
           mobileUrl,
+          redirectUrl: endpoint ? redirectUrl : null,
         });
       });
   }

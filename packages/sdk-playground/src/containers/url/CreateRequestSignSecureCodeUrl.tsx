@@ -1,6 +1,5 @@
 import React from 'react';
-import QrCode from 'qrcode.react';
-import { Example, Screen } from '../../components';
+import { Example, Screen, Url } from '../../components';
 
 const code = () => `
 sdk
@@ -34,9 +33,7 @@ export class CreateRequestSignSecureCodeUrl extends Screen<IState> {
           run={this.run}
         />
         {enabled && mobileUrl && (
-          <div style={{ marginBottom: 20 }}>
-            <QrCode value={mobileUrl} size={250} />
-          </div>
+          <Url mobile={mobileUrl} />
         )}
       </div>
     );
@@ -46,7 +43,9 @@ export class CreateRequestSignSecureCodeUrl extends Screen<IState> {
     this
       .logger
       .wrapSync('sdk.createRequestSignSecureCodeUrl', async (console) => {
-        const mobileUrl = console.log('mobileUrl', await this.sdk.createRequestSignSecureCodeUrl());
+        const mobileUrl = await this.sdk.createRequestSignSecureCodeUrl();
+
+        console.log('mobileUrl', `${mobileUrl.slice(0, 100)}...`);
 
         this.setState({
           mobileUrl,

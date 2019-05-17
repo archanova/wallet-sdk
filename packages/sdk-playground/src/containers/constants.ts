@@ -26,6 +26,15 @@ export enum Screens {
   DepositAccountPayment = 'depositAccountPayment',
   WithdrawAccountPayment = 'withdrawAccountPayment',
 
+  // app
+  GetApps = 'getApps',
+  GetApp = 'getApp',
+  GetAppOpenGames = 'getAppOpenGames',
+
+  // account games
+  GetConnectedAccountGames = 'getConnectedAccountGames',
+  CreateAccountGame = 'createAccountGame',
+
   // url
   CreateRequestAddAccountDeviceUrl = 'createRequestAddAccountDeviceUrl',
   CreateRequestSignSecureCodeUrl = 'createRequestSignSecureCodeUrl',

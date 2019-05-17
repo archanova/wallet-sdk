@@ -690,6 +690,37 @@ export class Sdk {
     return this.app.getAppOpenGames(appAlias, page);
   }
 
+// Account Game
+
+  /**
+   * gets connected account games
+   * @param appAlias
+   * @param page
+   */
+  public async getConnectedAccountGames(appAlias: string, page = 0): Promise<IPaginated<IAccountGame>> {
+    this.require();
+
+    return this.accountGame.getConnectedAccountGames(appAlias, page);
+  }
+
+  /**
+   * create account game
+   * @param appAlias
+   * @param deposit
+   * @param data
+   */
+  public async createAccountGame(
+    appAlias: string,
+    deposit: number | string | BN,
+    data: string,
+  ): Promise<IAccountGame> {
+    this.require({
+      accountDeviceOwner: true,
+    });
+
+    return this.accountGame.createAccountGame(appAlias, deposit, data);
+  }
+
 // Action
 
   /**
