@@ -1,5 +1,10 @@
 .content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 50px;
+  min-width: 1200px;
   font-size: 11px;
   padding: 0 15px;
   background-color: #6024FC;

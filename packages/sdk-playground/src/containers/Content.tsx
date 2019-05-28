@@ -45,7 +45,6 @@ import {
 import {
   SignPersonalMessage,
 } from './utils';
-import Footer from './Footer';
 
 interface IProps {
   sdk: ISdkReduxState;
@@ -275,7 +274,6 @@ class Content extends React.Component<IProps, IState> {
         />
         <div className={styles.wrapper}>
           {screenNode}
-          <Footer />
         </div>
       </div>
     );

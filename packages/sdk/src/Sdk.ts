@@ -870,7 +870,7 @@ export class Sdk {
       .subscribe((account) => {
         if (account) {
           if (!subscription) {
-            subscription = timer(5000)
+            subscription = timer(5000, 5000)
               .pipe(
                 switchMap(() => from(
                   this

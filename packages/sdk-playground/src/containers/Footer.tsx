@@ -37,6 +37,7 @@ export default class Footer extends ContextComponent<{}, IState> {
             id += 1;
             if (loggerEvent) {
               this.setState({
+                tab: 0,
                 loggerEvents: [
                   { ...loggerEvent, id },
                   ...loggerEvents,
