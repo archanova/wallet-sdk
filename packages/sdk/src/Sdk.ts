@@ -90,7 +90,7 @@ export class Sdk {
     );
 
     this.app = new App(this.api);
-    this.account = new Account(this.api, this.state);
+    this.account = new Account(this.api, this.eth, this.state);
     this.contract = new Contract(this.eth);
     this.action = new Action(
       environment.getConfig('actionOptions'),
@@ -870,7 +870,7 @@ export class Sdk {
       .subscribe((account) => {
         if (account) {
           if (!subscription) {
-            subscription = timer(0, 5000)
+            subscription = timer(5000)
               .pipe(
                 switchMap(() => from(
                   this
