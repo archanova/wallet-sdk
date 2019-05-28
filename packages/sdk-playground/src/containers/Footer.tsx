@@ -1,7 +1,7 @@
 import React from 'react';
-import { Subscription, from } from 'rxjs';
+import { Subscription, from, Subject } from 'rxjs';
 import { Sdk } from '@archanova/sdk';
-import { filter, switchMap } from 'rxjs/operators';
+import { filter, switchMap, map } from 'rxjs/operators';
 import { ObjectInspector } from 'react-inspector';
 import { ContextComponent, ILoggerEvent, toRawObject } from '../shared';
 import styles from './Footer.module.scss';
@@ -23,41 +23,58 @@ export default class Footer extends ContextComponent<{}, IState> {
 
   public componentWillMount(): void {
     let id = 0;
+
+    const subject = new Subject<{
+      loggerEvent?: ILoggerEvent;
+      sdkEvent?: Sdk.IEvent;
+    }>();
+
     this.subscriptions.push(
+      subject
+        .pipe(
+          switchMap(({ loggerEvent, sdkEvent }) => from(new Promise((resolve) => {
+            const { loggerEvents, sdkEvents } = this.state;
+            id += 1;
+            if (loggerEvent) {
+              this.setState({
+                loggerEvents: [
+                  { ...loggerEvent, id },
+                  ...loggerEvents,
+                ],
+              }, resolve);
+            } else if (sdkEvent) {
+              this.setState({
+                sdkEvents: [
+                  { ...sdkEvent, id },
+                  ...sdkEvents,
+                ],
+              }, resolve);
+            }
+          }))),
+        )
+        .subscribe(),
+
       this
         .logger
         .stream$
         .pipe(
           filter(event => !!event),
-          switchMap(loggerEvent => from(new Promise((resolve) => {
-            const { loggerEvents } = this.state;
-            id += 1;
-            this.setState({
-              loggerEvents: [
-                { ...loggerEvent, id },
-                ...loggerEvents,
-              ],
-            }, resolve);
-          }))),
+          map(loggerEvent => ({
+            loggerEvent,
+          })),
         )
-        .subscribe(),
+        .subscribe(subject),
 
       this
         .sdk
         .event$
         .pipe(
           filter(event => !!event),
+          map(sdkEvent => ({
+            sdkEvent,
+          })),
         )
-        .subscribe((sdkEvent) => {
-          const { sdkEvents } = this.state;
-
-          this.setState({
-            sdkEvents: [
-              { ...sdkEvent, id },
-              ...sdkEvents,
-            ],
-          });
-        }),
+        .subscribe(subject),
     );
   }
 
