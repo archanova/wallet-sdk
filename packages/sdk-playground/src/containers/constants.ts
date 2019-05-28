@@ -13,6 +13,15 @@ export enum Screens {
   TopUpAccountVirtualBalance = 'topUpAccountVirtualBalance',
   WithdrawFromAccountVirtualBalance = 'withdrawFromAccountVirtualBalance',
 
+  // account device
+  GetConnectedAccountDevices = 'getConnectedAccountDevices',
+  GetConnectedAccountDevice = 'getConnectedAccountDevice',
+  GetAccountDevice = 'getAccountDevice',
+  CreateAccountDevice = 'createAccountDevice',
+  RemoveAccountDevice = 'removeAccountDevice',
+  DeployAccountDevice = 'deployAccountDevice',
+  UnDeployAccountDevice = 'unDeployAccountDevice',
+
   // account transaction
   GetConnectedAccountTransactions = 'getConnectedAccountTransactions',
   GetConnectedAccountTransaction = 'getConnectedAccountTransaction',

@@ -16,6 +16,15 @@ import {
   WithdrawFromAccountVirtualBalance,
 } from './account';
 import {
+  GetConnectedAccountDevices,
+  GetConnectedAccountDevice,
+  GetAccountDevice,
+  CreateAccountDevice,
+  RemoveAccountDevice,
+  DeployAccountDevice,
+  UnDeployAccountDevice,
+} from './accountDevice';
+import {
   GetConnectedAccountTransactions,
   GetConnectedAccountTransaction,
   SendAccountTransaction,
@@ -104,7 +113,36 @@ class Content extends React.Component<IProps, IState> {
         Screen = WithdrawFromAccountVirtualBalance;
         break;
 
-      // account transactions
+      // account device
+      case Screens.GetConnectedAccountDevices:
+        Screen = GetConnectedAccountDevices;
+        break;
+
+      case Screens.GetConnectedAccountDevice:
+        Screen = GetConnectedAccountDevice;
+        break;
+
+      case Screens.GetAccountDevice:
+        Screen = GetAccountDevice;
+        break;
+
+      case Screens.CreateAccountDevice:
+        Screen = CreateAccountDevice;
+        break;
+
+      case Screens.RemoveAccountDevice:
+        Screen = RemoveAccountDevice;
+        break;
+
+      case Screens.DeployAccountDevice:
+        Screen = DeployAccountDevice;
+        break;
+
+      case Screens.UnDeployAccountDevice:
+        Screen = UnDeployAccountDevice;
+        break;
+
+      // account transaction
       case Screens.GetConnectedAccountTransactions:
         Screen = GetConnectedAccountTransactions;
         break;
@@ -117,7 +155,7 @@ class Content extends React.Component<IProps, IState> {
         Screen = SendAccountTransaction;
         break;
 
-      // account payments
+      // account payment
       case Screens.GetConnectedAccountPayments:
         Screen = GetConnectedAccountPayments;
         break;
@@ -226,6 +264,17 @@ class Content extends React.Component<IProps, IState> {
               Screens.WithdrawFromAccountVirtualBalance,
             ],
           }, {
+            header: 'Account Device',
+            screens: [
+              Screens.GetConnectedAccountDevices,
+              Screens.GetConnectedAccountDevice,
+              Screens.GetAccountDevice,
+              Screens.CreateAccountDevice,
+              Screens.RemoveAccountDevice,
+              Screens.DeployAccountDevice,
+              Screens.UnDeployAccountDevice,
+            ],
+          }, {
             header: 'Account Transaction',
             screens: [
               Screens.GetConnectedAccountTransactions,
@@ -308,6 +357,15 @@ class Content extends React.Component<IProps, IState> {
       [Screens.DeployAccount]: accountUpdated && accountCreated,
       [Screens.TopUpAccountVirtualBalance]: accountDeviceDeployed,
       [Screens.WithdrawFromAccountVirtualBalance]: accountDeviceDeployed,
+
+      // account device
+      [Screens.GetConnectedAccountDevices]: accountConnected,
+      [Screens.GetConnectedAccountDevice]: accountConnected,
+      [Screens.GetAccountDevice]: initialized,
+      [Screens.CreateAccountDevice]: accountDeviceOwner,
+      [Screens.RemoveAccountDevice]: accountDeviceOwner,
+      [Screens.DeployAccountDevice]: accountDeviceDeployed && accountDeviceOwner,
+      [Screens.UnDeployAccountDevice]: accountDeviceDeployed && accountDeviceOwner,
 
       // account transaction
       [Screens.GetConnectedAccountTransactions]: accountConnected,
