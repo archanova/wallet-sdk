@@ -5,13 +5,16 @@
   left: 0;
   bottom: 0;
   overflow: auto;
+  background-color: black;
+  color: white;
   .wrapper {
     width: 220px;
     padding: 15px;
 
     h4 {
       padding-bottom: 2px;
-      color: #818181;
+      color: #a673ff;
+      cursor: pointer;
     }
 
     & > div {
@@ -22,6 +25,10 @@
       }
 
       div {
+        &.close {
+          display: none;
+        }
+
         button {
           display: block;
           white-space: nowrap;
@@ -35,15 +42,15 @@
           cursor: pointer;
           line-height: 22px;
           position: relative;
-          color: black;
-
+          color: white;
           &.off {
-            opacity: 0.4;
+            color: #818181 !important;
           }
 
           &:hover,
           &.active {
-            color: #4700FF;
+            color: #F3CF48;
+            font-weight: bold;
           }
         }
       }
