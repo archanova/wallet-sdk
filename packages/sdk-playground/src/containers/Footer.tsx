@@ -42,7 +42,6 @@ class Footer extends ContextComponent<IProps, IState> {
             id += 1;
             if (loggerEvent) {
               this.setState({
-                tab: 0,
                 loggerEvents: [
                   { ...loggerEvent, id },
                   ...loggerEvents,
