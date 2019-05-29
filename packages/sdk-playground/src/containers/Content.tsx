@@ -48,6 +48,10 @@ import {
   CreateAccountGame,
 } from './accountGame';
 import {
+  AcceptIncomingAction,
+  DismissIncomingAction,
+} from './action';
+import {
   ProcessIncomingUrl,
   CreateRequestAddAccountDeviceUrl,
   CreateRequestSignSecureCodeUrl,
@@ -208,6 +212,15 @@ class Content extends React.Component<IProps, IState> {
         break;
 
       // url
+      case Screens.AcceptIncomingAction:
+        Screen = AcceptIncomingAction;
+        break;
+
+      case Screens.DismissIncomingAction:
+        Screen = DismissIncomingAction;
+        break;
+
+      // url
       case Screens.ProcessIncomingUrl:
         Screen = ProcessIncomingUrl;
         break;
@@ -311,6 +324,12 @@ class Content extends React.Component<IProps, IState> {
               Screens.CreateAccountGame,
             ],
           }, {
+            header: 'Action',
+            screens: [
+              Screens.AcceptIncomingAction,
+              Screens.DismissIncomingAction,
+            ],
+          }, {
             header: 'Url',
             screens: [
               Screens.ProcessIncomingUrl,
@@ -335,7 +354,7 @@ class Content extends React.Component<IProps, IState> {
   }
 
   private getEnabledScreens(): { [key: string]: boolean } {
-    const { sdk: { account, accountDevice, initialized } } = this.props;
+    const { sdk: { account, accountDevice, initialized, incomingAction } } = this.props;
 
     const accountConnected = initialized && !!account;
     const accountDisconnected = initialized && !account;
@@ -395,6 +414,10 @@ class Content extends React.Component<IProps, IState> {
       // account game
       [Screens.GetConnectedAccountGames]: accountConnected,
       [Screens.CreateAccountGame]: accountDeviceOwner,
+
+      // action
+      [Screens.AcceptIncomingAction]: !!incomingAction,
+      [Screens.DismissIncomingAction]: !!incomingAction,
 
       // url
       [Screens.ProcessIncomingUrl]: initialized,

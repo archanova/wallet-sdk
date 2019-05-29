@@ -45,6 +45,10 @@ export enum Screens {
   GetConnectedAccountGames = 'getConnectedAccountGames',
   CreateAccountGame = 'createAccountGame',
 
+  // action
+  AcceptIncomingAction = 'acceptIncomingAction',
+  DismissIncomingAction = 'dismissIncomingAction',
+
   // url
   ProcessIncomingUrl = 'processIncomingUrl',
   CreateRequestAddAccountDeviceUrl = 'createRequestAddAccountDeviceUrl',

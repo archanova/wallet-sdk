@@ -754,13 +754,12 @@ export class Sdk {
   /**
    * dismisses incoming action
    */
-  public dismissIncomingAction(): this {
+  public dismissIncomingAction(): void {
     this.require({
       accountConnected: null,
     });
 
     this.action.dismissAction();
-    return this;
   }
 
 // Url
