@@ -20,7 +20,7 @@ interface IState {
 
 export class GetConnectedAccountGames extends Screen<IState> {
   public state = {
-    appAlias: '',
+    appAlias: 'tictactoe',
     page: '0',
     pageParsed: 0,
   };

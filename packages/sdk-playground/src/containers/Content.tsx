@@ -39,15 +39,18 @@ import {
   WithdrawAccountPayment,
 } from './accountPayment';
 import {
+  GetConnectedAccountGames,
+  GetAccountGame,
+  CreateAccountGame,
+  JoinAccountGame,
+  StartAccountGame,
+  UpdateAccountGame,
+} from './accountGame';
+import {
   GetApps,
   GetApp,
   GetAppOpenGames,
 } from './app';
-import {
-  GetConnectedAccountGames,
-  GetAccountGame,
-  CreateAccountGame,
-} from './accountGame';
 import {
   AcceptIncomingAction,
   DismissIncomingAction,
@@ -190,19 +193,6 @@ class Content extends React.Component<IProps, IState> {
         Screen = WithdrawAccountPayment;
         break;
 
-      // app
-      case Screens.GetApps:
-        Screen = GetApps;
-        break;
-
-      case Screens.GetApp:
-        Screen = GetApp;
-        break;
-
-      case Screens.GetAppOpenGames:
-        Screen = GetAppOpenGames;
-        break;
-
       // account games
       case Screens.GetConnectedAccountGames:
         Screen = GetConnectedAccountGames;
@@ -216,7 +206,32 @@ class Content extends React.Component<IProps, IState> {
         Screen = CreateAccountGame;
         break;
 
-      // url
+      case Screens.JoinAccountGame:
+        Screen = JoinAccountGame;
+        break;
+
+      case Screens.StartAccountGame:
+        Screen = StartAccountGame;
+        break;
+
+      case Screens.UpdateAccountGame:
+        Screen = UpdateAccountGame;
+        break;
+
+      // app
+      case Screens.GetApps:
+        Screen = GetApps;
+        break;
+
+      case Screens.GetApp:
+        Screen = GetApp;
+        break;
+
+      case Screens.GetAppOpenGames:
+        Screen = GetAppOpenGames;
+        break;
+
+      // action
       case Screens.AcceptIncomingAction:
         Screen = AcceptIncomingAction;
         break;
@@ -321,6 +336,9 @@ class Content extends React.Component<IProps, IState> {
               Screens.GetConnectedAccountGames,
               Screens.GetAccountGame,
               Screens.CreateAccountGame,
+              Screens.JoinAccountGame,
+              Screens.StartAccountGame,
+              Screens.UpdateAccountGame,
             ],
           }, {
             header: 'App',
@@ -380,7 +398,7 @@ class Content extends React.Component<IProps, IState> {
       [Screens.Reset]: initialized,
 
       // account
-      [Screens.SearchAccount]: initialized,
+      [Screens.SearchAccount]: true,
       [Screens.CreateAccount]: accountDisconnected,
       [Screens.UpdateAccount]: accountCreated,
       [Screens.ConnectAccount]: initialized,
@@ -416,6 +434,9 @@ class Content extends React.Component<IProps, IState> {
       [Screens.GetConnectedAccountGames]: accountConnected,
       [Screens.GetAccountGame]: accountConnected,
       [Screens.CreateAccountGame]: accountDeviceOwner,
+      [Screens.JoinAccountGame]: accountDeviceDeployed && accountDeviceOwner,
+      [Screens.StartAccountGame]: accountDeviceDeployed && accountDeviceOwner,
+      [Screens.UpdateAccountGame]: accountDeployed && accountConnected,
 
       // app
       [Screens.GetApps]: initialized,

@@ -40,6 +40,9 @@ export enum Screens {
   GetConnectedAccountGames = 'getConnectedAccountGames',
   GetAccountGame = 'getAccountGame',
   CreateAccountGame = 'createAccountGame',
+  JoinAccountGame = 'joinAccountGame',
+  StartAccountGame = 'startAccountGame',
+  UpdateAccountGame = 'updateAccountGame',
 
   // app
   GetApps = 'getApps',

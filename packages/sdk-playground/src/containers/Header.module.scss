@@ -7,18 +7,24 @@
   min-width: 1200px;
   font-size: 10px;
   padding: 0 15px;
-  background-color: #6024FC;
   box-shadow: 10px 0 10px rgba(0, 0, 0, 0.2);
   color: white;
   display: flex;
   flex-direction: row;
   align-items: center;
+  background-color: #292929;
+  &.invert {
+    background-color: #6024FC;
+    > div > div:first-child {
+      color: #cd9eff;
+    }
+  }
   > div {
     flex-direction: column;
     margin-right: 20px;
     > div:first-child {
       font-weight: bold;
-      color: #9f8cd9;
+      color: #909090;
       padding-bottom: 2px;
       text-transform: uppercase;
     }

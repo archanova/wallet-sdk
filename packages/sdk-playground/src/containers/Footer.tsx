@@ -41,6 +41,7 @@ class Footer extends ContextComponent<IProps, IState> {
             const { loggerEvents, sdkEvents } = this.state;
             id += 1;
             if (loggerEvent) {
+              console.log(loggerEvent);
               this.setState({
                 loggerEvents: [
                   { ...loggerEvent, id },
@@ -99,18 +100,41 @@ class Footer extends ContextComponent<IProps, IState> {
       case 0:
         content = (
           <div className={styles.content}>
-            {loggerEvents.map(({ id, args }) => {
-              return (
-                <div key={`loggerEvent_${id}`}>
-                  {args.map((arg, index) => (
-                    <div key={`loggerEvent_${id}_${index}`}>
-                      <ObjectInspector
-                        data={toRawObject(arg)}
-                      />
+            {loggerEvents.map(({ id, type, args }) => {
+              let result: any = null;
+
+              switch (type) {
+                case 'info':
+                  result = (
+                    <div key={`loggerEvent_${id}`}>
+                      {args.map((arg, index) => (
+                        <div key={`loggerEvent_${id}_${index}`}>
+                          <ObjectInspector
+                            data={toRawObject(arg)}
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              );
+                  );
+                  break;
+
+                case 'error':
+                  try {
+                    result = (
+                      <div key={`loggerEvent_${id}`}>
+                        <ObjectInspector
+                          data={toRawObject(args[0].toString())}
+                        />
+                      </div>
+                    );
+                  } catch (err) {
+                    result = null;
+                  }
+                  break;
+
+              }
+
+              return result;
             })}
           </div>
         );

@@ -181,6 +181,7 @@ export class Sdk {
    */
   public async searchAccount({ address, ensName }: { address?: string, ensName?: string }): Promise<IAccount> {
     this.require({
+      initialized: null,
       accountConnected: null,
     });
 
@@ -761,10 +762,7 @@ export class Sdk {
    * @param data
    */
   public async updateAccountGame(gameId: number, data: string): Promise<IAccountGame> {
-    this.require({
-      accountDeviceOwner: true,
-      accountDeviceDeployed: true,
-    });
+    this.require();
 
     const { accountAddress } = this.state;
     const game = await this.accountGame.getAccountGame(gameId);
@@ -1050,6 +1048,10 @@ export class Sdk {
             }
             case Api.EventNames.AccountGameUpdated: {
               const { account, game } = payload;
+              if (accountAddress === account) {
+                const accountGame = await this.accountGame.getAccountGame(game);
+                this.emitEvent(Sdk.EventNames.AccountGameUpdated, accountGame);
+              }
               break;
             }
             case Api.EventNames.AccountPaymentUpdated: {
