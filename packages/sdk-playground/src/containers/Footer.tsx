@@ -1,6 +1,7 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import { Subscription, from, Subject } from 'rxjs';
-import { Sdk } from '@archanova/sdk';
+import { ISdkReduxState, Sdk } from '@archanova/sdk';
 import { filter, switchMap, map } from 'rxjs/operators';
 import { ObjectInspector } from 'react-inspector';
 import { ContextComponent, ILoggerEvent, toRawObject } from '../shared';
@@ -12,7 +13,11 @@ interface IState {
   sdkEvents: (Sdk.IEvent & { id: number })[];
 }
 
-export default class Footer extends ContextComponent<{}, IState> {
+interface IProps {
+  sdk: ISdkReduxState;
+}
+
+class Footer extends ContextComponent<IProps, IState> {
   public state = {
     tab: 0,
     loggerEvents: [],
@@ -86,6 +91,7 @@ export default class Footer extends ContextComponent<{}, IState> {
   }
 
   public render() {
+    const { sdk } = this.props;
     const { tab, loggerEvents, sdkEvents } = this.state;
 
     let content: any = null;
@@ -127,6 +133,18 @@ export default class Footer extends ContextComponent<{}, IState> {
           </div>
         );
         break;
+
+      case 2:
+        content = (
+          <div className={styles.content}>
+            <div>
+              <ObjectInspector
+                data={toRawObject(sdk)}
+              />
+            </div>
+          </div>
+        );
+        break;
     }
 
     return (
@@ -146,6 +164,12 @@ export default class Footer extends ContextComponent<{}, IState> {
             sdk.event$
             {sdkEvents.length ? ` (${sdkEvents.length})` : ''}
           </button>
+          <button
+            className={tab === 2 ? styles.active : ''}
+            onClick={this.createChangeTabHandler(2)}
+          >
+            sdk.state
+          </button>
         </div>
         {content}
       </div>
@@ -160,3 +184,7 @@ export default class Footer extends ContextComponent<{}, IState> {
     };
   }
 }
+
+export default connect<IProps, {}, {}, IProps>(
+  state => state,
+)(Footer);
