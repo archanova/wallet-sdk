@@ -139,6 +139,7 @@ class Footer extends ContextComponent<IProps, IState> {
             <div>
               <ObjectInspector
                 data={toRawObject(sdk)}
+                expandLevel={1}
               />
             </div>
           </div>
