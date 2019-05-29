@@ -112,7 +112,6 @@ class Footer extends ContextComponent<IProps, IState> {
                 </div>
               );
             })}
-            {loggerEvents.length ? null : <div>Not found</div>}
           </div>
         );
         break;
@@ -128,11 +127,9 @@ class Footer extends ContextComponent<IProps, IState> {
                 </div>
               );
             })}
-            {sdkEvents.length ? null : <div>Not found</div>}
           </div>
         );
         break;
-
       case 2:
         content = (
           <div className={styles.content}>
