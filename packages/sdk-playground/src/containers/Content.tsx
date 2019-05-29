@@ -48,6 +48,7 @@ import {
   CreateAccountGame,
 } from './accountGame';
 import {
+  ProcessIncomingUrl,
   CreateRequestAddAccountDeviceUrl,
   CreateRequestSignSecureCodeUrl,
 } from './url';
@@ -207,6 +208,10 @@ class Content extends React.Component<IProps, IState> {
         break;
 
       // url
+      case Screens.ProcessIncomingUrl:
+        Screen = ProcessIncomingUrl;
+        break;
+
       case Screens.CreateRequestAddAccountDeviceUrl:
         Screen = CreateRequestAddAccountDeviceUrl;
         break;
@@ -308,6 +313,7 @@ class Content extends React.Component<IProps, IState> {
           }, {
             header: 'Url',
             screens: [
+              Screens.ProcessIncomingUrl,
               Screens.CreateRequestAddAccountDeviceUrl,
               Screens.CreateRequestSignSecureCodeUrl,
             ],
@@ -391,6 +397,7 @@ class Content extends React.Component<IProps, IState> {
       [Screens.CreateAccountGame]: accountDeviceOwner,
 
       // url
+      [Screens.ProcessIncomingUrl]: initialized,
       [Screens.CreateRequestAddAccountDeviceUrl]: accountDisconnected,
       [Screens.CreateRequestSignSecureCodeUrl]: accountDeviceOwner,
 

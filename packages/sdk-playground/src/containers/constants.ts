@@ -46,6 +46,7 @@ export enum Screens {
   CreateAccountGame = 'createAccountGame',
 
   // url
+  ProcessIncomingUrl = 'processIncomingUrl',
   CreateRequestAddAccountDeviceUrl = 'createRequestAddAccountDeviceUrl',
   CreateRequestSignSecureCodeUrl = 'createRequestSignSecureCodeUrl',
 
