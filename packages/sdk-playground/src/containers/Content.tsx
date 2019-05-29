@@ -45,6 +45,7 @@ import {
 } from './app';
 import {
   GetConnectedAccountGames,
+  GetAccountGame,
   CreateAccountGame,
 } from './accountGame';
 import {
@@ -207,6 +208,10 @@ class Content extends React.Component<IProps, IState> {
         Screen = GetConnectedAccountGames;
         break;
 
+      case Screens.GetAccountGame:
+        Screen = GetAccountGame;
+        break;
+
       case Screens.CreateAccountGame:
         Screen = CreateAccountGame;
         break;
@@ -311,17 +316,18 @@ class Content extends React.Component<IProps, IState> {
               Screens.WithdrawAccountPayment,
             ],
           }, {
+            header: 'Account Game',
+            screens: [
+              Screens.GetConnectedAccountGames,
+              Screens.GetAccountGame,
+              Screens.CreateAccountGame,
+            ],
+          }, {
             header: 'App',
             screens: [
               Screens.GetApps,
               Screens.GetApp,
               Screens.GetAppOpenGames,
-            ],
-          }, {
-            header: 'Account Game',
-            screens: [
-              Screens.GetConnectedAccountGames,
-              Screens.CreateAccountGame,
             ],
           }, {
             header: 'Action',
@@ -406,14 +412,15 @@ class Content extends React.Component<IProps, IState> {
       [Screens.DepositAccountPayment]: accountDeviceDeployed,
       [Screens.WithdrawAccountPayment]: accountDeviceDeployed,
 
+      // account game
+      [Screens.GetConnectedAccountGames]: accountConnected,
+      [Screens.GetAccountGame]: accountConnected,
+      [Screens.CreateAccountGame]: accountDeviceOwner,
+
       // app
       [Screens.GetApps]: initialized,
       [Screens.GetApp]: initialized,
       [Screens.GetAppOpenGames]: initialized,
-
-      // account game
-      [Screens.GetConnectedAccountGames]: accountConnected,
-      [Screens.CreateAccountGame]: accountDeviceOwner,
 
       // action
       [Screens.AcceptIncomingAction]: !!incomingAction,

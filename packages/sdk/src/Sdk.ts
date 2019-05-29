@@ -3,7 +3,7 @@ import BN from 'bn.js';
 import EthJs from 'ethjs';
 import { BehaviorSubject, from, Subscription, timer } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
-import { AccountDeviceStates, AccountDeviceTypes, AccountStates } from './constants';
+import { AccountDeviceStates, AccountDeviceTypes, AccountGamePlayers, AccountGameStates, AccountStates } from './constants';
 import { IAccount, IAccountDevice, IAccountGame, IAccountPayment, IAccountTransaction, IApp, IPaginated } from './interfaces';
 import {
   Account,
@@ -666,6 +666,120 @@ export class Sdk {
     );
   }
 
+// Account Game
+
+  /**
+   * gets connected account games
+   * @param appAlias
+   * @param page
+   */
+  public async getConnectedAccountGames(appAlias: string, page = 0): Promise<IPaginated<IAccountGame>> {
+    this.require();
+
+    return this.accountGame.getConnectedAccountGames(appAlias, page);
+  }
+
+  /**
+   * gets account game
+   * @param gameId
+   */
+  public async getAccountGame(gameId: number): Promise<IAccountGame> {
+    this.require();
+
+    return this.accountGame.getAccountGame(gameId);
+  }
+
+  /**
+   * create account game
+   * @param appAlias
+   * @param deposit
+   * @param data
+   */
+  public async createAccountGame(
+    appAlias: string,
+    deposit: number | string | BN,
+    data: string,
+  ): Promise<IAccountGame> {
+    this.require({
+      accountDeviceOwner: true,
+    });
+
+    return this.accountGame.createAccountGame(appAlias, deposit, data);
+  }
+
+  /**
+   * joins account game
+   * @param gameId
+   */
+  public async joinAccountGame(gameId: number): Promise<IAccountGame> {
+    this.require({
+      accountDeviceOwner: true,
+      accountDeviceDeployed: true,
+    });
+
+    const { accountAddress } = this.state;
+    const game = await this.accountGame.getAccountGame(gameId);
+
+    if (game.creator.account.address === accountAddress) {
+      throw new Sdk.Error('invalid game creator');
+    }
+
+    if (game.state !== AccountGameStates.Open) {
+      throw new Sdk.Error('invalid game state');
+    }
+
+    return this.accountGame.joinAccountGame(game);
+  }
+
+  /**
+   * starts account game
+   * @param gameId
+   */
+  public async startAccountGame(gameId: number): Promise<IAccountGame> {
+    this.require({
+      accountDeviceOwner: true,
+      accountDeviceDeployed: true,
+    });
+
+    const { accountAddress } = this.state;
+    const game = await this.accountGame.getAccountGame(gameId);
+
+    if (game.creator.account.address !== accountAddress) {
+      throw new Sdk.Error('invalid game creator');
+    }
+
+    if (game.state !== AccountGameStates.Opened) {
+      throw new Sdk.Error('invalid game state');
+    }
+
+    return this.accountGame.startAccountGame(game);
+  }
+
+  /**
+   * updates account game
+   * @param gameId
+   * @param data
+   */
+  public async updateAccountGame(gameId: number, data: string): Promise<IAccountGame> {
+    this.require({
+      accountDeviceOwner: true,
+      accountDeviceDeployed: true,
+    });
+
+    const { accountAddress } = this.state;
+    const game = await this.accountGame.getAccountGame(gameId);
+
+    if (
+      game.state !== AccountGameStates.Started ||
+      (game.whoseTurn === AccountGamePlayers.Creator && game.creator.account.address !== accountAddress) ||
+      (game.whoseTurn === AccountGamePlayers.Opponent && game.opponent.account.address !== accountAddress)
+    ) {
+      throw new Sdk.Error('invalid game state');
+    }
+
+    return this.accountGame.updateAccountGame(game, data);
+  }
+
 // App
 
   /**
@@ -703,37 +817,6 @@ export class Sdk {
     });
 
     return this.app.getAppOpenGames(appAlias, page);
-  }
-
-// Account Game
-
-  /**
-   * gets connected account games
-   * @param appAlias
-   * @param page
-   */
-  public async getConnectedAccountGames(appAlias: string, page = 0): Promise<IPaginated<IAccountGame>> {
-    this.require();
-
-    return this.accountGame.getConnectedAccountGames(appAlias, page);
-  }
-
-  /**
-   * create account game
-   * @param appAlias
-   * @param deposit
-   * @param data
-   */
-  public async createAccountGame(
-    appAlias: string,
-    deposit: number | string | BN,
-    data: string,
-  ): Promise<IAccountGame> {
-    this.require({
-      accountDeviceOwner: true,
-    });
-
-    return this.accountGame.createAccountGame(appAlias, deposit, data);
   }
 
 // Action

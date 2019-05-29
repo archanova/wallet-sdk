@@ -44,7 +44,7 @@ export class GetConnectedAccountGames extends Screen<IState> {
           run={this.run}
         >
           <InputText
-            label="alias"
+            label="appAlias"
             type="text"
             value={appAlias}
             onChange={this.appAliasChanged}

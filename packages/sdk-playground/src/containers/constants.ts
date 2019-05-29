@@ -36,14 +36,15 @@ export enum Screens {
   DepositAccountPayment = 'depositAccountPayment',
   WithdrawAccountPayment = 'withdrawAccountPayment',
 
+  // account games
+  GetConnectedAccountGames = 'getConnectedAccountGames',
+  GetAccountGame = 'getAccountGame',
+  CreateAccountGame = 'createAccountGame',
+
   // app
   GetApps = 'getApps',
   GetApp = 'getApp',
   GetAppOpenGames = 'getAppOpenGames',
-
-  // account games
-  GetConnectedAccountGames = 'getConnectedAccountGames',
-  CreateAccountGame = 'createAccountGame',
 
   // action
   AcceptIncomingAction = 'acceptIncomingAction',

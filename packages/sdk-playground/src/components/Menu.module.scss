@@ -7,6 +7,7 @@
   overflow: auto;
   background-color: black;
   color: white;
+
   .wrapper {
     width: 220px;
     padding: 15px;
@@ -14,7 +15,6 @@
     h4 {
       padding-bottom: 2px;
       color: #a673ff;
-      cursor: pointer;
     }
 
     & > div {
@@ -43,6 +43,7 @@
           line-height: 22px;
           position: relative;
           color: white;
+
           &.off {
             color: #818181 !important;
           }
