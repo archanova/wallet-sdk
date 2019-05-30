@@ -326,8 +326,14 @@ export class PlayTicTacToe extends Screen<IState> {
 
               if (winner) {
                 title = (
-                  winner === sdkConstants.AccountGamePlayers.Creator &&
-                  creatorAccount.address === accountAddress
+                  (
+                    winner === sdkConstants.AccountGamePlayers.Creator &&
+                    creatorAccount.address === accountAddress
+                  ) ||
+                  (
+                    winner === sdkConstants.AccountGamePlayers.Opponent &&
+                    opponentAccount.address === accountAddress
+                  )
                 )
                   ? 'You Win'
                   : 'You Lose';
