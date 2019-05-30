@@ -50,6 +50,7 @@ import {
   GetApps,
   GetApp,
   GetAppOpenGames,
+  PlayTicTacToe,
 } from './app';
 import {
   AcceptIncomingAction,
@@ -231,6 +232,10 @@ class Content extends React.Component<IProps, IState> {
         Screen = GetAppOpenGames;
         break;
 
+      case Screens.PlayTicTacToe:
+        Screen = PlayTicTacToe;
+        break;
+
       // action
       case Screens.AcceptIncomingAction:
         Screen = AcceptIncomingAction;
@@ -302,7 +307,7 @@ class Content extends React.Component<IProps, IState> {
               Screens.WithdrawFromAccountVirtualBalance,
             ],
           }, {
-            header: 'Account Device',
+            header: 'Account Devices',
             screens: [
               Screens.GetConnectedAccountDevices,
               Screens.GetConnectedAccountDevice,
@@ -313,14 +318,14 @@ class Content extends React.Component<IProps, IState> {
               Screens.UnDeployAccountDevice,
             ],
           }, {
-            header: 'Account Transaction',
+            header: 'Account Transactions',
             screens: [
               Screens.GetConnectedAccountTransactions,
               Screens.GetConnectedAccountTransaction,
               Screens.SendAccountTransaction,
             ],
           }, {
-            header: 'Account Payment',
+            header: 'Account Payments',
             screens: [
               Screens.GetConnectedAccountPayments,
               Screens.GetConnectedAccountPayment,
@@ -331,7 +336,7 @@ class Content extends React.Component<IProps, IState> {
               Screens.WithdrawAccountPayment,
             ],
           }, {
-            header: 'Account Game',
+            header: 'Account Games',
             screens: [
               Screens.GetConnectedAccountGames,
               Screens.GetAccountGame,
@@ -341,20 +346,21 @@ class Content extends React.Component<IProps, IState> {
               Screens.UpdateAccountGame,
             ],
           }, {
-            header: 'App',
+            header: 'Apps',
             screens: [
               Screens.GetApps,
               Screens.GetApp,
               Screens.GetAppOpenGames,
+              // Screens.PlayTicTacToe,
             ],
           }, {
-            header: 'Action',
+            header: 'Actions',
             screens: [
               Screens.AcceptIncomingAction,
               Screens.DismissIncomingAction,
             ],
           }, {
-            header: 'Url',
+            header: 'Urls',
             screens: [
               Screens.ProcessIncomingUrl,
               Screens.CreateRequestAddAccountDeviceUrl,
@@ -442,6 +448,7 @@ class Content extends React.Component<IProps, IState> {
       [Screens.GetApps]: initialized,
       [Screens.GetApp]: initialized,
       [Screens.GetAppOpenGames]: initialized,
+      [Screens.PlayTicTacToe]: accountDeployed,
 
       // action
       [Screens.AcceptIncomingAction]: !!incomingAction,

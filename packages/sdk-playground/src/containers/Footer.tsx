@@ -41,7 +41,6 @@ class Footer extends ContextComponent<IProps, IState> {
             const { loggerEvents, sdkEvents } = this.state;
             id += 1;
             if (loggerEvent) {
-              console.log(loggerEvent);
               this.setState({
                 loggerEvents: [
                   { ...loggerEvent, id },
