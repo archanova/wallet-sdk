@@ -8,6 +8,7 @@ import { IAccount, IAccountDevice, IAccountGame, IAccountPayment, IAccountTransa
 import {
   Account,
   AccountDevice,
+  AccountFriendRecovery,
   AccountGame,
   AccountPayment,
   AccountTransaction,
@@ -38,6 +39,7 @@ export class Sdk {
 
   protected readonly account: Account;
   protected readonly accountDevice: AccountDevice;
+  protected readonly accountFriendRecovery: AccountFriendRecovery;
   protected readonly accountGame: AccountGame;
   protected readonly accountPayment: AccountPayment;
   protected readonly accountTransaction: AccountTransaction;
@@ -106,6 +108,7 @@ export class Sdk {
     this.accountPayment = new AccountPayment(this.api, this.contract, this.device, this.state);
     this.accountDevice = new AccountDevice(this.accountTransaction, this.api, this.state);
     this.accountGame = new AccountGame(this.api, this.contract, this.device, this.state);
+    this.accountFriendRecovery = new AccountFriendRecovery(this.api, this.device, this.state);
 
     this.state.incomingAction$ = this.action.$incoming;
 
