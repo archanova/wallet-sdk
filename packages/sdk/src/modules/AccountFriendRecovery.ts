@@ -115,6 +115,7 @@ export class AccountFriendRecovery {
     this.state.accountFriendRecovery$.next({
       accountAddress,
       gasPrice,
+      friendSignatures: {},
       ...accountFriendRecovery,
     });
   }
