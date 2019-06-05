@@ -4,6 +4,7 @@ import {
   AccountTypes,
   AccountDeviceStates,
   AccountDeviceTypes,
+  AccountFriendRecoveryStates,
   AccountGameStates,
   AccountGamePlayers,
   AccountTransactionTypes,
@@ -30,6 +31,19 @@ export interface IAccountDevice {
   type: AccountDeviceTypes;
   state: AccountDeviceStates;
   nextState: AccountDeviceStates;
+  updatedAt: Date;
+}
+
+export interface IAccountFriendRecovery {
+  accountAddress: string;
+  gasFee: BN;
+  gasPrice: BN;
+  nonce: BN;
+  requiredFriends: BN;
+  friends: string[];
+  friendSignatures?: { [key: string]: string };
+  state: AccountFriendRecoveryStates;
+  nextState: AccountFriendRecoveryStates;
   updatedAt: Date;
 }
 
