@@ -377,12 +377,12 @@ export class Sdk {
   }
 
   /**
-   * estimates connect account friend recovery extension
+   * estimates setup account friend recovery extension
    * @param requiredFriends
    * @param friendAddresses
    * @param transactionSpeed
    */
-  public async estimateConnectAccountFriendRecoveryExtension(
+  public async estimateSetupAccountFriendRecoveryExtension(
     requiredFriends: number,
     friendAddresses: string[],
     transactionSpeed: Eth.TransactionSpeeds = null,
@@ -394,7 +394,7 @@ export class Sdk {
 
     const { accountFriendRecovery } = this.contract;
     const data = accountFriendRecovery.encodeMethodInput(
-      'connect',
+      'setup',
       requiredFriends,
       friendAddresses,
     );
@@ -512,7 +512,9 @@ export class Sdk {
       accountConnected: null,
     });
 
-    return this.accountFriendRecovery.submitAccountFriendRecovery();
+    return this.accountFriendRecovery
+      .submitAccountFriendRecovery()
+      .catch(() => null);
   }
 
 // Account Device

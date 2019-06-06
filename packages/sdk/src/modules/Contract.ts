@@ -6,7 +6,7 @@ import { Eth } from './Eth';
 export class Contract {
 
   public account: Contract.ContractInstance<'addDevice' | 'removeDevice' | 'executeTransaction'>;
-  public accountFriendRecovery: Contract.ContractInstance<'connect' | 'disconnect' | 'setRequiredFriends' | 'addFriends' | 'removeFriends' | 'recoverAccount'>;
+  public accountFriendRecovery: Contract.ContractInstance<'setup' | 'setRequiredFriends' | 'setFriends' | 'recoverAccount'>;
   public accountProvider: Contract.ContractInstance;
   public accountProxy: Contract.ContractInstance<'forwardAccountOwnerCall'>;
   public ensRegistry: Contract.ContractInstance;

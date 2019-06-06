@@ -4,7 +4,6 @@ import {
   AccountTypes,
   AccountDeviceStates,
   AccountDeviceTypes,
-  AccountFriendRecoveryStates,
   AccountGameStates,
   AccountGamePlayers,
   AccountTransactionTypes,
@@ -42,8 +41,6 @@ export interface IAccountFriendRecovery {
   requiredFriends: BN;
   friends: string[];
   friendSignatures?: { [key: string]: string };
-  state: AccountFriendRecoveryStates;
-  nextState: AccountFriendRecoveryStates;
   updatedAt: Date;
 }
 

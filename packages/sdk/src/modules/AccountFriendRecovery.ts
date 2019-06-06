@@ -137,7 +137,9 @@ export class AccountFriendRecovery {
         signatures.push(signature);
       });
 
-    return this.api.sendRequest({
+    const { hash } = await this.api.sendRequest<{
+      hash: string;
+    }>({
       method: 'PUT',
       path: `account/${accountAddress}/friend-recovery`,
       body: {
@@ -146,5 +148,11 @@ export class AccountFriendRecovery {
         gasPrice,
       },
     });
+
+    if (hash) {
+      this.state.accountFriendRecovery$.next(null);
+    }
+
+    return hash;
   }
 }

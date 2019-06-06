@@ -15,7 +15,7 @@ export enum Screens {
 
   // account friend recovery
   AddAccountFriendRecoveryExtension = 'add account friend recovery extension',
-  ConnectAccountFriendRecoveryExtension = 'connect account friend recovery extension',
+  SetupAccountFriendRecoveryExtension = 'setup account friend recovery extension',
   GetAccountFriendRecovery = 'get account friend recovery',
   StartAccountFriendRecovery = 'start account friend recovery',
   CancelAccountFriendRecovery = 'cancel account friend recovery',

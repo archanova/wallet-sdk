@@ -19,12 +19,6 @@ export enum AccountDeviceTypes {
   Extension = 'Extension',
 }
 
-export enum AccountFriendRecoveryStates {
-  Pending = 'Pending',
-  Connected = 'Connected',
-  Disconnected = 'Disconnected',
-}
-
 export enum AccountGameStates {
   Open = 'Open',
   Opened = 'Opened',
