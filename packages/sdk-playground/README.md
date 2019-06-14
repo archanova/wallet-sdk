@@ -15,12 +15,14 @@ $ npm run compile
 Starts `first` instance on `5100` port:
 
 ```bash
+$ export REACT_APP_SDK_ENV=kovan
 $ npm run start:sdk:playground:5100
 ```
 
 Starts `second` instance on `5200` port:
 
 ```bash
+$ export REACT_APP_SDK_ENV=kovan
 $ npm run start:sdk:playground:5200
 ```
 
