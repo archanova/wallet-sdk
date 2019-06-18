@@ -5,7 +5,7 @@
 ```bash
 $ git clone https://github.com/netgum/archanova.git
 $ cd ./archanova
-$ npm run i
+$ npm i
 $ npm run bootstrap
 $ npm run compile
 ```
