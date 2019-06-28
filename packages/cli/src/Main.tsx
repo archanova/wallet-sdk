@@ -4,7 +4,7 @@ import { map } from 'rxjs/operators';
 import { Spinner } from './components';
 import { Actions, Screens } from './constants';
 import { ContextComponent } from './context';
-import { DeployApp, DevelopApp, SetupAccount, SetupApp } from './screens';
+import { Help, DeployApp, DevelopApp, SetupAccount, SetupApp } from './screens';
 
 interface IState {
   initialized: boolean;
@@ -20,7 +20,10 @@ export class Main extends ContextComponent<{}, IState> {
   };
 
   public componentWillMount(): void {
-    this.wrapAsync(() => this.initialize());
+    const { config: { showHelp } } = this.context;
+    if (!showHelp) {
+      this.wrapAsync(() => this.initialize());
+    }
   }
 
   public componentDidUpdate(): void {
@@ -32,9 +35,13 @@ export class Main extends ContextComponent<{}, IState> {
 
   public render(): any {
     const { initialized, screen } = this.state;
+    const { config: { showHelp } } = this.context;
+
     let content: React.ReactNode = null;
 
-    if (!initialized) {
+    if (showHelp) {
+      content = <Help />;
+    } else if (!initialized) {
       content = <Spinner padding={2}>Initializing SDK</Spinner>;
     } else {
       switch (screen) {
@@ -53,11 +60,7 @@ export class Main extends ContextComponent<{}, IState> {
       }
     }
 
-    return initialized
-      ? content
-      : (
-        <Spinner padding={2}>Loading</Spinner>
-      );
+    return content;
   }
 
   private async initialize(): Promise<void> {
