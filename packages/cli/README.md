@@ -14,6 +14,12 @@ $ npm i @archanova/cli -g
 $ archanova-cli [action] [options] [workingPath]
 ```
 
+**Actions:**
+* `auth` - authentication
+* `init` - initialize application
+* `develop` - develop application
+* `deploy` - deploy application
+
 **Options:**
 * `--help, -h` - print help
 * `--global, -g` - use global storage
