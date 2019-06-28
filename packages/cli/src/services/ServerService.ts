@@ -1,50 +1,52 @@
-import { Server as HttpServer } from 'http';
+import { Server } from 'http';
+import { Subject } from 'rxjs';
 import bodyParser from 'body-parser';
 import ngrok from 'ngrok';
 import express from 'express';
-import { jsonReviver } from '@netgum/utils';
 
-export class Server extends HttpServer {
+export class ServerService {
+  private server: Server;
   private handlersPath: string;
-  private handlers: {
-    get(): any;
-    post(body: any): Promise<any>;
-  };
+  private handlers: ServerService.IHandlers;
+
+  public event$ = new Subject<ServerService.IEvent>();
 
   constructor() {
-    super();
     const app = express();
 
-    app.use(bodyParser.json({
-      reviver: jsonReviver,
-    }));
-
     app.use(this.rebuildHandlersMiddleware.bind(this));
+
     app.get('/', (req, res, next) => {
       try {
         const data = this.handlers.get();
-        res.send(data || null);
+        res.send(data);
       } catch (err) {
         next(err);
       }
     });
-    app.post('/', (req, res, next) => {
+
+    app.post('/', bodyParser.json({}), ({ body }, res, next) => {
       try {
         this
           .handlers
-          .post(req.body)
-          .then(data => res.send(data || null))
+          .post(body)
+          .then((data) => {
+            if (!data) {
+              res.status(400);
+              res.send({
+                error: 'bad request',
+              });
+            } else {
+              res.send(data);
+            }
+          })
           .catch(next);
       } catch (err) {
         next(err);
       }
     });
 
-    const router = express.Router({
-      mergeParams: true,
-    });
-
-    router.use(((err, req, res, next) => {
+    app.use(((err, req, res, next) => {
       res.status(500);
       res.send({
         error: 'internal server error',
@@ -52,7 +54,7 @@ export class Server extends HttpServer {
 
     }) as express.ErrorRequestHandler);
 
-    this.on('request', app);
+    this.server = new Server(app);
   }
 
   public rebuildHandlersMiddleware(req: express.Request, res: express.Response, next: express.NextFunction): void {
@@ -80,9 +82,9 @@ export class Server extends HttpServer {
 
     const port = await new Promise<number>(((resolve) => {
       this
+        .server
         .listen(() => {
-          const { port } = this.address() as any;
-
+          const { port } = this.server.address() as any;
           resolve(port);
         });
     }));
@@ -92,14 +94,30 @@ export class Server extends HttpServer {
 
   public async stop(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      this.close((err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+      this
+        .server
+        .close((err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
     });
+
     await ngrok.disconnect();
+  }
+}
+
+export namespace ServerService {
+  export interface IHandlers {
+    get(): any;
+
+    post(body: any): Promise<any>;
+  }
+
+  export interface IEvent {
+    request: any;
+    response: any;
   }
 }

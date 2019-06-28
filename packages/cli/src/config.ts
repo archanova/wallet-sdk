@@ -1,61 +1,105 @@
-import commander from 'commander';
-import { anyToBuffer } from '@netgum/utils';
-import { ISdkOptions } from './sdk';
+import meow from 'meow';
+import { homedir } from 'os';
 import { resolve } from 'path';
+import { SdkEnvironmentNames } from '@archanova/sdk';
+import { verifyPrivateKey, anyToBuffer } from '@netgum/utils';
+import { Actions } from './constants';
 
-interface ICommander {
-  env: any;
-  localEnvHost: string;
-  localEnvPort: string;
-  privateKey: string;
-  appName: string;
-  invitationCode: string;
-  createApp: string;
-}
+const { input: inputs, flags }: {
+  input: string[];
+  flags: {
+    env: SdkEnvironmentNames | 'local';
+    global: boolean;
+    help: boolean;
+    localEnvHost: string;
+    localEnvPort: string;
+    privateKey: string;
+  };
+} = meow({
+  booleanDefault: false,
+  autoHelp: false,
+  autoVersion: false,
+  flags: {
+    env: {
+      type: 'string',
+      alias: 'e',
+      default: SdkEnvironmentNames.Kovan,
+    },
+    global: {
+      type: 'boolean',
+      alias: 'g',
+    },
+    help: {
+      type: 'boolean',
+      alias: 'h',
+    },
+    localEnvHost: {
+      type: 'string',
+      default: null,
+    },
+    localEnvPort: {
+      type: 'string',
+      default: null,
+    },
+    privateKey: {
+      type: 'string',
+      default: null,
+    },
+  },
+});
 
 export interface IConfig {
-  sdk: ISdkOptions;
-  workingPath: string;
-  invitationCode: string;
-  appName: string;
+  action: Actions;
+  env: SdkEnvironmentNames | 'local';
+  localEnv: {
+    host: string;
+    port: number;
+  };
+  localRootPath: string;
+  globalRootPath: string;
+  showHelp: boolean;
+  privateKey: Buffer;
 }
 
+const supportedEnvs = [...Object.values(SdkEnvironmentNames), 'local'];
+const supportedActions = Object.values(Actions);
+const privateKey: Buffer = anyToBuffer(flags.privateKey, { defaults: null });
 let workingPath = process.cwd();
+let action: Actions = null;
 
-const {
-  env,
-  localEnvHost,
-  localEnvPort,
-  privateKey,
-  invitationCode,
-  createApp,
-} = commander
-  .arguments('[workingPath]')
-  .option('-e --env <env>', 'environment [ropsten,rinkeby,kovan,local]', /^(kovan|rinkeby|ropsten|local)$/i, 'kovan')
-  .option('--local-env-host <host>', 'local env host')
-  .option('--local-env-port <port>', 'local env port')
-  .option('--private-key <key>', 'device private key')
-  .option('--invitation-code <code>', 'developer invitation code')
-  .option('--create-app <name>', 'create app with name')
-  .action((arg) => {
-    if (arg) {
-      workingPath = resolve(arg);
+for (const input of inputs) {
+  if (supportedActions.includes(input)) {
+    action = input as any;
+  } else {
+    if (
+      input.startsWith('/') ||
+      input.startsWith('.')
+    ) {
+      workingPath = resolve(input);
     }
-  })
-  .parse(process.argv) as any as ICommander;
+    break;
+  }
+}
+
+if (!supportedEnvs.includes(flags.env)) {
+  throw new Error('Unsupported env'); // TODO: add error handler
+}
+
+if (privateKey && !verifyPrivateKey(privateKey)) {
+  throw new Error('Invalid private key'); // TODO: add error handler
+}
 
 const config: IConfig = {
-  workingPath,
-  invitationCode,
-  appName: createApp,
-  sdk: {
-    env,
-    localEnv: {
-      host: localEnvHost || null,
-      port: parseInt(localEnvPort, 10) || null,
-    },
-    privateKey: anyToBuffer(privateKey, { defaults: null }),
+  action,
+  privateKey,
+  env: flags.env,
+  localEnv: {
+    host: flags.localEnvHost,
+    port: parseInt(flags.localEnvPort, 10) || null,
   },
+  globalRootPath: flags.global ? homedir() : workingPath,
+  localRootPath: workingPath,
+  showHelp: flags.help,
 };
 
 export default config;
