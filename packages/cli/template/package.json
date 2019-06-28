@@ -2,7 +2,7 @@
   "name": "${app.alias}",
   "private": true,
   "description": "${app.description}",
-  "version": "${app.version}",
+  "version": "0.0.1",
   "main": "./src/main.js",
   "scripts": {
     "start": "node ."

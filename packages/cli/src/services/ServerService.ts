@@ -1,17 +1,20 @@
 import { Server } from 'http';
+import { join } from 'path';
 import { Subject } from 'rxjs';
 import bodyParser from 'body-parser';
 import ngrok from 'ngrok';
 import express from 'express';
 
 export class ServerService {
-  private server: Server;
-  private handlersPath: string;
+  private readonly handlersPath: string;
+  private readonly server: Server;
   private handlers: ServerService.IHandlers;
 
   public event$ = new Subject<ServerService.IEvent>();
 
-  constructor() {
+  constructor(workingPath: string) {
+    this.handlersPath = join(workingPath, 'src', 'handlers.js');
+
     const app = express();
 
     app.use(this.rebuildHandlersMiddleware.bind(this));
@@ -57,29 +60,7 @@ export class ServerService {
     this.server = new Server(app);
   }
 
-  public rebuildHandlersMiddleware(req: express.Request, res: express.Response, next: express.NextFunction): void {
-    try {
-
-      delete require.cache[require.resolve(this.handlersPath)];
-      const { get, post } = require(this.handlersPath) as {
-        get(): any;
-        post(body: any): Promise<any>
-      };
-
-      this.handlers = {
-        get,
-        post,
-      };
-
-      next();
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  public async start(handlersPath: string): Promise<string> {
-    this.handlersPath = handlersPath;
-
+  public async start(): Promise<string> {
     const port = await new Promise<number>(((resolve) => {
       this
         .server
@@ -106,6 +87,26 @@ export class ServerService {
     });
 
     await ngrok.disconnect();
+  }
+
+  private rebuildHandlersMiddleware(req: express.Request, res: express.Response, next: express.NextFunction): void {
+    try {
+
+      delete require.cache[require.resolve(this.handlersPath)];
+      const { get, post } = require(this.handlersPath) as {
+        get(): any;
+        post(body: any): Promise<any>
+      };
+
+      this.handlers = {
+        get,
+        post,
+      };
+
+      next();
+    } catch (err) {
+      next(err);
+    }
   }
 }
 

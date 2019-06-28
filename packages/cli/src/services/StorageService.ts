@@ -1,15 +1,26 @@
-import { join } from 'path';
 import { sdkModules } from '@archanova/sdk';
-import { pathExists, ensureDir, readFile, remove, writeFile } from 'fs-extra';
+import { ensureDir, readFile, remove, writeFile } from 'fs-extra';
+import { homedir } from 'os';
+import { join } from 'path';
+import { Scopes } from '../constants';
 
 export class StorageService {
-  constructor(private options: StorageService.IOptions) {
-    //
+  private static FILE_PREFIX = '.archanova';
+  private static CONFIG_FILE = 'config.json';
+
+  private readonly scope: Scopes;
+  private readonly localRootPath: string;
+  private readonly globalRootPath: string;
+  private namespace: string = null;
+
+  constructor({ scope, workingPath }: StorageService.IOptions) {
+    this.scope = scope;
+    this.localRootPath = join(workingPath, StorageService.FILE_PREFIX);
+    this.globalRootPath = join(homedir(), StorageService.FILE_PREFIX);
   }
 
-  public async hasPostfix(postfix: StorageService.KeyPostfixes): Promise<boolean> {
-    const path = await this.postfixToPath(postfix);
-    return pathExists(path);
+  public setNamespace(namespace: string): void {
+    this.namespace = namespace;
   }
 
   public toSdkAdapter(): sdkModules.Storage.IAdapter {
@@ -59,23 +70,19 @@ export class StorageService {
 
   private async postfixToPath(postfix: StorageService.KeyPostfixes, ensure: boolean = false): Promise<string> {
     let rootPath: string = null;
-    const { globalRootPath, localRootPath } = this.options;
-
     switch (postfix) {
       case StorageService.KeyPostfixes.Account:
       case StorageService.KeyPostfixes.AccountDevice:
       case StorageService.KeyPostfixes.DevicePrivateKey:
-        rootPath = globalRootPath;
+        rootPath = this.scope === Scopes.Global ? this.globalRootPath : this.localRootPath;
         break;
 
       case StorageService.KeyPostfixes.App:
-        rootPath = localRootPath;
+        rootPath = this.localRootPath;
         break;
     }
 
     if (rootPath) {
-      rootPath = join(rootPath, '.archanova');
-
       if (ensure) {
         await ensureDir(rootPath);
       }
@@ -86,8 +93,7 @@ export class StorageService {
 
   private keyToPostfix(key: string): StorageService.KeyPostfixes {
     let result: StorageService.KeyPostfixes;
-    const { namespace } = this.options;
-    const type = key.substr(namespace.length + 1);
+    const type = key.substr(this.namespace.length + 1);
 
     switch (type) {
       case StorageService.KeyPostfixes.Account:
@@ -102,16 +108,14 @@ export class StorageService {
   }
 
   private postfixToKey(postfix: StorageService.KeyPostfixes): string {
-    const { namespace } = this.options;
-    return `${namespace}:${postfix}`;
+    return `${this.namespace}:${postfix}`;
   }
 }
 
 export namespace StorageService {
   export interface IOptions {
-    namespace?: string;
-    globalRootPath: string;
-    localRootPath: string;
+    workingPath: string;
+    scope: Scopes;
   }
 
   export enum KeyPostfixes {

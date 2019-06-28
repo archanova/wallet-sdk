@@ -1,4 +1,4 @@
-import { IConfig } from '../config';
+import { IConfig } from '../interfaces';
 import {
   SdkService,
   ServerService,

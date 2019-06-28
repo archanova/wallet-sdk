@@ -6,8 +6,7 @@ function get() {
   return {
     name: '${app.name}',
     alias: '${app.alias}',
-    version: '${app.version}',
-    description: '${app.description}',
+    version: '0.0.1',
   };
 }
 

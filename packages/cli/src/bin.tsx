@@ -4,12 +4,19 @@ import { createLocalSdkEnvironment, getSdkEnvironment, SdkEnvironmentNames, sdkM
 import { render } from 'ink';
 import React from 'react';
 import Ws from 'ws';
-import config from './config';
+import { getCliConfig } from './cli';
 import context from './context';
 import { Main } from './Main';
 import { SdkService, ServerService, StorageService, TemplateService } from './services';
 
+const config = getCliConfig();
+
 let sdkEnv: sdkModules.Environment;
+
+const storageService = new StorageService({
+  scope: config.scope,
+  workingPath: config.workingPath,
+});
 
 switch (config.env) {
   case SdkEnvironmentNames.Kovan:
@@ -25,11 +32,7 @@ switch (config.env) {
     break;
 }
 
-const storageService = new StorageService({
-  namespace: sdkEnv.getConfig('storageOptions').namespace,
-  localRootPath: config.localRootPath,
-  globalRootPath: config.globalRootPath,
-});
+storageService.setNamespace(sdkEnv.getConfig('storageOptions').namespace);
 
 const sdkService = new SdkService(
   sdkEnv
@@ -37,8 +40,8 @@ const sdkService = new SdkService(
     .setConfig('apiWebSocketConstructor', Ws),
 );
 
-const serverService = new ServerService();
-const templateService = new TemplateService();
+const serverService = new ServerService(config.workingPath);
+const templateService = new TemplateService(config.workingPath);
 
 render(
   <context.Provider

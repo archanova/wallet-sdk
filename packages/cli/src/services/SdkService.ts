@@ -1,21 +1,36 @@
 import { from } from 'rxjs';
+import { map, skip, switchMap } from 'rxjs/operators';
 import { UniqueBehaviorSubject, TUniqueBehaviorSubject } from 'rxjs-addons';
-import { Sdk, sdkModules, sdkInterfaces } from '@archanova/sdk';
-import { skip, switchMap } from 'rxjs/operators';
+import { Sdk, sdkModules, sdkInterfaces, sdkConstants } from '@archanova/sdk';
 
 export class SdkService extends Sdk {
   public state: sdkModules.State & {
     app$: TUniqueBehaviorSubject<SdkService.IApp>;
     app: SdkService.IApp;
+    hasDeveloperAccount$: TUniqueBehaviorSubject<boolean>;
+    hasDeveloperAccount: boolean;
   };
 
   constructor(environment: sdkModules.Environment) {
     super(environment);
 
     this.state.app$ = new UniqueBehaviorSubject<SdkService.IApp>(null);
+    this.state.hasDeveloperAccount$ = new UniqueBehaviorSubject<boolean>(false);
+
+    this
+      .state
+      .account$
+      .pipe(
+        map(account => account && account.type === sdkConstants.AccountTypes.Developer),
+      )
+      .subscribe(this.state.hasDeveloperAccount$);
 
     Object.defineProperty(this.state, 'app', {
       get: () => this.state.app$.value,
+    });
+
+    Object.defineProperty(this.state, 'hasDeveloperAccount', {
+      get: () => this.state.hasDeveloperAccount$.value,
     });
   }
 
@@ -40,29 +55,23 @@ export class SdkService extends Sdk {
     return !!account;
   }
 
-  public async setupDeveloperApp(): Promise<boolean> {
-    this.require();
-
-    let app = await this.storage.getItem<SdkService.IApp>('app');
+  public async initializeDeveloperApp(): Promise<boolean> {
+    const app = await this.storage.getItem<SdkService.IApp>('app');
 
     if (app) {
-      app = await this.getDeveloperApp(app.alias);
-
-      if (app) {
-        this.state.app$.next(app);
-      }
-
-      this
-        .state
-        .app$
-        .pipe(
-          skip(1),
-          switchMap(value =>
-            from(this.storage.setItem('app', value).catch(() => null)),
-          ),
-        )
-        .subscribe();
+      this.state.app$.next(app);
     }
+
+    this
+      .state
+      .app$
+      .pipe(
+        skip(1),
+        switchMap(value =>
+          from(this.storage.setItem('app', value).catch(() => null)),
+        ),
+      )
+      .subscribe();
 
     return !!app;
   }

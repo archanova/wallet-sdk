@@ -1,70 +1,76 @@
 import { sdkConstants, sdkInterfaces } from '@archanova/sdk';
+import { Box } from 'ink';
 import React from 'react';
 import { map } from 'rxjs/operators';
 import { Spinner } from './components';
-import { Actions, Screens } from './constants';
+import { Actions } from './constants';
+import { AuthAction, Completed, DeployAction, DevelopAction, Help, InitAction, Summary } from './containers';
 import { ContextComponent } from './context';
-import { Help, DeployApp, DevelopApp, SetupAccount, SetupApp } from './screens';
 
 interface IState {
   initialized: boolean;
-  screen: Screens;
-  exit: boolean;
+  completed: boolean;
+  action: Actions;
 }
 
 export class Main extends ContextComponent<{}, IState> {
   public state: IState = {
     initialized: false,
-    screen: null,
-    exit: false,
+    completed: false,
+    action: null,
   };
 
   public componentWillMount(): void {
     const { config: { showHelp } } = this.context;
     if (!showHelp) {
+      console.clear();
+
       this.wrapAsync(() => this.initialize());
     }
   }
 
-  public componentDidUpdate(): void {
-    const { exit } = this.state;
-    if (exit) {
-      process.exit(0);
-    }
-  }
-
   public render(): any {
-    const { initialized, screen } = this.state;
+    const { initialized, completed, action } = this.state;
     const { config: { showHelp } } = this.context;
 
     let content: React.ReactNode = null;
+    let showSummary = false;
 
     if (showHelp) {
       content = <Help />;
     } else if (!initialized) {
-      content = <Spinner padding={2}>Initializing SDK</Spinner>;
+      content = <Spinner>Initializing SDK</Spinner>;
     } else {
-      switch (screen) {
-        case Screens.SetupAccount:
-          content = <SetupAccount />;
+      switch (action) {
+        case Actions.Auth:
+          content = completed ? <Completed /> : <AuthAction />;
           break;
-        case Screens.SetupApp:
-          content = <SetupApp />;
+        case Actions.Init:
+          content = completed ? <Completed /> : <InitAction />;
           break;
-        case Screens.DevelopApp:
-          content = <DevelopApp />;
+        case Actions.Develop:
+          content = <DevelopAction />;
           break;
-        case Screens.DeployApp:
-          content = <DeployApp />;
+        case Actions.Deploy:
+          content = <DeployAction />;
           break;
       }
+
+      showSummary = true;
     }
 
-    return content;
+    return (
+      <Box flexDirection={'column'} paddingY={1}>
+        {!showSummary ? null : (
+          <Summary />
+        )}
+        {content}
+      </Box>
+    );
   }
 
   private async initialize(): Promise<void> {
-    const { config: { privateKey, action }, sdkService } = this.context;
+    const { config: { privateKey, action: configAction }, sdkService } = this.context;
 
     await sdkService
       .initialize({
@@ -73,41 +79,44 @@ export class Main extends ContextComponent<{}, IState> {
         },
       });
 
+    await sdkService.initializeDeveloperApp();
+
     this.setState({ initialized: true }, () => {
       const { account$, app$ } = sdkService.state;
 
       const mapper = (account: sdkInterfaces.IAccount, app: any) => {
-        let { screen, exit } = this.state;
+        let { action } = this.state;
+        let completed = false;
         const hasAccount = account && account.type === sdkConstants.AccountTypes.Developer;
         const hasApp = !!app;
 
         if (!hasAccount) {
-          screen = Screens.SetupAccount;
+          action = Actions.Auth;
         } else {
-          switch (action) {
-            case null:
-              screen = Screens.SetupAccount;
-              exit = true;
+          switch (configAction) {
+            case Actions.Auth:
+              action = Actions.Auth;
+              completed = true;
               break;
 
             case Actions.Init:
-              screen = Screens.SetupApp;
-              exit = hasApp;
+              action = Actions.Init;
+              completed = hasApp;
               break;
 
             case Actions.Develop:
-              screen = hasApp ? Screens.DevelopApp : Screens.SetupApp;
+              action = hasApp ? Actions.Develop : Actions.Init;
               break;
 
             case Actions.Deploy:
-              screen = hasApp ? Screens.DeployApp : Screens.SetupApp;
+              action = hasApp ? Actions.Deploy : Actions.Init;
               break;
           }
         }
 
         return {
-          screen,
-          exit,
+          action,
+          completed,
         };
       };
 
