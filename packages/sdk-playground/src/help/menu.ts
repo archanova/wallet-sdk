@@ -278,12 +278,6 @@ export const getAppOpenGames = `
 (TODO)
 `;
 
-export const playTicTacToe = `
-# Play Tic-Tac-Toe
-
-(TODO)
-`;
-
 // ACTIONS
 
 export const acceptIncomingAction = `

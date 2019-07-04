@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { Menu } from '../components';
 import { Screens } from './constants';
 import styles from './Content.module.scss';
-import { Initialize, Reset } from './sdk';
+import { Initialize, Reset } from './global';
 import {
   SearchAccount,
   CreateAccount,
@@ -12,9 +12,13 @@ import {
   UpdateAccount,
   DisconnectAccount,
   DeployAccount,
+} from './account';
+import {
   TopUpAccountVirtualBalance,
   WithdrawFromAccountVirtualBalance,
-} from './account';
+  GetConnectedAccountVirtualBalances,
+  GetConnectedAccountVirtualBalance,
+} from './accountVirtualBalance';
 import {
   AddAccountFriendRecoveryExtension,
   SetupAccountFriendRecoveryExtension,
@@ -60,8 +64,11 @@ import {
   GetApps,
   GetApp,
   GetAppOpenGames,
-  PlayTicTacToe,
 } from './app';
+import {
+  GetTokens,
+  GetToken,
+} from './token';
 import {
   AcceptIncomingAction,
   DismissIncomingAction,
@@ -74,6 +81,10 @@ import {
 import {
   SignPersonalMessage,
 } from './utils';
+import {
+  PlayTicTacToe,
+  MintToken,
+} from './examples';
 
 interface IProps {
   sdk: ISdkReduxState;
@@ -91,9 +102,18 @@ class Content extends React.Component<IProps, IState> {
     }> = null;
 
     switch (screen) {
-      // sdk
+      // global
       case Screens.Initialize:
         Screen = Initialize;
+        break;
+
+      // examples
+      case Screens.PlayTicTacToe:
+        Screen = PlayTicTacToe;
+        break;
+
+      case Screens.MintToken:
+        Screen = MintToken;
         break;
 
       case Screens.Reset:
@@ -125,12 +145,21 @@ class Content extends React.Component<IProps, IState> {
         Screen = DeployAccount;
         break;
 
+      // account virtual balance
       case Screens.TopUpAccountVirtualBalance:
         Screen = TopUpAccountVirtualBalance;
         break;
 
       case Screens.WithdrawFromAccountVirtualBalance:
         Screen = WithdrawFromAccountVirtualBalance;
+        break;
+
+      case Screens.GetConnectedAccountVirtualBalances:
+        Screen = GetConnectedAccountVirtualBalances;
+        break;
+
+      case Screens.GetConnectedAccountVirtualBalance:
+        Screen = GetConnectedAccountVirtualBalance;
         break;
 
       // account friend recovery
@@ -275,8 +304,13 @@ class Content extends React.Component<IProps, IState> {
         Screen = GetAppOpenGames;
         break;
 
-      case Screens.PlayTicTacToe:
-        Screen = PlayTicTacToe;
+      // token
+      case Screens.GetTokens:
+        Screen = GetTokens;
+        break;
+
+      case Screens.GetToken:
+        Screen = GetToken;
         break;
 
       // action
@@ -333,10 +367,17 @@ class Content extends React.Component<IProps, IState> {
       <div className={styles.content}>
         <Menu
           items={[{
-            header: 'SDK',
+            header: 'Global',
             screens: [
               Screens.Initialize,
               Screens.Reset],
+          }, {
+            header: 'Examples',
+            alwaysOpen: true,
+            screens: [
+              Screens.PlayTicTacToe,
+              Screens.MintToken,
+            ],
           }, {
             header: 'Account',
             screens: [
@@ -346,8 +387,17 @@ class Content extends React.Component<IProps, IState> {
               Screens.ConnectAccount,
               Screens.DisconnectAccount,
               Screens.DeployAccount,
-              Screens.TopUpAccountVirtualBalance,
-              Screens.WithdrawFromAccountVirtualBalance,
+            ],
+          }, {
+            header: 'Account Devices',
+            screens: [
+              Screens.GetConnectedAccountDevices,
+              Screens.GetConnectedAccountDevice,
+              Screens.GetAccountDevice,
+              Screens.CreateAccountDevice,
+              Screens.RemoveAccountDevice,
+              Screens.DeployAccountDevice,
+              Screens.UnDeployAccountDevice,
             ],
           }, {
             header: 'Account Friend Recovery',
@@ -362,15 +412,12 @@ class Content extends React.Component<IProps, IState> {
               Screens.SignAccountFriendRecovery,
             ],
           }, {
-            header: 'Account Devices',
+            header: 'Account Virtual Balance',
             screens: [
-              Screens.GetConnectedAccountDevices,
-              Screens.GetConnectedAccountDevice,
-              Screens.GetAccountDevice,
-              Screens.CreateAccountDevice,
-              Screens.RemoveAccountDevice,
-              Screens.DeployAccountDevice,
-              Screens.UnDeployAccountDevice,
+              Screens.TopUpAccountVirtualBalance,
+              Screens.WithdrawFromAccountVirtualBalance,
+              Screens.GetConnectedAccountVirtualBalances,
+              Screens.GetConnectedAccountVirtualBalance,
             ],
           }, {
             header: 'Account Transactions',
@@ -406,7 +453,12 @@ class Content extends React.Component<IProps, IState> {
               Screens.GetApps,
               Screens.GetApp,
               Screens.GetAppOpenGames,
-              Screens.PlayTicTacToe,
+            ],
+          }, {
+            header: 'Tokens',
+            screens: [
+              Screens.GetTokens,
+              Screens.GetToken,
             ],
           }, {
             header: 'Actions',
@@ -443,7 +495,6 @@ class Content extends React.Component<IProps, IState> {
 
     const accountConnected = initialized && !!account;
     const accountDisconnected = initialized && !account;
-    const accountUpdated = accountConnected && !!account.ensName;
     const accountCreated = accountConnected && !account.nextState && account.state === sdkConstants.AccountStates.Created;
     const accountDeployed = accountConnected && !account.nextState && account.state === sdkConstants.AccountStates.Deployed;
     const accountDeviceDeployed = (
@@ -454,9 +505,13 @@ class Content extends React.Component<IProps, IState> {
     );
 
     return {
-      // sdk
+      // global
       [Screens.Initialize]: initialized === null,
       [Screens.Reset]: initialized,
+
+      // demos
+      [Screens.PlayTicTacToe]: accountDeployed,
+      [Screens.MintToken]: accountDeployed,
 
       // account
       [Screens.SearchAccount]: true,
@@ -464,9 +519,13 @@ class Content extends React.Component<IProps, IState> {
       [Screens.UpdateAccount]: accountCreated,
       [Screens.ConnectAccount]: initialized,
       [Screens.DisconnectAccount]: accountConnected,
-      [Screens.DeployAccount]: accountUpdated && accountCreated,
+      [Screens.DeployAccount]: accountCreated,
+
+      // account virtual balance
       [Screens.TopUpAccountVirtualBalance]: accountDeviceDeployed,
       [Screens.WithdrawFromAccountVirtualBalance]: accountDeviceDeployed,
+      [Screens.GetConnectedAccountVirtualBalances]: accountConnected,
+      [Screens.GetConnectedAccountVirtualBalance]: accountConnected,
 
       // account friend recovery
       [Screens.AddAccountFriendRecoveryExtension]: accountDeviceDeployed && accountDeviceOwner,
@@ -513,7 +572,10 @@ class Content extends React.Component<IProps, IState> {
       [Screens.GetApps]: initialized,
       [Screens.GetApp]: initialized,
       [Screens.GetAppOpenGames]: initialized,
-      [Screens.PlayTicTacToe]: accountDeployed,
+
+      // token
+      [Screens.GetTokens]: initialized,
+      [Screens.GetToken]: initialized,
 
       // action
       [Screens.AcceptIncomingAction]: !!incomingAction,

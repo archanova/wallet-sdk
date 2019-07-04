@@ -5,6 +5,7 @@ import { HelpTrigger } from './HelpTrigger';
 interface IProps {
   items: {
     header: string;
+    alwaysOpen?: boolean;
     screens: string[];
   }[];
   enabledScreens: { [key: string]: boolean };
