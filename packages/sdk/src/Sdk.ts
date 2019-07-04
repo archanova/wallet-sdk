@@ -875,6 +875,18 @@ export class Sdk {
   }
 
   /**
+   * cancel account payment
+   * @param hash
+   */
+  public async cancelAccountPayment(hash: string): Promise<boolean> {
+    this.require({
+      accountDeviceOwner: true,
+    });
+
+    return this.accountPayment.cancelAccountPayment(hash);
+  }
+
+  /**
    * estimates deposit account payment
    * @param hash
    * @param transactionSpeed
@@ -1009,6 +1021,18 @@ export class Sdk {
     }
 
     return this.accountGame.joinAccountGame(game);
+  }
+
+  /**
+   * cancel account game
+   * @param gameId
+   */
+  public cancelAccountGame(gameId: number): Promise<boolean> {
+    this.require({
+      accountDeviceOwner: true,
+    });
+
+    return this.accountGame.cancelAccountGame(gameId);
   }
 
   /**

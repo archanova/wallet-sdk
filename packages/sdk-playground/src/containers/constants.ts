@@ -49,6 +49,7 @@ export enum Screens {
   GrabAccountPayment = 'grab account payment',
   DepositAccountPayment = 'deposit account payment',
   WithdrawAccountPayment = 'withdraw account payment',
+  CancelAccountPayment = 'cancel account payment',
 
   // account games
   GetConnectedAccountGames = 'get connected account games',
@@ -57,6 +58,7 @@ export enum Screens {
   JoinAccountGame = 'join account game',
   StartAccountGame = 'start account game',
   UpdateAccountGame = 'update account game',
+  CancelAccountGame = 'cancel account game',
 
   // app
   GetApps = 'get apps',

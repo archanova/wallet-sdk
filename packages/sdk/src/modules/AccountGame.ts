@@ -32,7 +32,7 @@ export class AccountGame {
     });
   }
 
-  public createAccountGame(app: string, deposit: { value: number | string | BN, token: string }, data: string): Promise<IAccountGame> {
+  public createAccountGame(app: string, deposit: { value: number | string | BN, token?: string }, data: string): Promise<IAccountGame> {
     const { accountAddress } = this.state;
     return this.api.sendRequest({
       method: 'POST',
@@ -119,5 +119,16 @@ export class AccountGame {
         data,
       },
     });
+  }
+
+  public async cancelAccountGame(id: number): Promise<boolean> {
+    const { accountAddress } = this.state;
+
+    const { success } = await this.api.sendRequest<{ success: true }>({
+      method: 'DELETE',
+      path: `account/${accountAddress}/game/${id}`,
+    });
+
+    return success;
   }
 }

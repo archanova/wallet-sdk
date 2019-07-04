@@ -51,6 +51,7 @@ import {
   GrabAccountPayment,
   DepositAccountPayment,
   WithdrawAccountPayment,
+  CancelAccountPayment,
 } from './accountPayment';
 import {
   GetConnectedAccountGames,
@@ -59,6 +60,7 @@ import {
   JoinAccountGame,
   StartAccountGame,
   UpdateAccountGame,
+  CancelAccountGame,
 } from './accountGame';
 import {
   GetApps,
@@ -265,6 +267,9 @@ class Content extends React.Component<IProps, IState> {
       case Screens.WithdrawAccountPayment:
         Screen = WithdrawAccountPayment;
         break;
+      case Screens.CancelAccountPayment:
+        Screen = CancelAccountPayment;
+        break;
 
       // account games
       case Screens.GetConnectedAccountGames:
@@ -289,6 +294,10 @@ class Content extends React.Component<IProps, IState> {
 
       case Screens.UpdateAccountGame:
         Screen = UpdateAccountGame;
+        break;
+
+      case Screens.CancelAccountGame:
+        Screen = CancelAccountGame;
         break;
 
       // app
@@ -436,6 +445,7 @@ class Content extends React.Component<IProps, IState> {
               Screens.GrabAccountPayment,
               Screens.DepositAccountPayment,
               Screens.WithdrawAccountPayment,
+              Screens.CancelAccountPayment,
             ],
           }, {
             header: 'Account Games',
@@ -446,6 +456,7 @@ class Content extends React.Component<IProps, IState> {
               Screens.JoinAccountGame,
               Screens.StartAccountGame,
               Screens.UpdateAccountGame,
+              Screens.CancelAccountGame,
             ],
           }, {
             header: 'Apps',
@@ -559,6 +570,7 @@ class Content extends React.Component<IProps, IState> {
       [Screens.GrabAccountPayment]: accountConnected,
       [Screens.DepositAccountPayment]: accountDeviceDeployed,
       [Screens.WithdrawAccountPayment]: accountDeviceDeployed,
+      [Screens.CancelAccountPayment]: accountDeviceOwner,
 
       // account game
       [Screens.GetConnectedAccountGames]: accountConnected,
@@ -567,6 +579,7 @@ class Content extends React.Component<IProps, IState> {
       [Screens.JoinAccountGame]: accountDeviceDeployed && accountDeviceOwner,
       [Screens.StartAccountGame]: accountDeviceDeployed && accountDeviceOwner,
       [Screens.UpdateAccountGame]: accountDeployed && accountConnected,
+      [Screens.CancelAccountGame]: accountDeviceOwner,
 
       // app
       [Screens.GetApps]: initialized,

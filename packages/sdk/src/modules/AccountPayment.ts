@@ -96,4 +96,13 @@ export class AccountPayment {
       },
     });
   }
+
+  public async cancelAccountPayment(hash: string): Promise<boolean> {
+    const { accountAddress } = this.state;
+    const { success } = await this.api.sendRequest<{ success: true }>({
+      method: 'DELETE',
+      path: `account/${accountAddress}/payment/${hash}`,
+    });
+    return success;
+  }
 }
