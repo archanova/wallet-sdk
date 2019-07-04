@@ -1,5 +1,5 @@
 import BN from 'bn.js';
-import { abiEncodePacked } from '@netgum/utils';
+import { abiEncodePacked, ZERO_ADDRESS } from '@netgum/utils';
 import { IAccountPayment, IPaginated } from '../interfaces';
 import { Api } from './Api';
 import { Contract } from './Contract';
@@ -33,7 +33,8 @@ export class AccountPayment {
   }
 
   public async createAccountPayment(
-    receiver: string,
+    recipient: string,
+    token: string,
     value: number | string | BN,
   ): Promise<IAccountPayment> {
     const { accountAddress } = this.state;
@@ -41,12 +42,13 @@ export class AccountPayment {
       method: 'POST',
       path: `account/${accountAddress}/payment`,
       body: {
-        receiver,
+        recipient,
+        token,
         value,
       },
     });
 
-    if (payment && receiver) {
+    if (payment && recipient) {
       payment = await this.signAccountPayment(payment);
     }
 
@@ -55,9 +57,10 @@ export class AccountPayment {
 
   public async signAccountPayment(payment: IAccountPayment): Promise<IAccountPayment> {
     const { accountAddress } = this.state;
-    const { hash, value, receiver } = payment;
+    const { hash, value, recipient, token } = payment;
     const { address } = this.contract.virtualPaymentManager;
     const message = abiEncodePacked(
+      'address',
       'address',
       'address',
       'address',
@@ -66,7 +69,8 @@ export class AccountPayment {
     )(
       address,
       accountAddress,
-      receiver.address || receiver.account.address,
+      recipient.address || recipient.account.address,
+      token && token.address ? token.address : ZERO_ADDRESS,
       hash,
       value,
     );
@@ -82,13 +86,13 @@ export class AccountPayment {
     });
   }
 
-  public async grabAccountPayment(hash: string, receiver: string): Promise<IAccountPayment> {
+  public async grabAccountPayment(hash: string, recipient: string): Promise<IAccountPayment> {
     const { accountAddress } = this.state;
     return this.api.sendRequest({
       method: 'PUT',
       path: `account/${accountAddress}/payment/${hash}`,
       body: {
-        receiver,
+        recipient,
       },
     });
   }
