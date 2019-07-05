@@ -127,7 +127,7 @@ export class Menu extends ContextComponent<IProps, IState> {
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </span>
-                  SHOW HELP MESSAGES
+                  SHOW HELP
                 </label>
               </div>
             </div>
