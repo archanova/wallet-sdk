@@ -127,12 +127,15 @@ export class Menu extends ContextComponent<IProps, IState> {
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </span>
-                  SHOW HELP
+                  SHOW HELP MESSAGES
                 </label>
               </div>
             </div>
           )}
         </div>
+        <footer>
+          Copyright © 2019 <a href="https://netgum.io">NetGum</a>
+        </footer>
       </div>
     );
   }

@@ -10,6 +10,7 @@
 
   .options {
     margin-top: 20px;
+
     & > div {
       margin-top: 8px;
       margin-bottom: 15px;
@@ -22,6 +23,7 @@
     padding-top: 6px;
     padding-left: 30px;
     cursor: pointer;
+
     input {
       position: absolute;
       top: 0;
@@ -69,6 +71,7 @@
       padding-bottom: 2px;
       color: #a673ff;
       cursor: pointer;
+
       &:hover {
 
         color: #cf9eff;
@@ -113,6 +116,22 @@
           }
         }
       }
+    }
+  }
+
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 250px;
+    text-align: center;
+    line-height: 45px;
+    background-color: rgba(0, 0, 0, 0.8);
+    font-size: 11px;
+    color: #a7a7a7;
+    a {
+      color: #a7a7a7;
+      text-decoration: none;
     }
   }
 }
