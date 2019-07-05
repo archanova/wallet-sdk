@@ -381,13 +381,6 @@ class Content extends React.Component<IProps, IState> {
               Screens.Initialize,
               Screens.Reset],
           }, {
-            header: 'Examples',
-            alwaysOpen: true,
-            screens: [
-              Screens.PlayTicTacToe,
-              Screens.MintToken,
-            ],
-          }, {
             header: 'Account',
             screens: [
               Screens.SearchAccount,
@@ -488,6 +481,13 @@ class Content extends React.Component<IProps, IState> {
             header: 'Utils',
             screens: [
               Screens.SignPersonalMessage,
+            ],
+          }, {
+            header: 'Examples',
+            alwaysOpen: true,
+            screens: [
+              Screens.PlayTicTacToe,
+              Screens.MintToken,
             ],
           }]}
           enabledScreens={enabledScreens}
