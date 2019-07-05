@@ -8,13 +8,19 @@
   background-color: black;
   color: white;
 
+  .options {
+    margin-top: 20px;
+    & > div {
+      margin-top: 8px;
+      margin-bottom: 15px;
+    }
+  }
 
   .checkbox {
     display: block;
     position: relative;
     padding-top: 6px;
     padding-left: 30px;
-    margin-bottom: 5px;
     cursor: pointer;
     input {
       position: absolute;
@@ -31,7 +37,7 @@
       width: 20px;
       background-color: transparent;
       border-radius: 8px;
-      border: 2px solid #F3CF48;
+      border: 2px solid #cf9eff;
       transform: rotate(-90deg);
       transition: all 0.3s;
     }
@@ -42,11 +48,11 @@
     }
 
     input:checked ~ .overlay {
-      background-color: #F3CF48;
+      background-color: #cf9eff;
       border-radius: 8px;
       transform: rotate(0deg);
       opacity: 1;
-      border: 2px solid #F3CF48;
+      border: 2px solid #cf9eff;
     }
 
     input:checked ~ .overlay .icon {
@@ -97,7 +103,7 @@
           color: white;
 
           &.off {
-            color: #818181 !important;
+            opacity: 0.6;
           }
 
           &:hover,

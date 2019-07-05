@@ -62,33 +62,6 @@ export class Menu extends ContextComponent<IProps, IState> {
     return (
       <div className={styles.content}>
         <div className={styles.wrapper}>
-          {!isFeatureActive('help') ? null : (
-            <div>
-              <label className={styles.checkbox}>
-                <input
-                  type="checkbox"
-                  checked={showHelps}
-                  onClick={this.help.toggle}
-                />
-                <span className={styles.overlay}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="17"
-                  height="17"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className={styles.icon}>
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </span>
-                show help
-              </label>
-            </div>
-          )}
           {items.map(({ screens, header, alwaysOpen }, index) => {
             const isOpen = alwaysOpen || activeIndex === index || !!screens.find(screen => activeScreen === screen);
             return (
@@ -128,6 +101,37 @@ export class Menu extends ContextComponent<IProps, IState> {
               </div>
             );
           })}
+
+          {!isFeatureActive('help') ? null : (
+            <div className={styles.options}>
+              <h4>OPTIONS</h4>
+              <div>
+                <label className={styles.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={showHelps}
+                    onClick={this.help.toggle}
+                  />
+                  <span className={styles.overlay}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="17"
+                      height="17"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={styles.icon}>
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </span>
+                  SHOW HELP MESSAGES
+                </label>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
