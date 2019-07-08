@@ -29,6 +29,10 @@ class StatusBar extends React.Component<IProps> {
           network = 'Kovan';
           break;
 
+        case '77':
+          network = 'Sokol';
+          break;
+
         default:
           network = 'Local';
       }

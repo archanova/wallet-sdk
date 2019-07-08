@@ -21,6 +21,7 @@ export function configureSdk(logger: ILogger): Sdk {
     case SdkEnvironmentNames.Rinkeby:
     case SdkEnvironmentNames.Ropsten:
     case SdkEnvironmentNames.Kovan:
+    case SdkEnvironmentNames.Sokol:
       sdkEnv = getSdkEnvironment(config.sdk.env as SdkEnvironmentNames);
       break;
 
