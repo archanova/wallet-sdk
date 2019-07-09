@@ -1,5 +1,6 @@
 import { SdkEnvironmentNames } from '@archanova/sdk';
 import { BehaviorSubject } from 'rxjs';
+import './environments';
 
 const {
   REACT_APP_ACTIVATE_HELP,
@@ -29,15 +30,36 @@ const reloadHelper = () => {
   setTimeout(() => window.location.reload(), 500);
 };
 
+export let sdkEnvs: string[] = [
+  ...Object.values(SdkEnvironmentNames),
+];
+
+const activateLocalSdkEnv = REACT_APP_ACTIVATE_LOCAL_SDK_ENV === '1';
+
+if (activateLocalSdkEnv) {
+  sdkEnvs = [
+    'local',
+    ...sdkEnvs,
+  ];
+}
+
 class Config {
+  public sdkEnvs = sdkEnvs;
   public sdkEnv$ = new BehaviorSubject<string>(this.sdkEnv);
   public showHelp$ = new BehaviorSubject<boolean>(this.showHelp);
   public activateHelp = REACT_APP_ACTIVATE_HELP === '1';
-  public activateLocalSdkEnv = REACT_APP_ACTIVATE_LOCAL_SDK_ENV === '1';
+  public activateLocalSdkEnv = activateLocalSdkEnv;
   public localSdkEnvPort = parseInt(REACT_APP_LOCAL_SDK_ENV_PORT, 10) || null;
 
   public get sdkEnv(): string {
-    return storageHelper.get('sdkEnv', this.activateLocalSdkEnv ? 'local' : SdkEnvironmentNames.Kovan);
+    const defaultEnv = this.activateLocalSdkEnv ? 'local' : SdkEnvironmentNames.Kovan;
+    let result = storageHelper.get('sdkEnv', defaultEnv);
+
+    if (!sdkEnvs.includes(result)) {
+      result = defaultEnv;
+    }
+
+    return result;
   }
 
   public set sdkEnv(value: string) {

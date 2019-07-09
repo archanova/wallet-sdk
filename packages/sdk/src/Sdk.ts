@@ -2,7 +2,7 @@ import { anyToBN, anyToBuffer, ZERO_ADDRESS } from '@netgum/utils';
 import BN from 'bn.js';
 import EthJs from 'ethjs';
 import { TAbi } from 'ethjs-abi';
-import { BehaviorSubject, from, Subscription, timer } from 'rxjs';
+import { BehaviorSubject, from, SubscriptionLike, timer } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { AccountDeviceStates, AccountDeviceTypes, AccountGamePlayers, AccountGameStates, AccountStates } from './constants';
 import {
@@ -62,7 +62,7 @@ export class Sdk {
   protected storage: Storage;
   protected url: Url;
 
-  protected subscriptions: Subscription[] = null;
+  protected subscriptions: SubscriptionLike[] = null;
 
   /**
    * constructor
@@ -1369,14 +1369,14 @@ export class Sdk {
     this.accountFriendRecovery = new AccountFriendRecovery(this.apiMethods, this.contract, this.device, this.state);
   }
 
-  protected addSubscriptions(...subscriptions: Subscription[]): void {
+  protected addSubscriptions(...subscriptions: SubscriptionLike[]): void {
     this.subscriptions = [
       ...(this.subscriptions || []),
       ...subscriptions.filter(subscription => !!subscription),
     ];
   }
 
-  protected removeSubscriptions(subscription: Subscription): Subscription {
+  protected removeSubscriptions(subscription: SubscriptionLike): SubscriptionLike {
     if (
       subscription &&
       this.subscriptions &&
@@ -1443,7 +1443,7 @@ export class Sdk {
   protected subscribeAccountBalance(): void {
     const { account$ } = this.state;
 
-    let subscription: Subscription = null;
+    let subscription: SubscriptionLike = null;
 
     account$
       .subscribe((account) => {
@@ -1483,10 +1483,16 @@ export class Sdk {
   }
 
   protected subscribeApiEvents(): void {
+    const { event$ } = this.api;
+
     this.addSubscriptions(
-      this
-        .api
-        .event$
+      {
+        closed: false,
+        unsubscribe(): void {
+          event$.complete();
+        },
+      },
+      event$
         .pipe(
           filter(event => !!event),
           switchMap(({ name, payload }) => from(this.wrapAsync(async () => {
@@ -1613,7 +1619,7 @@ export class Sdk {
     const { $accepted } = this.action;
 
     let hasAccount = null;
-    let subscription: Subscription = null;
+    let subscription: SubscriptionLike = null;
 
     account$
       .subscribe((account) => {

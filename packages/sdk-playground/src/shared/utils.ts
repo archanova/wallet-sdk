@@ -1,5 +1,40 @@
 import BN from 'bn.js';
+import { createLocalSdkEnvironment, getSdkEnvironment, SdkEnvironmentNames, sdkModules } from '@archanova/sdk';
 import { anyToHex, generateRandomPrivateKey, privateKeyToAddress, weiToEth } from '@netgum/utils';
+import { config } from '../config';
+
+export function buildSdkEnv(name: string): sdkModules.Environment {
+  let result: sdkModules.Environment;
+
+  switch (name) {
+    case SdkEnvironmentNames.Rinkeby:
+    case SdkEnvironmentNames.Ropsten:
+    case SdkEnvironmentNames.Kovan:
+    case SdkEnvironmentNames.Sokol:
+      result = getSdkEnvironment(name as SdkEnvironmentNames);
+      break;
+
+    case 'local':
+      result = createLocalSdkEnvironment({
+        port: config.localSdkEnvPort,
+      });
+      break;
+  }
+
+  return result
+    .setConfig('storageAdapter', localStorage as sdkModules.Storage.IAdapter)
+    .setConfig('urlAdapter', {
+      open(url: string): any {
+        document.location = url as any;
+      },
+      addListener(listener: (url: string) => any): void {
+        listener(document.location.toString());
+      },
+    })
+    .extendConfig('actionOptions', {
+      autoAccept: config.autoAcceptSdkActions,
+    });
+}
 
 export function generateRandomAddress() {
   return privateKeyToAddress(

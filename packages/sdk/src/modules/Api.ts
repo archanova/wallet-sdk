@@ -2,7 +2,7 @@ import 'cross-fetch/polyfill';
 
 import { jsonReplacer, jsonReviver } from '@netgum/utils';
 import { IProvider } from 'ethjs';
-import { Subject } from 'rxjs';
+import { Subject, SubscriptionLike } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { State } from './State';
 
@@ -56,6 +56,8 @@ export class Api {
 
     let disconnect: () => any = () => null;
 
+    const subscriptions: SubscriptionLike[] = [];
+
     if (this.webSocketConstructor) {
       const { connected$, session$ } = this.state;
       const reconnected$ = new Subject<boolean>();
@@ -107,26 +109,33 @@ export class Api {
         }
       };
 
-      session$
-        .subscribe(session => session ? connect() : disconnect());
+      subscriptions.push(
+        session$
+          .subscribe(session => session ? connect() : disconnect()),
+      );
 
       const { reconnectTimeout } = this.options;
 
       if (reconnectTimeout) {
-        reconnected$
-          .pipe(delay(reconnectTimeout))
-          .subscribe(() => {
-            disconnect();
-            connect();
-          });
+        subscriptions.push(
+          reconnected$
+            .pipe(delay(reconnectTimeout))
+            .subscribe(() => {
+              disconnect();
+              connect();
+            }),
+        );
       }
     }
 
     const complete = result.complete.bind(result);
 
     result.complete = () => {
-      complete();
+      for (const subscription of subscriptions) {
+        subscription.unsubscribe();
+      }
       disconnect();
+      complete();
     };
 
     return result;
