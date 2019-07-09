@@ -20,7 +20,7 @@ interface IState {
 
 export class GetConnectedAccountTransaction extends Screen<IState> {
   public state = {
-    hash: '0xcea5c868cfa913d505fbce447e571a64dce863aa3243d08c833a63a4a4d03d3a',
+    hash: '',
     index: '0',
     indexParsed: 0,
   };

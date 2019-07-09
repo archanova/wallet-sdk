@@ -37,6 +37,7 @@ import {
   Storage,
   Url,
 } from './modules';
+import { TAnyData, TAnyNumber } from './types';
 
 /**
  * Sdk
@@ -349,47 +350,27 @@ export class Sdk {
       accountDeviceDeployed: true,
     });
 
-    const { accountAddress } = this.state;
-    const { account, virtualPaymentManager, erc20Token } = this.contract;
+    const { virtualPaymentManager, erc20Token } = this.contract;
 
     let result: IEstimatedAccountProxyTransaction;
 
     if (tokenAddress) {
-      const proxyData: string[] = [];
+      const data1 = erc20Token
+        .encodeMethodInput('approve', virtualPaymentManager.address, anyToBN(value, { defaults: new BN(0) }));
 
-      {
-        const data = erc20Token
-          .encodeMethodInput('approve', virtualPaymentManager.address, anyToBN(value, { defaults: new BN(0) }));
+      const data2 = virtualPaymentManager
+        .encodeMethodInput('depositToken', tokenAddress, anyToBN(value, { defaults: new BN(0) }));
 
-        proxyData.push(
-          account.encodeMethodInput(
-            'executeTransaction',
-            tokenAddress,
-            new BN(0),
-            data,
-          ),
-        );
-      }
-
-      {
-        const data = virtualPaymentManager
-          .encodeMethodInput('depositToken', tokenAddress, anyToBN(value, { defaults: new BN(0) }));
-
-        proxyData.push(
-          account.encodeMethodInput(
-            'executeTransaction',
-            virtualPaymentManager.address,
-            new BN(0),
-            data,
-          ),
-        );
-      }
-
-      result = await this.apiMethods.estimateAccountProxyTransaction(
-        accountAddress,
-        proxyData,
-        this.eth.getGasPrice(transactionSpeed),
+      result = await this.estimateAccountTransaction(
+        tokenAddress,
+        0,
+        data1,
+        virtualPaymentManager.address,
+        0,
+        data2,
+        transactionSpeed,
       );
+
     } else {
       result = await this.estimateAccountTransaction(
         virtualPaymentManager.address,
@@ -801,17 +782,105 @@ export class Sdk {
 
   /**
    * estimates account transaction
-   * @param recipient
-   * @param value
-   * @param data
+   * @param recipient1
+   * @param value1
+   * @param data1
    * @param transactionSpeed
    */
   public async estimateAccountTransaction(
-    recipient: string,
-    value: number | string | BN,
-    data: string | Buffer,
-    transactionSpeed: Eth.TransactionSpeeds = null,
-  ): Promise<IEstimatedAccountProxyTransaction> {
+    recipient1: string, value1: TAnyNumber, data1: TAnyData,
+    transactionSpeed?: Eth.TransactionSpeeds,
+  ): Promise<IEstimatedAccountProxyTransaction>;
+
+  /**
+   * estimates account transaction
+   * @param recipient1
+   * @param value1
+   * @param data1
+   * @param recipient2
+   * @param value2
+   * @param data2
+   * @param transactionSpeed
+   */
+  public async estimateAccountTransaction(
+    recipient1: string, value1: TAnyNumber, data1: TAnyData,
+    recipient2: string, value2: TAnyNumber, data2: TAnyData,
+    transactionSpeed?: Eth.TransactionSpeeds,
+  ): Promise<IEstimatedAccountProxyTransaction>;
+
+  /**
+   * estimates account transaction
+   * @param recipient1
+   * @param value1
+   * @param data1
+   * @param recipient2
+   * @param value2
+   * @param data2
+   * @param recipient3
+   * @param value3
+   * @param data3
+   * @param transactionSpeed
+   */
+  public async estimateAccountTransaction(
+    recipient1: string, value1: TAnyNumber, data1: TAnyData,
+    recipient2: string, value2: TAnyNumber, data2: TAnyData,
+    recipient3: string, value3: TAnyNumber, data3: TAnyData,
+    transactionSpeed?: Eth.TransactionSpeeds,
+  ): Promise<IEstimatedAccountProxyTransaction>;
+
+  /**
+   * estimates account transaction
+   * @param recipient1
+   * @param value1
+   * @param data1
+   * @param recipient2
+   * @param value2
+   * @param data2
+   * @param recipient3
+   * @param value3
+   * @param data3
+   * @param recipient4
+   * @param value4
+   * @param data4
+   * @param transactionSpeed
+   */
+  public async estimateAccountTransaction(
+    recipient1: string, value1: TAnyNumber, data1: TAnyData,
+    recipient2: string, value2: TAnyNumber, data2: TAnyData,
+    recipient3: string, value3: TAnyNumber, data3: TAnyData,
+    recipient4: string, value4: TAnyNumber, data4: TAnyData,
+    transactionSpeed?: Eth.TransactionSpeeds,
+  ): Promise<IEstimatedAccountProxyTransaction>;
+
+  /**
+   * estimates account transaction
+   * @param recipient1
+   * @param value1
+   * @param data1
+   * @param recipient2
+   * @param value2
+   * @param data2
+   * @param recipient3
+   * @param value3
+   * @param data3
+   * @param recipient4
+   * @param value4
+   * @param data4
+   * @param recipient5
+   * @param value5
+   * @param data5
+   * @param transactionSpeed
+   */
+  public async estimateAccountTransaction(
+    recipient1: string, value1: TAnyNumber, data1: TAnyData,
+    recipient2: string, value2: TAnyNumber, data2: TAnyData,
+    recipient3: string, value3: TAnyNumber, data3: TAnyData,
+    recipient4: string, value4: TAnyNumber, data4: TAnyData,
+    recipient5: string, value5: TAnyNumber, data5: TAnyData,
+    transactionSpeed?: Eth.TransactionSpeeds,
+  ): Promise<IEstimatedAccountProxyTransaction>;
+
+  public async estimateAccountTransaction(...args: any[]): Promise<IEstimatedAccountProxyTransaction> {
     this.require({
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
@@ -819,12 +888,64 @@ export class Sdk {
 
     const { accountAddress } = this.state;
     const { account } = this.contract;
-    const proxyData = account.encodeMethodInput(
-      'executeTransaction',
-      recipient,
-      anyToBN(value, { defaults: new BN(0) }),
-      anyToBuffer(data, { defaults: Buffer.alloc(0) }),
-    );
+    const proxyData: string[] = [];
+    let transactionSpeed: Eth.TransactionSpeeds = null;
+
+    const addToProxyData = (index) => {
+      const recipient = args[index * 3];
+      const value = args[index * 3 + 1];
+      const data = args[index * 3 + 2];
+
+      proxyData.push(account.encodeMethodInput(
+        'executeTransaction',
+        recipient,
+        anyToBN(value, { defaults: new BN(0) }),
+        anyToBuffer(data, { defaults: Buffer.alloc(0) }),
+        ),
+      );
+    };
+
+    switch (args.length) {
+      case 3:
+      case 4:
+        addToProxyData(0);
+        transactionSpeed = args[3] || null;
+        break;
+      case 6:
+      case 7:
+        addToProxyData(0);
+        addToProxyData(1);
+        transactionSpeed = args[6] || null;
+        break;
+      case 9:
+      case 10:
+        addToProxyData(0);
+        addToProxyData(1);
+        addToProxyData(2);
+        transactionSpeed = args[9] || null;
+        break;
+      case 12:
+      case 13:
+        addToProxyData(0);
+        addToProxyData(1);
+        addToProxyData(2);
+        addToProxyData(3);
+        transactionSpeed = args[12] || null;
+        break;
+
+      case 15:
+      case 16:
+        addToProxyData(0);
+        addToProxyData(1);
+        addToProxyData(2);
+        addToProxyData(3);
+        addToProxyData(4);
+        transactionSpeed = args[15] || null;
+        break;
+
+      default:
+        throw new Sdk.Error('invalid number of args');
+    }
 
     return this.apiMethods.estimateAccountProxyTransaction(
       accountAddress,
