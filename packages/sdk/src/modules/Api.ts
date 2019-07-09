@@ -54,6 +54,8 @@ export class Api {
   public get event$(): Subject<Api.IEvent> {
     const result = new Subject<any>();
 
+    let disconnect: () => any = () => null;
+
     if (this.webSocketConstructor) {
       const { connected$, session$ } = this.state;
       const reconnected$ = new Subject<boolean>();
@@ -92,7 +94,7 @@ export class Api {
         }
       };
 
-      const disconnect = () => {
+      disconnect = () => {
         if (ws) {
           connected$.next(false);
 
@@ -119,6 +121,13 @@ export class Api {
           });
       }
     }
+
+    const complete = result.complete.bind(result);
+
+    result.complete = () => {
+      complete();
+      disconnect();
+    };
 
     return result;
   }

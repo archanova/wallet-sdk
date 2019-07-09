@@ -42,134 +42,138 @@ import {
  * Sdk
  */
 export class Sdk {
-  public readonly api: Api;
-  public readonly state: State;
+  public api: Api;
+  public readonly state = new State();
 
   public readonly error$ = new BehaviorSubject<any>(null);
   public readonly event$ = new BehaviorSubject<Sdk.IEvent>(null);
 
-  protected readonly accountFriendRecovery: AccountFriendRecovery;
-  protected readonly accountGame: AccountGame;
-  protected readonly accountPayment: AccountPayment;
-  protected readonly accountTransaction: AccountTransaction;
-  protected readonly action: Action;
-  protected readonly apiMethods: ApiMethods;
-  protected readonly contract: Contract;
-  protected readonly device: Device;
-  protected readonly ens: Ens;
-  protected readonly eth: Eth & EthJs;
-  protected readonly session: Session;
-  protected readonly storage: Storage;
-  protected readonly url: Url;
+  protected accountFriendRecovery: AccountFriendRecovery;
+  protected accountGame: AccountGame;
+  protected accountPayment: AccountPayment;
+  protected accountTransaction: AccountTransaction;
+  protected action: Action;
+  protected apiMethods: ApiMethods;
+  protected contract: Contract;
+  protected device: Device;
+  protected ens: Ens;
+  protected eth: Eth & EthJs;
+  protected session: Session;
+  protected storage: Storage;
+  protected url: Url;
+
+  protected subscriptions: Subscription[] = null;
 
   /**
    * constructor
    * @param environment
    */
-  constructor(environment: Environment) {
-    if (!environment) {
-      throw new Sdk.Error('unknown sdk environment');
-    }
-
-    this.storage = new Storage(
-      environment.getConfig('storageOptions'),
-      environment.getConfig('storageAdapter'),
-    );
-
-    this.state = new State(this.storage);
-
-    this.api = new Api(
-      environment.getConfig('apiOptions'),
-      environment.getConfig('apiWebSocketConstructor'),
-      this.state,
-    );
-
-    this.apiMethods = new ApiMethods(this.api);
-
-    this.device = new Device(
-      this.state,
-      this.storage.createChild(Sdk.StorageNamespaces.Device),
-    );
-
-    this.session = new Session(this.api, this.device, this.state);
-    this.eth = new Eth(
-      environment.getConfig('ethOptions'),
-      this.api,
-      this.state,
-    );
-    this.ens = new Ens(
-      environment.getConfig('ensOptions'),
-      this.eth,
-      this.state,
-    );
-
-    this.contract = new Contract(this.eth);
-    this.action = new Action(
-      environment.getConfig('actionOptions'),
-    );
-    this.url = new Url(
-      environment.getConfig('urlOptions'),
-      environment.getConfig('urlAdapter'),
-      this.action,
-      this.eth,
-    );
-
-    this.accountTransaction = new AccountTransaction(this.apiMethods, this.contract, this.device, this.state);
-    this.accountPayment = new AccountPayment(this.apiMethods, this.contract, this.device, this.state);
-    this.accountGame = new AccountGame(this.apiMethods, this.contract, this.device, this.state);
-    this.accountFriendRecovery = new AccountFriendRecovery(this.apiMethods, this.contract, this.device, this.state);
-
-    this.state.incomingAction$ = this.action.$incoming;
-
+  constructor(private environment: Environment) {
     this.catchError = this.catchError.bind(this);
+
+    this.setEnvironment(environment);
   }
 
   /**
    * initializes sdk
    * @param options
    */
-  public async initialize(options: { device?: Device.ISetupOptions } = {}): Promise<void> {
+  public async initialize(options: Sdk.IInitializeOptions = {}): Promise<void> {
     this.require({
-      initialized: false,
-      accountConnected: false,
+      initialized: null,
+      accountConnected: null,
     });
 
-    await this.device.setup(options.device || {});
-    await this.state.setup();
-    await this.session.setup();
-
-    if (this.state.account) {
-      await this.verifyAccount();
+    try {
+      options = {
+        device: options.device || {},
+        environment: options.environment || null,
+      };
+    } catch (err) {
+      options = {
+        device: {},
+        environment: null,
+      };
     }
 
-    this.state.initialized$.next(true);
+    const { initialized$, initialized } = this.state;
 
-    this.subscribeAccountBalance();
-    this.subscribeApiEvents();
-    this.subscribeAcceptedActions();
+    if (initialized !== null) {
+      this.clearSubscriptions();
+      this.state.reset();
+    }
+
+    try {
+      if (options.environment) {
+        this.setEnvironment(options.environment);
+      }
+
+      await this.device.setup(options.device || {});
+
+      this.addSubscriptions(
+        this.action.setup(),
+        ...this.url.setup(),
+        ...(await this.state.setup(this.storage)),
+        this.action.$incoming.subscribe(this.state.incomingAction$),
+      );
+
+      await this.session.setup();
+
+      if (this.state.account) {
+        await this.verifyAccount();
+      }
+
+      initialized$.next(true);
+
+      this.subscribeAccountBalance();
+      this.subscribeApiEvents();
+      this.subscribeAcceptedActions();
+
+    } catch (err) {
+      initialized$.next(false);
+      throw new Sdk.Error('not initialized');
+    }
   }
 
   /**
    * resets sdk
    * @param options
    */
-  public async reset(options: { device?: boolean, session?: boolean } = {}): Promise<void> {
+  public async reset(options: Sdk.IResetOptions = {}): Promise<void> {
     this.require({
       accountConnected: null,
     });
 
-    const { account$, accountDevice$ } = this.state;
+    try {
+      options = {
+        device: !!options.device,
+        session: !!options.session,
+      };
+    } catch (err) {
+      options = {
+        device: false,
+        session: false,
+      };
+    }
 
-    account$.next(null);
-    accountDevice$.next(null);
+    const { accountAddress, accountFriendRecovery$ } = this.state;
+
+    if (accountAddress) {
+      await this.disconnectAccount();
+    }
 
     if (options.device) {
+
+      accountFriendRecovery$.next(null);
+
       await this.device.reset();
     }
 
-    await this.session.reset({
-      token: options.device || options.session,
-    });
+    if (options.session) {
+      await this.session.reset({
+        token: true,
+      });
+    }
   }
 
 // Account
@@ -252,7 +256,12 @@ export class Sdk {
    * disconnects account
    */
   public async disconnectAccount(): Promise<void> {
-    await this.reset();
+    this.require();
+
+    const { account$, accountDevice$ } = this.state;
+
+    account$.next(null);
+    accountDevice$.next(null);
   }
 
   /**
@@ -1308,6 +1317,86 @@ export class Sdk {
 
 // Protected
 
+  protected setEnvironment(environment: Environment): void {
+    this.storage = new Storage(
+      environment.getConfig('storageOptions'),
+      environment.getConfig('storageAdapter'),
+    );
+
+    this.api = new Api(
+      environment.getConfig('apiOptions'),
+      environment.getConfig('apiWebSocketConstructor'),
+      this.state,
+    );
+
+    this.apiMethods = new ApiMethods(this.api);
+
+    this.device = new Device(
+      this.state,
+      this.storage.createChild(Sdk.StorageNamespaces.Device),
+    );
+
+    this.session = new Session(this.api, this.device, this.state);
+    this.eth = new Eth(
+      environment.getConfig('ethOptions'),
+      this.api,
+      this.state,
+    );
+    this.ens = new Ens(
+      environment.getConfig('ensOptions'),
+      this.eth,
+      this.state,
+    );
+
+    this.contract = new Contract(this.eth);
+    this.action = new Action(
+      environment.getConfig('actionOptions'),
+    );
+    this.url = new Url(
+      environment.getConfig('urlOptions'),
+      environment.getConfig('urlAdapter'),
+      this.action,
+      this.eth,
+    );
+
+    this.accountTransaction = new AccountTransaction(this.apiMethods, this.contract, this.device, this.state);
+    this.accountPayment = new AccountPayment(this.apiMethods, this.contract, this.device, this.state);
+    this.accountGame = new AccountGame(this.apiMethods, this.contract, this.device, this.state);
+    this.accountFriendRecovery = new AccountFriendRecovery(this.apiMethods, this.contract, this.device, this.state);
+  }
+
+  protected addSubscriptions(...subscriptions: Subscription[]): void {
+    this.subscriptions = [
+      ...(this.subscriptions || []),
+      ...subscriptions.filter(subscription => !!subscription),
+    ];
+  }
+
+  protected removeSubscriptions(subscription: Subscription): Subscription {
+    if (
+      subscription &&
+      this.subscriptions &&
+      this.subscriptions.includes(subscription)
+    ) {
+      subscription.unsubscribe();
+      this.subscriptions = this.subscriptions.filter(item => item !== subscription);
+      if (!this.subscriptions.length) {
+        this.subscriptions = null;
+      }
+    }
+
+    return null;
+  }
+
+  protected clearSubscriptions(): void {
+    if (this.subscriptions) {
+      for (const subscription of this.subscriptions) {
+        subscription.unsubscribe();
+      }
+      this.subscriptions = null;
+    }
+  }
+
   protected async prepareAccount(account: IAccount): Promise<IAccount> {
     try {
 
@@ -1378,136 +1467,140 @@ export class Sdk {
                 filter(account => !!account),
               )
               .subscribe(account$);
+
+            this.addSubscriptions(subscription);
           }
         } else if (subscription) {
-          subscription.unsubscribe();
+          this.removeSubscriptions(subscription);
           subscription = null;
         }
       });
   }
 
   protected subscribeApiEvents(): void {
-    this
-      .api
-      .event$
-      .pipe(
-        filter(event => !!event),
-        switchMap(({ name, payload }) => from(this.wrapAsync(async () => {
-          const { account$, accountDevice$, deviceAddress, accountAddress } = this.state;
+    this.addSubscriptions(
+      this
+        .api
+        .event$
+        .pipe(
+          filter(event => !!event),
+          switchMap(({ name, payload }) => from(this.wrapAsync(async () => {
+            const { account$, accountDevice$, deviceAddress, accountAddress } = this.state;
 
-          switch (name) {
-            case Api.EventNames.AccountUpdated: {
-              const { account } = payload;
-              if (accountAddress === account) {
-                const account = await this.apiMethods.getAccount(accountAddress);
-                if (account) {
-                  account$.next(account);
-                }
-              } else {
-                const account = await this.apiMethods.getAccount(accountAddress);
-                this.emitEvent(Sdk.EventNames.AccountUpdated, account);
-              }
-              break;
-            }
-
-            case Api.EventNames.AccountFriendRecoveryUpdated: {
-              const { account } = payload;
-              if (accountAddress === account) {
-                const accountFriendRecovery = await this.apiMethods.getAccountFriendRecovery(accountAddress);
-                this.emitEvent(Sdk.EventNames.AccountFriendRecoveryUpdated, accountFriendRecovery);
-              }
-              break;
-            }
-
-            case Api.EventNames.AccountDeviceUpdated: {
-              const { account, device } = payload;
-              if (deviceAddress === device) {
-                switch (accountAddress) {
-                  case account:
-                    const accountDevice = await this.apiMethods.getAccountDevice(account, device);
-                    if (accountDevice) {
-                      accountDevice$.next(accountDevice);
-                    }
-                    break;
-
-                  case null:
-                    await this.verifyAccount(account);
-                    break;
-
-                  default:
-                }
-              } else if (account === accountAddress) {
-                const accountDevice = await this.apiMethods.getAccountDevice(accountAddress, device);
-                this.emitEvent(Sdk.EventNames.AccountDeviceUpdated, accountDevice);
-              }
-              break;
-            }
-            case Api.EventNames.AccountDeviceRemoved: {
-              const { account, device } = payload;
-              if (accountAddress === account) {
-                if (deviceAddress === device) {
-                  await this.reset();
+            switch (name) {
+              case Api.EventNames.AccountUpdated: {
+                const { account } = payload;
+                if (accountAddress === account) {
+                  const account = await this.apiMethods.getAccount(accountAddress);
+                  if (account) {
+                    account$.next(account);
+                  }
                 } else {
-                  this.emitEvent(Sdk.EventNames.AccountDeviceRemoved, device);
+                  const account = await this.apiMethods.getAccount(accountAddress);
+                  this.emitEvent(Sdk.EventNames.AccountUpdated, account);
                 }
+                break;
               }
-              break;
-            }
-            case Api.EventNames.AccountVirtualBalanceUpdated: {
-              const { account, token } = payload;
-              if (accountAddress === account) {
-                const accountVirtualBalance = await this.apiMethods.getAccountVirtualBalance(accountAddress, token);
-                this.emitEvent(Sdk.EventNames.AccountVirtualBalanceUpdated, accountVirtualBalance);
-              }
-              break;
-            }
-            case Api.EventNames.AccountTransactionUpdated: {
-              const { account, hash, index } = payload;
-              if (accountAddress === account) {
-                const accountTransaction = await this.apiMethods.getAccountTransaction(accountAddress, hash, index);
-                this.emitEvent(Sdk.EventNames.AccountTransactionUpdated, accountTransaction);
-              }
-              break;
-            }
-            case Api.EventNames.AccountGameUpdated: {
-              const { account, game } = payload;
-              if (accountAddress === account) {
-                const accountGame = await this.apiMethods.getAccountGame(accountAddress, game);
-                this.emitEvent(Sdk.EventNames.AccountGameUpdated, accountGame);
-              }
-              break;
-            }
-            case Api.EventNames.AccountPaymentUpdated: {
-              const { account, hash } = payload;
-              if (accountAddress === account) {
-                const accountPayment = await this.apiMethods.getAccountPayment(accountAddress, hash);
-                this.emitEvent(Sdk.EventNames.AccountPaymentUpdated, accountPayment);
-              }
-              break;
-            }
-            case Api.EventNames.SecureCodeSigned: {
-              const { device, code } = payload;
-              if (
-                deviceAddress &&
-                accountAddress &&
-                this.session.verifyCode(code)
-              ) {
-                const action = Action
-                  .createAction<Action.IRequestAddAccountDevicePayload>(
-                    Action.Types.RequestAddAccountDevice, {
-                      device,
-                      account: accountAddress,
-                    },
-                  );
 
-                this.action.$incoming.next(action);
+              case Api.EventNames.AccountFriendRecoveryUpdated: {
+                const { account } = payload;
+                if (accountAddress === account) {
+                  const accountFriendRecovery = await this.apiMethods.getAccountFriendRecovery(accountAddress);
+                  this.emitEvent(Sdk.EventNames.AccountFriendRecoveryUpdated, accountFriendRecovery);
+                }
+                break;
               }
-              break;
+
+              case Api.EventNames.AccountDeviceUpdated: {
+                const { account, device } = payload;
+                if (deviceAddress === device) {
+                  switch (accountAddress) {
+                    case account:
+                      const accountDevice = await this.apiMethods.getAccountDevice(account, device);
+                      if (accountDevice) {
+                        accountDevice$.next(accountDevice);
+                      }
+                      break;
+
+                    case null:
+                      await this.verifyAccount(account);
+                      break;
+
+                    default:
+                  }
+                } else if (account === accountAddress) {
+                  const accountDevice = await this.apiMethods.getAccountDevice(accountAddress, device);
+                  this.emitEvent(Sdk.EventNames.AccountDeviceUpdated, accountDevice);
+                }
+                break;
+              }
+              case Api.EventNames.AccountDeviceRemoved: {
+                const { account, device } = payload;
+                if (accountAddress === account) {
+                  if (deviceAddress === device) {
+                    await this.reset();
+                  } else {
+                    this.emitEvent(Sdk.EventNames.AccountDeviceRemoved, device);
+                  }
+                }
+                break;
+              }
+              case Api.EventNames.AccountVirtualBalanceUpdated: {
+                const { account, token } = payload;
+                if (accountAddress === account) {
+                  const accountVirtualBalance = await this.apiMethods.getAccountVirtualBalance(accountAddress, token);
+                  this.emitEvent(Sdk.EventNames.AccountVirtualBalanceUpdated, accountVirtualBalance);
+                }
+                break;
+              }
+              case Api.EventNames.AccountTransactionUpdated: {
+                const { account, hash, index } = payload;
+                if (accountAddress === account) {
+                  const accountTransaction = await this.apiMethods.getAccountTransaction(accountAddress, hash, index);
+                  this.emitEvent(Sdk.EventNames.AccountTransactionUpdated, accountTransaction);
+                }
+                break;
+              }
+              case Api.EventNames.AccountGameUpdated: {
+                const { account, game } = payload;
+                if (accountAddress === account) {
+                  const accountGame = await this.apiMethods.getAccountGame(accountAddress, game);
+                  this.emitEvent(Sdk.EventNames.AccountGameUpdated, accountGame);
+                }
+                break;
+              }
+              case Api.EventNames.AccountPaymentUpdated: {
+                const { account, hash } = payload;
+                if (accountAddress === account) {
+                  const accountPayment = await this.apiMethods.getAccountPayment(accountAddress, hash);
+                  this.emitEvent(Sdk.EventNames.AccountPaymentUpdated, accountPayment);
+                }
+                break;
+              }
+              case Api.EventNames.SecureCodeSigned: {
+                const { device, code } = payload;
+                if (
+                  deviceAddress &&
+                  accountAddress &&
+                  this.session.verifyCode(code)
+                ) {
+                  const action = Action
+                    .createAction<Action.IRequestAddAccountDevicePayload>(
+                      Action.Types.RequestAddAccountDevice, {
+                        device,
+                        account: accountAddress,
+                      },
+                    );
+
+                  this.action.$incoming.next(action);
+                }
+                break;
+              }
             }
-          }
-        }))),
-      )
-      .subscribe();
+          }))),
+        )
+        .subscribe(),
+    );
   }
 
   protected subscribeAcceptedActions(): void {
@@ -1525,9 +1618,7 @@ export class Sdk {
 
         hasAccount = !!account;
 
-        if (subscription) {
-          subscription.unsubscribe();
-        }
+        this.removeSubscriptions(subscription);
 
         subscription = $accepted
           .pipe(
@@ -1578,6 +1669,8 @@ export class Sdk {
             map(() => null),
           )
           .subscribe($accepted);
+
+        this.addSubscriptions(subscription);
       });
   }
 
@@ -1661,6 +1754,16 @@ export namespace Sdk {
 
   export class Error extends global.Error {
     //
+  }
+
+  export interface IInitializeOptions {
+    device?: Device.ISetupOptions;
+    environment?: Environment;
+  }
+
+  export interface IResetOptions {
+    device?: boolean;
+    session?: boolean;
   }
 
   export interface IRequireOptions {
