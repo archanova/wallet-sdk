@@ -517,7 +517,7 @@ class Content extends React.Component<IProps, IState> {
 
     return {
       // global
-      [Screens.Initialize]: initialized === null,
+      [Screens.Initialize]: true,
       [Screens.Reset]: initialized,
 
       // demos

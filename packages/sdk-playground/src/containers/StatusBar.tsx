@@ -39,7 +39,7 @@ class StatusBar extends React.Component<IProps> {
     }
 
     return (
-      <div className={`${styles.content} ${!parseInt(process.env.REACT_APP_SECONDARY, 10) ? styles.invert : ''}`}>
+      <div className={styles.content}>
         <HelpTrigger alias="statusBar.network">
           <div className={styles.label}>Network</div>
           <div>{network}</div>

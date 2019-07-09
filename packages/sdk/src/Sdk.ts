@@ -104,9 +104,7 @@ export class Sdk {
     }
 
     try {
-      if (options.environment) {
-        this.setEnvironment(options.environment);
-      }
+      this.setEnvironment(options.environment || this.environment);
 
       await this.device.setup(options.device || {});
 
@@ -217,6 +215,10 @@ export class Sdk {
       result = null;
     }
 
+    if (result) {
+      result = await this.prepareAccount(result);
+    }
+
     return result;
   }
 
@@ -256,7 +258,9 @@ export class Sdk {
    * disconnects account
    */
   public async disconnectAccount(): Promise<void> {
-    this.require();
+    this.require({
+      accountConnected: null,
+    });
 
     const { account$, accountDevice$ } = this.state;
 
@@ -1428,6 +1432,7 @@ export class Sdk {
     if (accountAddress) {
       account = await this.apiMethods.getAccount(accountAddress).catch(() => null);
       if (account) {
+        account = await this.prepareAccount(account);
         accountDevice = await this.apiMethods.getAccountDevice(accountAddress, deviceAddress).catch(() => null);
       }
     }

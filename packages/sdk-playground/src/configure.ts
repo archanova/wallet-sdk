@@ -15,18 +15,20 @@ import { ILogger } from './shared';
 import { config } from './config';
 
 export function configureSdk(logger: ILogger): Sdk {
-  let sdkEnv = getSdkEnvironment(SdkEnvironmentNames.Kovan); // kovan env by default
+  let sdkEnv: sdkModules.Environment;
 
-  switch (config.sdk.env) {
+  switch (config.sdkEnv) {
     case SdkEnvironmentNames.Rinkeby:
     case SdkEnvironmentNames.Ropsten:
     case SdkEnvironmentNames.Kovan:
     case SdkEnvironmentNames.Sokol:
-      sdkEnv = getSdkEnvironment(config.sdk.env as SdkEnvironmentNames);
+      sdkEnv = getSdkEnvironment(config.sdkEnv as SdkEnvironmentNames);
       break;
 
     case 'local':
-      sdkEnv = createLocalSdkEnvironment(config.sdk.localEnv);
+      sdkEnv = createLocalSdkEnvironment({
+        port: config.localSdkEnvPort,
+      });
       break;
   }
 
@@ -42,7 +44,7 @@ export function configureSdk(logger: ILogger): Sdk {
         },
       })
       .extendConfig('actionOptions', {
-        autoAccept: config.sdk.autoAcceptAction,
+        autoAccept: config.autoAcceptSdkActions,
       }),
   );
 
@@ -55,7 +57,7 @@ export function configureSdk(logger: ILogger): Sdk {
     .pipe(filter(value => !!value))
     .subscribe(err => console.error('sdk.error$', err));
 
-  if (config.sdk.autoInitialize) {
+  if (config.autoInitializeSdk) {
     logger
       .wrapSync('sdk.initialize', async (console) => {
         await sdk.initialize();

@@ -1,10 +1,5 @@
 import BN from 'bn.js';
 import { anyToHex, generateRandomPrivateKey, privateKeyToAddress, weiToEth } from '@netgum/utils';
-import { config, IConfig } from '../config';
-
-export function isFeatureActive(name: keyof IConfig['activeFeatures']): boolean {
-  return config.activeFeatures[name];
-}
 
 export function generateRandomAddress() {
   return privateKeyToAddress(
