@@ -33,7 +33,7 @@ sdk
   transactionSpeed && `${'\n'}    transactionSpeed`,
 )}${','}
   )
-  .then(estimated => console.log('estimated', estimated));
+  .then(estimated => console.log('estimated', estimated))
   .catch(console.error);
 `;
 
@@ -42,7 +42,7 @@ const estimated; // estimated transaction
 
 sdk
   .submitAccountTransaction(estimated)
-  .then(hash => console.log('hash', hash));
+  .then(hash => console.log('hash', hash))
   .catch(console.error);
 `;
 

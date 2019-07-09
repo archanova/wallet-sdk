@@ -8,7 +8,7 @@ ${index ? `const index = ${index};` : ''}
 
 sdk
   .getConnectedAccountTransaction(${mergeMethodArgs('hash', index && 'index')})
-  .then(accountTransaction => console.log('accountTransaction', accountTransaction));
+  .then(accountTransaction => console.log('accountTransaction', accountTransaction))
   .catch(console.error);
 `;
 

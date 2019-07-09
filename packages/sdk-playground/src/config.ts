@@ -52,7 +52,7 @@ class Config {
   public localSdkEnvPort = parseInt(REACT_APP_LOCAL_SDK_ENV_PORT, 10) || null;
 
   public get sdkEnv(): string {
-    const defaultEnv = this.activateLocalSdkEnv ? 'local' : SdkEnvironmentNames.Kovan;
+    const defaultEnv = this.activateLocalSdkEnv ? 'local' : sdkEnvs[0];
     let result = storageHelper.get('sdkEnv', defaultEnv);
 
     if (!sdkEnvs.includes(result)) {
