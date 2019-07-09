@@ -69,11 +69,12 @@
     h4 {
       padding-bottom: 2px;
       color: #a673ff;
-      cursor: pointer;
 
-      &:hover {
-
-        color: #cf9eff;
+      &.link {
+        cursor: pointer;
+        &:hover {
+          color: #cf9eff;
+        }
       }
     }
 
@@ -127,9 +128,10 @@
     line-height: 45px;
     background-color: rgba(0, 0, 0, 0.8);
     font-size: 11px;
-    color: #a7a7a7;
+    color: #696969;
+
     a {
-      color: #a7a7a7;
+      color: #696969;
       text-decoration: none;
     }
   }

@@ -25,6 +25,10 @@ const storageHelper = {
   },
 };
 
+const reloadHelper = () => {
+  setTimeout(() => window.location.reload(), 500);
+};
+
 class Config {
   public sdkEnv$ = new BehaviorSubject<string>(this.sdkEnv);
   public showHelp$ = new BehaviorSubject<boolean>(this.showHelp);
@@ -56,7 +60,7 @@ class Config {
 
   public set autoInitializeSdk(value: boolean) {
     storageHelper.set('autoInitializeSdk', value);
-    window.location.reload();
+    reloadHelper();
   }
 
   public get autoAcceptSdkActions(): boolean {
@@ -65,7 +69,7 @@ class Config {
 
   public set autoAcceptSdkActions(value: boolean) {
     storageHelper.set('autoAcceptSdkActions', value);
-    window.location.reload();
+    reloadHelper();
   }
 }
 

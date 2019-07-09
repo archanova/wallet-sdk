@@ -83,7 +83,12 @@ export class Menu extends ContextComponent<IProps, IState> {
             const isOpen = alwaysOpen || activeIndex === index || !!screens.find(screen => activeScreen === screen);
             return (
               <div key={`${index}`}>
-                <h4 onClick={this.createOpenSection(index)}>{header.toUpperCase()}</h4>
+                <h4
+                  onClick={this.createOpenSection(index)}
+                  className={isOpen ? '' : styles.link}
+                >
+                  {header.toUpperCase()}
+                </h4>
                 {!isOpen ? null : (
                   <div>
                     {screens.map((screen, subIndex) => {
@@ -152,10 +157,20 @@ export class Menu extends ContextComponent<IProps, IState> {
   private toggleShowHelp(): void {
     this.config.showHelp = !this.config.showHelp;
   }
+
   private toggleAutoInitializeSdk(): void {
-    this.config.autoInitializeSdk = !this.config.autoInitializeSdk;
+    this.setState({
+      autoInitializeSdk: !this.config.autoInitializeSdk,
+    }, () => {
+      this.config.autoInitializeSdk = !this.config.autoInitializeSdk;
+    });
   }
+
   private toggleAutoAcceptSdkActions(): void {
-    this.config.autoAcceptSdkActions = !this.config.autoAcceptSdkActions;
+    this.setState({
+      autoAcceptSdkActions: !this.config.autoAcceptSdkActions,
+    }, () => {
+      this.config.autoAcceptSdkActions = !this.config.autoAcceptSdkActions;
+    });
   }
 }
