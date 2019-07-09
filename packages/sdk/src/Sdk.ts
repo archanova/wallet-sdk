@@ -101,6 +101,7 @@ export class Sdk {
     if (initialized !== null) {
       this.clearSubscriptions();
       this.state.reset();
+      initialized$.next(null);
     }
 
     try {
