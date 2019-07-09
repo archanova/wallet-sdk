@@ -1,6 +1,7 @@
 import * as sdkConstants from './constants';
 import * as sdkInterfaces from './interfaces';
 import * as sdkModules from './modules';
+import * as sdkTypes from './types';
 
 export * from './creator';
 export * from './environments';

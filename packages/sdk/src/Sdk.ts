@@ -14,20 +14,19 @@ import {
   IAccountTransaction,
   IAccountVirtualBalance,
   IApp,
+  IEstimatedAccountDeployment,
+  IEstimatedAccountProxyTransaction,
   IPaginated,
   IToken,
 } from './interfaces';
 import {
-  Account,
-  AccountDevice,
   AccountFriendRecovery,
   AccountGame,
   AccountPayment,
   AccountTransaction,
-  AccountVirtualBalance,
   Action,
   Api,
-  App,
+  ApiMethods,
   Contract,
   Device,
   Ens,
@@ -36,7 +35,6 @@ import {
   Session,
   State,
   Storage,
-  Token,
   Url,
 } from './modules';
 
@@ -50,22 +48,18 @@ export class Sdk {
   public readonly error$ = new BehaviorSubject<any>(null);
   public readonly event$ = new BehaviorSubject<Sdk.IEvent>(null);
 
-  protected readonly account: Account;
-  protected readonly accountDevice: AccountDevice;
   protected readonly accountFriendRecovery: AccountFriendRecovery;
   protected readonly accountGame: AccountGame;
   protected readonly accountPayment: AccountPayment;
   protected readonly accountTransaction: AccountTransaction;
-  protected readonly accountVirtualBalance: AccountVirtualBalance;
   protected readonly action: Action;
-  protected readonly app: App;
+  protected readonly apiMethods: ApiMethods;
   protected readonly contract: Contract;
   protected readonly device: Device;
   protected readonly ens: Ens;
   protected readonly eth: Eth & EthJs;
   protected readonly session: Session;
   protected readonly storage: Storage;
-  protected readonly token: Token;
   protected readonly url: Url;
 
   /**
@@ -90,6 +84,8 @@ export class Sdk {
       this.state,
     );
 
+    this.apiMethods = new ApiMethods(this.api);
+
     this.device = new Device(
       this.state,
       this.storage.createChild(Sdk.StorageNamespaces.Device),
@@ -107,8 +103,6 @@ export class Sdk {
       this.state,
     );
 
-    this.app = new App(this.api);
-    this.account = new Account(this.api, this.eth, this.state);
     this.contract = new Contract(this.eth);
     this.action = new Action(
       environment.getConfig('actionOptions'),
@@ -120,13 +114,10 @@ export class Sdk {
       this.eth,
     );
 
-    this.accountTransaction = new AccountTransaction(this.api, this.contract, this.device, this.state);
-    this.accountPayment = new AccountPayment(this.api, this.contract, this.device, this.state);
-    this.accountDevice = new AccountDevice(this.accountTransaction, this.api, this.state);
-    this.accountGame = new AccountGame(this.api, this.contract, this.device, this.state);
-    this.accountFriendRecovery = new AccountFriendRecovery(this.accountDevice, this.api, this.contract, this.device, this.state);
-    this.accountVirtualBalance = new AccountVirtualBalance(this.api, this.state);
-    this.token = new Token(this.api);
+    this.accountTransaction = new AccountTransaction(this.apiMethods, this.contract, this.device, this.state);
+    this.accountPayment = new AccountPayment(this.apiMethods, this.contract, this.device, this.state);
+    this.accountGame = new AccountGame(this.apiMethods, this.contract, this.device, this.state);
+    this.accountFriendRecovery = new AccountFriendRecovery(this.apiMethods, this.contract, this.device, this.state);
 
     this.state.incomingAction$ = this.action.$incoming;
 
@@ -192,7 +183,7 @@ export class Sdk {
       accountConnected: null,
     });
 
-    return this.account.getConnectedAccounts(page);
+    return this.apiMethods.getConnectedAccounts(page);
   }
 
   /**
@@ -211,11 +202,11 @@ export class Sdk {
     try {
       if (address) {
         result = await this
-          .account
+          .apiMethods
           .getAccount(address);
       } else if (ensName) {
         result = await this
-          .account
+          .apiMethods
           .searchAccount(ensName);
       }
     } catch (err) {
@@ -235,9 +226,11 @@ export class Sdk {
       accountConnected: false,
     });
 
-    await this.account.createAccount(
+    const account = await this.apiMethods.createAccount(
       this.ens.buildName(ensLabel, ensRootName),
     );
+
+    this.state.account$.next(await this.prepareAccount(account));
 
     await this.verifyAccount();
 
@@ -273,9 +266,14 @@ export class Sdk {
       accountDeviceOwner: true,
     });
 
-    await this.account.updateAccount(
+    const { accountAddress } = this.state;
+
+    const account = await this.apiMethods.updateAccountEnsName(
+      accountAddress,
       this.ens.buildName(ensLabel, ensRootName),
     );
+
+    this.state.account$.next(account);
 
     return this.state.account;
   }
@@ -284,13 +282,16 @@ export class Sdk {
    * estimates account deployment
    * @param transactionSpeed
    */
-  public async estimateAccountDeployment(transactionSpeed: Eth.TransactionSpeeds = null): Promise<Account.IEstimatedDeployment> {
+  public async estimateAccountDeployment(transactionSpeed: Eth.TransactionSpeeds = null): Promise<IEstimatedAccountDeployment> {
     this.require({
       accountCreated: true,
       accountDeviceOwner: true,
     });
 
-    return this.account.estimateAccountDeployment(
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.estimateAccountDeployment(
+      accountAddress,
       this.eth.getGasPrice(transactionSpeed),
     );
   }
@@ -305,9 +306,12 @@ export class Sdk {
       accountDeviceOwner: true,
     });
 
+    const { accountAddress } = this.state;
+
     return this
-      .account
+      .apiMethods
       .deployAccount(
+        accountAddress,
         this.eth.getGasPrice(transactionSpeed),
       )
       .catch(() => null);
@@ -325,15 +329,16 @@ export class Sdk {
     value: number | string | BN,
     tokenAddress: string = null,
     transactionSpeed: Eth.TransactionSpeeds = null,
-  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+  ): Promise<IEstimatedAccountProxyTransaction> {
     this.require({
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
     });
 
+    const { accountAddress } = this.state;
     const { account, virtualPaymentManager, erc20Token } = this.contract;
 
-    let result: AccountTransaction.IEstimatedProxyTransaction;
+    let result: IEstimatedAccountProxyTransaction;
 
     if (tokenAddress) {
       const proxyData: string[] = [];
@@ -366,7 +371,8 @@ export class Sdk {
         );
       }
 
-      result = await this.accountTransaction.estimateAccountProxyTransaction(
+      result = await this.apiMethods.estimateAccountProxyTransaction(
+        accountAddress,
         proxyData,
         this.eth.getGasPrice(transactionSpeed),
       );
@@ -392,7 +398,7 @@ export class Sdk {
     value: number | string | BN,
     tokenAddress: string = null,
     transactionSpeed: Eth.TransactionSpeeds = null,
-  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+  ): Promise<IEstimatedAccountProxyTransaction> {
     this.require({
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
@@ -415,7 +421,9 @@ export class Sdk {
   public async getConnectedAccountVirtualBalances(page = 0): Promise<IPaginated<IAccountVirtualBalance>> {
     this.require();
 
-    return this.accountVirtualBalance.getConnectedAccountVirtualBalances(page);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.getAccountVirtualBalances(accountAddress, page);
   }
 
   /**
@@ -425,7 +433,9 @@ export class Sdk {
   public async getConnectedAccountVirtualBalance(symbolOrAddress: string): Promise<IAccountVirtualBalance> {
     this.require();
 
-    return this.accountVirtualBalance.getConnectedAccountVirtualBalance(symbolOrAddress);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.getAccountVirtualBalance(accountAddress, symbolOrAddress);
   }
 
 // Account Friend Recovery
@@ -436,15 +446,17 @@ export class Sdk {
    */
   public async estimateAddAccountFriendRecoveryExtension(
     transactionSpeed: Eth.TransactionSpeeds = null,
-  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+  ): Promise<IEstimatedAccountProxyTransaction> {
     this.require({
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
     });
+    const { accountAddress } = this.state;
     const { account } = this.contract;
     const { accountFriendRecovery } = this.contract;
 
-    await this.accountDevice.createAccountDevice(
+    await this.apiMethods.createAccountDevice(
+      accountAddress,
       accountFriendRecovery.address,
       AccountDeviceTypes.Extension,
     ).catch(() => null);
@@ -455,7 +467,8 @@ export class Sdk {
       true,
     );
 
-    return this.accountTransaction.estimateAccountProxyTransaction(
+    return this.apiMethods.estimateAccountProxyTransaction(
+      accountAddress,
       data,
       this.eth.getGasPrice(transactionSpeed),
     );
@@ -499,7 +512,7 @@ export class Sdk {
     this.require();
 
     const { accountAddress } = this.state;
-    return this.accountFriendRecovery.getAccountFriendRecovery(accountAddress);
+    return this.apiMethods.getAccountFriendRecovery(accountAddress);
   }
 
   /**
@@ -511,7 +524,7 @@ export class Sdk {
       accountConnected: null,
     });
 
-    return this.accountFriendRecovery.getAccountFriendRecovery(accountAddress);
+    return this.apiMethods.getAccountFriendRecovery(accountAddress);
   }
 
   /**
@@ -611,7 +624,9 @@ export class Sdk {
   public async getConnectedAccountDevices(page = 0): Promise<IPaginated<IAccountDevice>> {
     this.require();
 
-    return this.accountDevice.getConnectedAccountDevices(page);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.getAccountDevices(accountAddress, page);
   }
 
   /**
@@ -620,9 +635,10 @@ export class Sdk {
    */
   public async getConnectedAccountDevice(deviceAddress: string): Promise<IAccountDevice> {
     this.require();
+
     const { accountAddress } = this.state;
 
-    return this.accountDevice.getAccountDevice(accountAddress, deviceAddress);
+    return this.apiMethods.getAccountDevice(accountAddress, deviceAddress);
   }
 
   /**
@@ -635,7 +651,7 @@ export class Sdk {
       accountConnected: null,
     });
 
-    return this.accountDevice.getAccountDevice(accountAddress, deviceAddress);
+    return this.apiMethods.getAccountDevice(accountAddress, deviceAddress);
   }
 
   /**
@@ -647,7 +663,9 @@ export class Sdk {
       accountDeviceOwner: true,
     });
 
-    return this.accountDevice.createAccountDevice(deviceAddress, AccountDeviceTypes.Owner);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.createAccountDevice(accountAddress, deviceAddress, AccountDeviceTypes.Owner);
   }
 
   /**
@@ -659,7 +677,9 @@ export class Sdk {
       accountDeviceOwner: true,
     });
 
-    return this.accountDevice.removeAccountDevice(deviceAddress);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.removeAccountDevice(accountAddress, deviceAddress);
   }
 
   /**
@@ -670,11 +690,13 @@ export class Sdk {
   public async estimateAccountDeviceDeployment(
     deviceAddress: string,
     transactionSpeed: Eth.TransactionSpeeds = null,
-  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+  ): Promise<IEstimatedAccountProxyTransaction> {
     this.require({
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
     });
+
+    const { accountAddress } = this.state;
     const { account } = this.contract;
 
     const data = account.encodeMethodInput(
@@ -683,7 +705,8 @@ export class Sdk {
       true,
     );
 
-    return this.accountTransaction.estimateAccountProxyTransaction(
+    return this.apiMethods.estimateAccountProxyTransaction(
+      accountAddress,
       data,
       this.eth.getGasPrice(transactionSpeed),
     );
@@ -697,11 +720,13 @@ export class Sdk {
   public async estimateAccountDeviceUnDeployment(
     deviceAddress: string,
     transactionSpeed: Eth.TransactionSpeeds = null,
-  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+  ): Promise<IEstimatedAccountProxyTransaction> {
     this.require({
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
     });
+
+    const { accountAddress } = this.state;
     const { account } = this.contract;
 
     const data = account.encodeMethodInput(
@@ -709,7 +734,8 @@ export class Sdk {
       deviceAddress,
     );
 
-    return this.accountTransaction.estimateAccountProxyTransaction(
+    return this.apiMethods.estimateAccountProxyTransaction(
+      accountAddress,
       data,
       this.eth.getGasPrice(transactionSpeed),
     );
@@ -725,7 +751,9 @@ export class Sdk {
   public async getConnectedAccountTransactions(hash = '', page = 0): Promise<IPaginated<IAccountTransaction>> {
     this.require();
 
-    return this.accountTransaction.getConnectedAccountTransactions(page, hash);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.getAccountTransactions(accountAddress, page, hash);
   }
 
   /**
@@ -739,7 +767,8 @@ export class Sdk {
     });
 
     const { accountAddress } = this.state;
-    return this.accountTransaction.getAccountTransaction(accountAddress, hash, index);
+
+    return this.apiMethods.getAccountTransaction(accountAddress, hash, index);
   }
 
   /**
@@ -752,7 +781,8 @@ export class Sdk {
     this.require({
       accountConnected: null,
     });
-    return this.accountTransaction.getAccountTransaction(accountAddress, hash, index);
+
+    return this.apiMethods.getAccountTransaction(accountAddress, hash, index);
   }
 
   /**
@@ -767,12 +797,13 @@ export class Sdk {
     value: number | string | BN,
     data: string | Buffer,
     transactionSpeed: Eth.TransactionSpeeds = null,
-  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+  ): Promise<IEstimatedAccountProxyTransaction> {
     this.require({
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
     });
 
+    const { accountAddress } = this.state;
     const { account } = this.contract;
     const proxyData = account.encodeMethodInput(
       'executeTransaction',
@@ -781,7 +812,8 @@ export class Sdk {
       anyToBuffer(data, { defaults: Buffer.alloc(0) }),
     );
 
-    return this.accountTransaction.estimateAccountProxyTransaction(
+    return this.apiMethods.estimateAccountProxyTransaction(
+      accountAddress,
       proxyData,
       this.eth.getGasPrice(transactionSpeed),
     );
@@ -791,7 +823,7 @@ export class Sdk {
    * submits account transaction
    * @param estimated
    */
-  public async submitAccountTransaction(estimated: AccountTransaction.IEstimatedProxyTransaction): Promise<string> {
+  public async submitAccountTransaction(estimated: IEstimatedAccountProxyTransaction): Promise<string> {
     this.require({
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
@@ -812,7 +844,9 @@ export class Sdk {
   public async getConnectedAccountPayments(page = 0): Promise<IPaginated<IAccountPayment>> {
     this.require();
 
-    return this.accountPayment.getConnectedAccountPayments(page);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.getAccountPayments(accountAddress, page);
   }
 
   /**
@@ -822,7 +856,9 @@ export class Sdk {
   public async getConnectedAccountPayment(hash: string): Promise<IAccountPayment> {
     this.require();
 
-    return this.accountPayment.getConnectedAccountPayment(hash);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.getAccountPayment(accountAddress, hash);
   }
 
   /**
@@ -858,7 +894,9 @@ export class Sdk {
       accountDeviceDeployed: true,
     });
 
-    const payment = await this.accountPayment.getConnectedAccountPayment(hash);
+    const { accountAddress } = this.state;
+
+    const payment = await this.apiMethods.getAccountPayment(accountAddress, hash);
 
     return this.accountPayment.signAccountPayment(payment);
   }
@@ -871,7 +909,9 @@ export class Sdk {
   public async grabAccountPayment(hash: string, recipient: string = null): Promise<IAccountPayment> {
     this.require();
 
-    return this.accountPayment.grabAccountPayment(hash, recipient);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.grabAccountPayment(accountAddress, hash, recipient);
   }
 
   /**
@@ -883,7 +923,9 @@ export class Sdk {
       accountDeviceOwner: true,
     });
 
-    return this.accountPayment.cancelAccountPayment(hash);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.cancelAccountPayment(accountAddress, hash);
   }
 
   /**
@@ -894,12 +936,14 @@ export class Sdk {
   public async estimateDepositAccountPayment(
     hash: string,
     transactionSpeed: Eth.TransactionSpeeds = null,
-  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+  ): Promise<IEstimatedAccountProxyTransaction> {
     this.require({
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
     });
-    const { sender, recipient, guardian, token, value } = await this.accountPayment.getConnectedAccountPayment(hash);
+
+    const { accountAddress } = this.state;
+    const { sender, recipient, guardian, token, value } = await this.apiMethods.getAccountPayment(accountAddress, hash);
     const { virtualPaymentManager } = this.contract;
     const data = virtualPaymentManager.encodeMethodInput(
       'depositPayment',
@@ -928,13 +972,14 @@ export class Sdk {
   public async estimateWithdrawAccountPayment(
     hash: string,
     transactionSpeed: Eth.TransactionSpeeds = null,
-  ): Promise<AccountTransaction.IEstimatedProxyTransaction> {
+  ): Promise<IEstimatedAccountProxyTransaction> {
     this.require({
       accountDeviceOwner: true,
       accountDeviceDeployed: true,
     });
 
-    const { sender, recipient, guardian, value, token } = await this.accountPayment.getConnectedAccountPayment(hash);
+    const { accountAddress } = this.state;
+    const { sender, recipient, guardian, value, token } = await this.apiMethods.getAccountPayment(accountAddress, hash);
     const { virtualPaymentManager } = this.contract;
     const data = virtualPaymentManager.encodeMethodInput(
       'withdrawPayment',
@@ -965,7 +1010,9 @@ export class Sdk {
   public async getConnectedAccountGames(appAlias: string, page = 0): Promise<IPaginated<IAccountGame>> {
     this.require();
 
-    return this.accountGame.getConnectedAccountGames(appAlias, page);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.getAccountGames(accountAddress, appAlias, page);
   }
 
   /**
@@ -975,7 +1022,9 @@ export class Sdk {
   public async getAccountGame(gameId: number): Promise<IAccountGame> {
     this.require();
 
-    return this.accountGame.getAccountGame(gameId);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.getAccountGame(accountAddress, gameId);
   }
 
   /**
@@ -996,7 +1045,9 @@ export class Sdk {
       accountDeviceOwner: true,
     });
 
-    return this.accountGame.createAccountGame(appAlias, deposit, data);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.createAccountGame(accountAddress, appAlias, deposit, data);
   }
 
   /**
@@ -1010,7 +1061,7 @@ export class Sdk {
     });
 
     const { accountAddress } = this.state;
-    const game = await this.accountGame.getAccountGame(gameId);
+    const game = await this.apiMethods.getAccountGame(accountAddress, gameId);
 
     if (game.creator.account.address === accountAddress) {
       throw new Sdk.Error('invalid game creator');
@@ -1032,7 +1083,9 @@ export class Sdk {
       accountDeviceOwner: true,
     });
 
-    return this.accountGame.cancelAccountGame(gameId);
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.cancelAccountGame(accountAddress, gameId);
   }
 
   /**
@@ -1046,7 +1099,7 @@ export class Sdk {
     });
 
     const { accountAddress } = this.state;
-    const game = await this.accountGame.getAccountGame(gameId);
+    const game = await this.apiMethods.getAccountGame(accountAddress, gameId);
 
     if (game.creator.account.address !== accountAddress) {
       throw new Sdk.Error('invalid game creator');
@@ -1068,7 +1121,7 @@ export class Sdk {
     this.require();
 
     const { accountAddress } = this.state;
-    const game = await this.accountGame.getAccountGame(gameId);
+    const game = await this.apiMethods.getAccountGame(accountAddress, gameId);
 
     if (
       game.state !== AccountGameStates.Started ||
@@ -1078,7 +1131,7 @@ export class Sdk {
       throw new Sdk.Error('invalid game state');
     }
 
-    return this.accountGame.updateAccountGame(game, data);
+    return this.apiMethods.updateAccountGame(accountAddress, game.id, data);
   }
 
 // App
@@ -1092,7 +1145,7 @@ export class Sdk {
       accountConnected: null,
     });
 
-    return this.app.getApps(page);
+    return this.apiMethods.getApps(page);
   }
 
   /**
@@ -1104,7 +1157,7 @@ export class Sdk {
       accountConnected: null,
     });
 
-    return this.app.getApp(appAlias);
+    return this.apiMethods.getApp(appAlias);
   }
 
   /**
@@ -1117,7 +1170,7 @@ export class Sdk {
       accountConnected: null,
     });
 
-    return this.app.getAppOpenGames(appAlias, page);
+    return this.apiMethods.getAppOpenGames(appAlias, page);
   }
 
 // Token
@@ -1131,7 +1184,7 @@ export class Sdk {
       accountConnected: null,
     });
 
-    return this.token.getTokens(page);
+    return this.apiMethods.getTokens(page);
   }
 
   /**
@@ -1143,7 +1196,7 @@ export class Sdk {
       accountConnected: null,
     });
 
-    return this.token.getToken(symbolOrAddress);
+    return this.apiMethods.getToken(symbolOrAddress);
   }
 
 // Action
@@ -1255,6 +1308,20 @@ export class Sdk {
 
 // Protected
 
+  protected async prepareAccount(account: IAccount): Promise<IAccount> {
+    try {
+
+      const balance = await this.eth.getBalance(account.address, 'pending');
+      if (balance) {
+        account.balance.real = balance;
+      }
+    } catch (err) {
+      //
+    }
+
+    return account;
+  }
+
   protected async verifyAccount(accountAddress: string = null): Promise<void> {
     if (!accountAddress) {
       ({ accountAddress } = this.state);
@@ -1270,9 +1337,9 @@ export class Sdk {
     let accountDevice: IAccountDevice = null;
 
     if (accountAddress) {
-      account = await this.account.getAccount(accountAddress).catch(() => null);
+      account = await this.apiMethods.getAccount(accountAddress).catch(() => null);
       if (account) {
-        accountDevice = await this.accountDevice.getAccountDevice(accountAddress, deviceAddress).catch(() => null);
+        accountDevice = await this.apiMethods.getAccountDevice(accountAddress, deviceAddress).catch(() => null);
       }
     }
     account$.next(account && accountDevice ? account : null);
@@ -1332,12 +1399,12 @@ export class Sdk {
             case Api.EventNames.AccountUpdated: {
               const { account } = payload;
               if (accountAddress === account) {
-                const account = await this.account.getAccount(accountAddress);
+                const account = await this.apiMethods.getAccount(accountAddress);
                 if (account) {
                   account$.next(account);
                 }
               } else {
-                const account = await this.account.getAccount(accountAddress);
+                const account = await this.apiMethods.getAccount(accountAddress);
                 this.emitEvent(Sdk.EventNames.AccountUpdated, account);
               }
               break;
@@ -1346,7 +1413,7 @@ export class Sdk {
             case Api.EventNames.AccountFriendRecoveryUpdated: {
               const { account } = payload;
               if (accountAddress === account) {
-                const accountFriendRecovery = await this.accountFriendRecovery.getAccountFriendRecovery(accountAddress);
+                const accountFriendRecovery = await this.apiMethods.getAccountFriendRecovery(accountAddress);
                 this.emitEvent(Sdk.EventNames.AccountFriendRecoveryUpdated, accountFriendRecovery);
               }
               break;
@@ -1357,7 +1424,7 @@ export class Sdk {
               if (deviceAddress === device) {
                 switch (accountAddress) {
                   case account:
-                    const accountDevice = await this.accountDevice.getAccountDevice(account, device);
+                    const accountDevice = await this.apiMethods.getAccountDevice(account, device);
                     if (accountDevice) {
                       accountDevice$.next(accountDevice);
                     }
@@ -1370,7 +1437,7 @@ export class Sdk {
                   default:
                 }
               } else if (account === accountAddress) {
-                const accountDevice = await this.accountDevice.getAccountDevice(account, device);
+                const accountDevice = await this.apiMethods.getAccountDevice(accountAddress, device);
                 this.emitEvent(Sdk.EventNames.AccountDeviceUpdated, accountDevice);
               }
               break;
@@ -1389,7 +1456,7 @@ export class Sdk {
             case Api.EventNames.AccountVirtualBalanceUpdated: {
               const { account, token } = payload;
               if (accountAddress === account) {
-                const accountVirtualBalance = await this.accountVirtualBalance.getConnectedAccountVirtualBalance(token);
+                const accountVirtualBalance = await this.apiMethods.getAccountVirtualBalance(accountAddress, token);
                 this.emitEvent(Sdk.EventNames.AccountVirtualBalanceUpdated, accountVirtualBalance);
               }
               break;
@@ -1397,7 +1464,7 @@ export class Sdk {
             case Api.EventNames.AccountTransactionUpdated: {
               const { account, hash, index } = payload;
               if (accountAddress === account) {
-                const accountTransaction = await this.accountTransaction.getAccountTransaction(account, hash, index);
+                const accountTransaction = await this.apiMethods.getAccountTransaction(accountAddress, hash, index);
                 this.emitEvent(Sdk.EventNames.AccountTransactionUpdated, accountTransaction);
               }
               break;
@@ -1405,7 +1472,7 @@ export class Sdk {
             case Api.EventNames.AccountGameUpdated: {
               const { account, game } = payload;
               if (accountAddress === account) {
-                const accountGame = await this.accountGame.getAccountGame(game);
+                const accountGame = await this.apiMethods.getAccountGame(accountAddress, game);
                 this.emitEvent(Sdk.EventNames.AccountGameUpdated, accountGame);
               }
               break;
@@ -1413,7 +1480,7 @@ export class Sdk {
             case Api.EventNames.AccountPaymentUpdated: {
               const { account, hash } = payload;
               if (accountAddress === account) {
-                const accountPayment = await this.accountPayment.getConnectedAccountPayment(hash);
+                const accountPayment = await this.apiMethods.getAccountPayment(accountAddress, hash);
                 this.emitEvent(Sdk.EventNames.AccountPaymentUpdated, accountPayment);
               }
               break;
