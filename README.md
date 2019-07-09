@@ -2,7 +2,7 @@
 
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
 
-Try Archanova SDK Playground at [http://playground.archanova.run](http://playground.archanova.run)
+Try Archanova SDK Playground at [https://playground.archanova.run](https://playground.archanova.run)
 
 ## Packages
 
