@@ -81,11 +81,19 @@ export class Menu extends ContextComponent<IProps, IState> {
         <div className={styles.wrapper}>
           {items.map(({ screens, header, alwaysOpen }, index) => {
             const isOpen = alwaysOpen || activeIndex === index || !!screens.find(screen => activeScreen === screen);
+            const classNames: string[] = [];
+            if (!isOpen) {
+              classNames.push(styles.link);
+            }
+            if (alwaysOpen) {
+              classNames.push(styles.spacer);
+            }
+
             return (
               <div key={`${index}`}>
                 <h4
                   onClick={this.createOpenSection(index)}
-                  className={isOpen ? '' : styles.link}
+                  className={classNames.join(' ')}
                 >
                   {header.toUpperCase()}
                 </h4>
@@ -134,7 +142,7 @@ export class Menu extends ContextComponent<IProps, IState> {
           </div>
         </div>
         <footer>
-          Copyright © 2019 <a href="https://netgum.io">NetGum</a>
+          <a href="https://netgum.io"> Copyright © 2019 NetGum</a>
         </footer>
       </div>
     );

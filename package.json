@@ -20,7 +20,7 @@
     "compile:watch": "lerna run compile:watch --parallel",
     "test": "npm run lint",
     "start:sdk:playground": "lerna run --stream --scope \"@archanova/sdk-playground\" start",
-    "deploy:sdk:playground": "lerna run --stream --scope \"@archanova/sdk-playground\" deploy:all"
+    "deploy:sdk:playground": "lerna run --stream --scope \"@archanova/sdk-playground\" deploy"
   },
   "dependencies": {
     "cross-env": "^5.2.0",

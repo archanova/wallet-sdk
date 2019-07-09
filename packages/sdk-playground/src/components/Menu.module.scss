@@ -8,11 +8,13 @@
   background-color: black;
   color: white;
 
+  .spacer,
+  .options{
+    margin-top: 15px;
+  }
   .options {
-    margin-top: 20px;
-
     & > div {
-      margin: 10px 0;
+      margin: 5px 0;
     }
   }
 
@@ -127,7 +129,7 @@
     text-align: center;
     line-height: 45px;
     background-color: rgba(0, 0, 0, 0.8);
-    font-size: 11px;
+    font-size: 10px;
     color: #696969;
 
     a {
