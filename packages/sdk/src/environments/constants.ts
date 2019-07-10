@@ -16,7 +16,7 @@ const mainConfig: Environment.IConfigs = {
     reconnectTimeout: 3000,
   },
   ensOptions: {
-    supportedRootNames: [],
+    supportedRootNames: ['myarchanova.xyz'],
   },
   ethOptions: {
     networkId: '1',
