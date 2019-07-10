@@ -7,6 +7,7 @@ import {
   rinkeby,
   kovan,
   sokol,
+  xdai,
 } from './constants';
 
 /**
@@ -35,6 +36,10 @@ export function getSdkEnvironment(name: SdkEnvironmentNames): Environment {
 
     case SdkEnvironmentNames.Sokol:
       result = sokol;
+      break;
+
+    case SdkEnvironmentNames.Xdai:
+      result = xdai;
       break;
   }
 

@@ -12,7 +12,7 @@
   },
   "description": "Archanova Tutorial",
   "dependencies": {
-    "@archanova/contracts": "^1.0.0-beta.12",
+    "@archanova/contracts": "^1.0.0-beta.13",
     "@archanova/sdk": "1.0.0-alpha.15",
     "@netgum/types": "^0.1.7",
     "@netgum/utils": "^0.1.3",

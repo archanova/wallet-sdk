@@ -116,13 +116,14 @@ export class Menu extends ContextComponent<IProps, IState> {
                           key={`${index}_${subIndex}`}
                           alias={`menu.${helpAlias}`}
                         >
-                          <button
+                          <a
+                            href={`#${screen.replace(/[ ]+/ig, '_')}`}
                             onClick={this.createOnClickHandler(screen)}
                             title={screen}
                             className={classNames.join(' ')}
                           >
                             {screen}
-                          </button>
+                          </a>
                         </HelpTrigger>
                       );
                     })}

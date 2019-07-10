@@ -8,6 +8,7 @@ const {
   REACT_APP_ACTIVATE_HELP,
   REACT_APP_ACTIVATE_MAIN_SDK_ENV,
   REACT_APP_ACTIVATE_LOCAL_SDK_ENV,
+  REACT_APP_ACTIVATE_XDAI_SDK_ENV,
   REACT_APP_LOCAL_SDK_ENV_PORT,
   REACT_APP_AUTO_INITIALIZE_SDK,
   REACT_APP_AUTO_ACCEPT_SDK_ACTIONS,
@@ -17,6 +18,7 @@ const activateHelper = {
   help: REACT_APP_ACTIVATE_HELP === '1',
   mainSdkEnv: REACT_APP_ACTIVATE_MAIN_SDK_ENV === '1',
   localSdkEnv: REACT_APP_ACTIVATE_LOCAL_SDK_ENV === '1',
+  xdaiSdkEnv: REACT_APP_ACTIVATE_XDAI_SDK_ENV === '1',
 };
 
 try {
@@ -68,6 +70,9 @@ if (!activateHelper.mainSdkEnv) {
   sdkEnvs = sdkEnvs.filter(sdkEnv => sdkEnv !== SdkEnvironmentNames.Main);
 }
 
+if (!activateHelper.xdaiSdkEnv) {
+  sdkEnvs = sdkEnvs.filter(sdkEnv => sdkEnv !== SdkEnvironmentNames.Xdai);
+}
 
 class Config {
   public sdkEnvs = sdkEnvs;

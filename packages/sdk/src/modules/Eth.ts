@@ -78,10 +78,6 @@ export class Eth extends EthJs {
         networkName = 'Sokol';
         break;
 
-      case '99':
-        networkName = 'POA';
-        break;
-
       case '100':
         networkName = 'xDai';
         break;

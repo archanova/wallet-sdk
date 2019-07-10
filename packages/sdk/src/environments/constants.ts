@@ -7,6 +7,7 @@ export enum SdkEnvironmentNames {
   Rinkeby = 'rinkeby',
   Kovan = 'kovan',
   Sokol = 'sokol',
+  Xdai = 'xdai',
 }
 
 const mainConfig: Environment.IConfigs = {
@@ -90,4 +91,18 @@ export const sokol = (new Environment(Object.create(mainConfig)))
   })
   .extendConfig('storageOptions', {
     namespace: '@archanova:sokol',
+  });
+
+export const xdai = (new Environment(Object.create(mainConfig)))
+  .extendConfig('apiOptions', {
+    host: 'xdai.archanova.run',
+  })
+  .extendConfig('ensOptions', {
+    supportedRootNames: ['archanova.xdai'],
+  })
+  .extendConfig('ethOptions', {
+    networkId: '100',
+  })
+  .extendConfig('storageOptions', {
+    namespace: '@archanova:xdai',
   });
