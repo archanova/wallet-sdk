@@ -104,8 +104,6 @@ class Content extends React.Component<IProps, IState> {
       let { hash } = window.location;
       if (hash) {
         hash = hash.substr(1).replace(/[_]+/ig, ' ');
-
-        console.log(hash);
         if (Object.values(Screens).includes(hash)) {
           result = hash as any;
         }
