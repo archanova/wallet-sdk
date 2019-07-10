@@ -103,7 +103,9 @@ class Content extends React.Component<IProps, IState> {
     try {
       let { hash } = window.location;
       if (hash) {
-        hash = hash.substr(1).replace(/[-]+/ig, ' ');
+        hash = hash.substr(1).replace(/[_]+/ig, ' ');
+
+        console.log(hash);
         if (Object.values(Screens).includes(hash)) {
           result = hash as any;
         }
@@ -117,7 +119,7 @@ class Content extends React.Component<IProps, IState> {
 
   private static initState(): IState {
     return {
-      screen: Content.detectScreen() || Screens.PlayTicTacToe,
+      screen: Content.detectScreen() || Screens.Initialize,
     };
   }
 
