@@ -2,6 +2,7 @@ import { ContractNames } from '@archanova/contracts';
 import { Environment } from '../modules';
 import {
   SdkEnvironmentNames,
+  main,
   ropsten,
   rinkeby,
   kovan,
@@ -16,6 +17,10 @@ export function getSdkEnvironment(name: SdkEnvironmentNames): Environment {
   let result: Environment = null;
 
   switch (name) {
+    case SdkEnvironmentNames.Main:
+      result = main;
+      break;
+
     case SdkEnvironmentNames.Ropsten:
       result = ropsten;
       break;

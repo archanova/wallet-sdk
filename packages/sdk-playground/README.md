@@ -21,6 +21,7 @@ $ npm run start:sdk:playground
 | Name 	| Default Value 	| Options 	|
 | --- | ---| ---|
 | `REACT_APP_ACTIVATE_HELP` 	| `0` 	| `0,1` 	|
+| `REACT_APP_ACTIVATE_MAIN_SDK_ENV` 	| `0` 	| `0,1` |
 | `REACT_APP_ACTIVATE_LOCAL_SDK_ENV` 	| `0` 	| `0,1` |
 | `REACT_APP_LOCAL_SDK_ENV_PORT` 	| `8880` 	| `-` |
 | `REACT_APP_AUTO_INITIALIZE_SDK` 	| `1` 	| `0,1` |

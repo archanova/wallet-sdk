@@ -6,19 +6,12 @@ import { config } from '../config';
 export function buildSdkEnv(name: string): sdkModules.Environment {
   let result: sdkModules.Environment;
 
-  switch (name) {
-    case SdkEnvironmentNames.Rinkeby:
-    case SdkEnvironmentNames.Ropsten:
-    case SdkEnvironmentNames.Kovan:
-    case SdkEnvironmentNames.Sokol:
-      result = getSdkEnvironment(name as SdkEnvironmentNames);
-      break;
-
-    case 'local':
-      result = createLocalSdkEnvironment({
-        port: config.localSdkEnvPort,
-      });
-      break;
+  if (name === 'local') {
+    result = createLocalSdkEnvironment({
+      port: config.localSdkEnvPort,
+    });
+  } else {
+    result = getSdkEnvironment(name as SdkEnvironmentNames);
   }
 
   return result

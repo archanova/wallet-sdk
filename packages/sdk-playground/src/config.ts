@@ -1,17 +1,42 @@
 import { SdkEnvironmentNames } from '@archanova/sdk';
 import { BehaviorSubject } from 'rxjs';
+import { parse as parseUrl } from 'url';
+import { parse as parseQuery } from 'querystring';
 import './environments';
 
 const {
   REACT_APP_ACTIVATE_HELP,
+  REACT_APP_ACTIVATE_MAIN_SDK_ENV,
   REACT_APP_ACTIVATE_LOCAL_SDK_ENV,
   REACT_APP_LOCAL_SDK_ENV_PORT,
   REACT_APP_AUTO_INITIALIZE_SDK,
   REACT_APP_AUTO_ACCEPT_SDK_ACTIONS,
 } = process.env;
 
-const STORAGE_PREFIX = '@archanova-playground';
+const activateHelper = {
+  help: REACT_APP_ACTIVATE_HELP === '1',
+  mainSdkEnv: REACT_APP_ACTIVATE_MAIN_SDK_ENV === '1',
+  localSdkEnv: REACT_APP_ACTIVATE_LOCAL_SDK_ENV === '1',
+};
 
+try {
+  const { query } = parseUrl(window.location.href);
+  if (query) {
+    const parsed = parseQuery(query);
+    if (parsed && parsed.activate) {
+      const aliases = Array.isArray(parsed.activate) ? parsed.activate : [parsed.activate];
+      for (const alias of aliases) {
+        if (typeof activateHelper[alias] !== 'undefined') {
+          activateHelper[alias] = true;
+        }
+      }
+    }
+  }
+} catch (err) {
+  //
+}
+
+const STORAGE_PREFIX = '@archanova-playground';
 const storageHelper = {
   get<T>(key: string, defaultValue: T = null): T {
     let result = defaultValue;
@@ -31,32 +56,31 @@ const reloadHelper = () => {
 };
 
 export let sdkEnvs: string[] = [
+  'local',
   ...Object.values(SdkEnvironmentNames),
 ];
 
-const activateLocalSdkEnv = REACT_APP_ACTIVATE_LOCAL_SDK_ENV === '1';
-
-if (activateLocalSdkEnv) {
-  sdkEnvs = [
-    'local',
-    ...sdkEnvs,
-  ];
+if (!activateHelper.localSdkEnv) {
+  sdkEnvs = sdkEnvs.filter(sdkEnv => sdkEnv !== 'local');
 }
+
+if (!activateHelper.mainSdkEnv) {
+  sdkEnvs = sdkEnvs.filter(sdkEnv => sdkEnv !== SdkEnvironmentNames.Main);
+}
+
 
 class Config {
   public sdkEnvs = sdkEnvs;
   public sdkEnv$ = new BehaviorSubject<string>(this.sdkEnv);
   public showHelp$ = new BehaviorSubject<boolean>(this.showHelp);
-  public activateHelp = REACT_APP_ACTIVATE_HELP === '1';
-  public activateLocalSdkEnv = activateLocalSdkEnv;
+  public activateHelp = activateHelper.help;
   public localSdkEnvPort = parseInt(REACT_APP_LOCAL_SDK_ENV_PORT, 10) || null;
 
   public get sdkEnv(): string {
-    const defaultEnv = this.activateLocalSdkEnv ? 'local' : sdkEnvs[0];
-    let result = storageHelper.get('sdkEnv', defaultEnv);
+    let result = storageHelper.get('sdkEnv', sdkEnvs[0]);
 
     if (!sdkEnvs.includes(result)) {
-      result = defaultEnv;
+      result = sdkEnvs[0];
     }
 
     return result;

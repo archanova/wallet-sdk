@@ -1,7 +1,8 @@
+import { ContractNames } from '@archanova/contracts';
 import { Environment } from '../modules';
 
 export enum SdkEnvironmentNames {
-  // Main = 'main',
+  Main = 'main',
   Ropsten = 'ropsten',
   Rinkeby = 'rinkeby',
   Kovan = 'kovan',
@@ -10,12 +11,12 @@ export enum SdkEnvironmentNames {
 
 const mainConfig: Environment.IConfigs = {
   apiOptions: {
-    host: 'main.archanova.run',
+    host: 'archanova.run',
     ssl: true,
     reconnectTimeout: 3000,
   },
   ensOptions: {
-    supportedRootNames: ['archanova.eth'],
+    supportedRootNames: [],
   },
   ethOptions: {
     networkId: '1',
@@ -28,7 +29,12 @@ const mainConfig: Environment.IConfigs = {
   storageAdapter: null,
 };
 
-export const main = new Environment(Object.create(mainConfig));
+export const main = new Environment(Object.create(mainConfig))
+  .extendConfig('ethOptions', {
+    contractAddresses: {
+      [ContractNames.ENSRegistry]: '0x314159265dD8dbb310642f98f50C066173C1259b',
+    },
+  });
 
 export const ropsten = (new Environment(Object.create(mainConfig)))
   .extendConfig('apiOptions', {
