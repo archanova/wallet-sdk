@@ -268,7 +268,7 @@ export class ApiMethods {
   public getUnprocessedPaymentsSum(accountAddress: string, token: string): Promise<IAccountPayment> {
     return this.api.sendRequest({
       method: 'GET',
-      path: `account/${accountAddress}/unprocessed-payments-sum/${token || ''}`,
+      path: `account/${accountAddress}/payment/unprocessed-payments-sum/${token || ''}`,
     });
   }
 
