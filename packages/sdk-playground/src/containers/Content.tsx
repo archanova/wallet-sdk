@@ -47,6 +47,7 @@ import {
   GetConnectedAccountPayments,
   GetConnectedAccountPayment,
   CreateAccountPayment,
+  GetUnprocessedPaymentsSum,
   SignAccountPayment,
   GrabAccountPayment,
   DepositAccountPayment,
@@ -276,6 +277,10 @@ class Content extends React.Component<IProps, IState> {
         Screen = CreateAccountPayment;
         break;
 
+      case Screens.GetUnprocessedPaymentsSum:
+        Screen = GetUnprocessedPaymentsSum;
+        break;
+
       case Screens.GrabAccountPayment:
         Screen = GrabAccountPayment;
         break;
@@ -456,6 +461,7 @@ class Content extends React.Component<IProps, IState> {
               Screens.GetConnectedAccountPayments,
               Screens.GetConnectedAccountPayment,
               Screens.CreateAccountPayment,
+              Screens.GetUnprocessedPaymentsSum,
               Screens.SignAccountPayment,
               Screens.GrabAccountPayment,
               Screens.DepositAccountPayment,
@@ -588,6 +594,7 @@ class Content extends React.Component<IProps, IState> {
       [Screens.GetConnectedAccountPayments]: accountConnected,
       [Screens.GetConnectedAccountPayment]: accountConnected,
       [Screens.CreateAccountPayment]: accountDeployed,
+      [Screens.GetUnprocessedPaymentsSum]: accountConnected,
       [Screens.SignAccountPayment]: accountDeployed,
       [Screens.GrabAccountPayment]: accountConnected,
       [Screens.DepositAccountPayment]: accountDeviceDeployed,

@@ -1024,6 +1024,18 @@ export class Sdk {
   }
 
   /**
+   * get connected account unprocessed payments sum
+   * @param tokenAddress
+   */
+  public async getUnprocessedPaymentsSum(tokenAddress: string): Promise<any> {
+    this.require();
+
+    const { accountAddress } = this.state;
+
+    return this.apiMethods.getUnprocessedPaymentsSum(accountAddress, tokenAddress);
+  }
+
+  /**
    * signs account payment
    * @param hash
    */

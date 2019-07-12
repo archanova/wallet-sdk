@@ -72,6 +72,8 @@ export const getConnectedAccountPayment = ''; // TODO
 
 export const createAccountPayment = ''; // TODO
 
+export const getUnprocessedPaymentsSum = ''; // TODO
+
 export const signAccountPayment = ''; // TODO
 
 export const grabAccountPayment = ''; // TODO

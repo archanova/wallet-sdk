@@ -265,6 +265,13 @@ export class ApiMethods {
     });
   }
 
+  public getUnprocessedPaymentsSum(accountAddress: string, token: string): Promise<IAccountPayment> {
+    return this.api.sendRequest({
+      method: 'GET',
+      path: `account/${accountAddress}/unprocessed-payments-sum/${token || ''}`,
+    });
+  }
+
   public signAccountPayment(accountAddress: string, hash: string, signature: Buffer): Promise<IAccountPayment> {
     return this.api.sendRequest({
       method: 'PUT',
