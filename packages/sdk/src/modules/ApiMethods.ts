@@ -10,7 +10,10 @@ import {
   IAccountGame,
   IAccountPayment,
   IAccountTransaction,
-  IEstimatedAccountProxyTransaction, IAccountVirtualBalance, IApp,
+  IEstimatedAccountProxyTransaction,
+  IAccountVirtualBalance,
+  IApp,
+  IAccountUnprocessedPaymentsSum,
 } from '../interfaces';
 import { Api } from './Api';
 
@@ -265,10 +268,10 @@ export class ApiMethods {
     });
   }
 
-  public getUnprocessedPaymentsSum(accountAddress: string, token: string): Promise<IAccountPayment> {
+  public getUnprocessedPaymentsSum(accountAddress: string, token: string): Promise<IAccountUnprocessedPaymentsSum> {
     return this.api.sendRequest({
       method: 'GET',
-      path: `account/${accountAddress}/payment/unprocessed-payments-sum/${token || ''}`,
+      path: `account/${accountAddress}/payment/unprocessed-payments-sum?token=${token || ''}`,
     });
   }
 

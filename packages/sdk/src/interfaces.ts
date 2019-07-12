@@ -158,6 +158,10 @@ export interface IEstimatedAccountProxyTransaction {
   totalCost: BN;
 }
 
+export interface IAccountUnprocessedPaymentsSum {
+  sum: BN;
+}
+
 export interface IPaginated<T = any> {
   items: T[];
   currentPage: number;
