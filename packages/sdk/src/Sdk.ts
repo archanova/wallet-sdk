@@ -606,7 +606,7 @@ export class Sdk {
   public async signAccountFriendRecovery(
     accountAddress: string,
     deviceAddress: string,
-    gasPrice: Buffer | string,
+    gasPrice: BN | string,
   ): Promise<string> {
     this.require({
       accountConnected: null,
@@ -1407,7 +1407,7 @@ export class Sdk {
     if (verifyAddress(symbolOrAddress, false)) {
       tokenAddress = symbolOrAddress;
     } else {
-      const token = await this.apiMethods.getToken(symbolOrAddress).then(() => null);
+      const token = await this.apiMethods.getToken(symbolOrAddress).catch(() => null);
       if (token && token.address) {
         tokenAddress = token.address;
       }
@@ -1416,6 +1416,7 @@ export class Sdk {
     if (tokenAddress) {
       const { accountAddress } = this.state;
       const output = await this.contract.erc20Token.at(tokenAddress).callMethod('balanceOf', accountAddress).catch(() => null);
+
       if (
         output &&
         output['0'] &&
