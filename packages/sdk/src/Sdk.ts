@@ -539,9 +539,9 @@ export class Sdk {
   }
 
   /**
-   * gets connect account friend recovery
+   * gets connected account friend recovery
    */
-  public getConnectAccountFriendRecovery(): Promise<IAccountFriendRecovery> {
+  public getConnectedAccountFriendRecovery(): Promise<IAccountFriendRecovery> {
     this.require();
 
     const { accountAddress } = this.state;
