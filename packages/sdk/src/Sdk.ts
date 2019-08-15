@@ -55,7 +55,6 @@ import {
   Device,
   Ens,
   Environment,
-  Error,
   Eth,
   Session,
   State,
@@ -63,6 +62,7 @@ import {
   Url,
 } from './modules';
 import { TAnyData, TAnyNumber } from './types';
+import { SdkError } from './SdkError';
 
 /**
  * Sdk
@@ -111,12 +111,12 @@ export class Sdk {
           try {
             const promise = method(...args);
             if (promise instanceof Promise) {
-              result = promise.catch(error => Error.throwFromAny(error));
+              result = promise.catch(error => SdkError.throwFromAny(error));
             } else {
               result = promise;
             }
           } catch (err) {
-            Error.throwFromAny(err);
+            SdkError.throwFromAny(err);
           }
           return result;
         };
@@ -124,7 +124,7 @@ export class Sdk {
 
       this.setEnvironment(environment);
     } catch (err) {
-      Error.throwFromAny(err);
+      SdkError.throwFromAny(err);
     }
   }
 
@@ -184,7 +184,7 @@ export class Sdk {
 
     } catch (err) {
       initialized$.next(false);
-      Error.throwFromAny(err);
+      SdkError.throwFromAny(err);
     }
   }
 
@@ -384,7 +384,7 @@ export class Sdk {
         gasPrice,
         guardianSignature,
       )
-      .catch(() => Error.throwEthTransactionReverted());
+      .catch(() => SdkError.throwEthTransactionReverted());
   }
 
 // Account Virtual Balance
@@ -717,7 +717,7 @@ export class Sdk {
 
     return this.accountFriendRecovery
       .submitAccountFriendRecovery()
-      .catch(() => Error.throwEthTransactionReverted());
+      .catch(() => SdkError.throwEthTransactionReverted());
   }
 
 // Account Device
@@ -1077,7 +1077,7 @@ export class Sdk {
     return this
       .accountTransaction
       .submitAccountProxyTransaction(estimated)
-      .catch(() => Error.throwEthTransactionReverted(estimated.data));
+      .catch(() => SdkError.throwEthTransactionReverted(estimated.data));
   }
 
 // Account Payment
@@ -1988,7 +1988,7 @@ export class Sdk {
   }
 
   protected catchError(err: any): void {
-    this.error$.next(Error.fromAny(err));
+    this.error$.next(SdkError.fromAny(err));
   }
 
   protected emitEvent<T = any>(name: Sdk.EventNames, payload: T): void {
