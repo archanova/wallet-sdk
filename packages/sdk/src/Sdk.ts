@@ -1586,8 +1586,23 @@ export class Sdk {
     return this.device.signPersonalMessage(message);
   }
 
-  public get(): void {
+  /**
+   * gets transaction details
+   * @param hash
+   */
+  public async getTransactionDetails(hash: string): Promise<Sdk.ITransactionDetails> {
+    let result: Sdk.ITransactionDetails = null;
 
+    const tx = await this.eth.getTransactionByHash(hash).catch(() => null);
+
+    if (tx) {
+      result = {
+        ...tx,
+        receipt: await this.eth.getTransactionReceipt(hash).catch(() => null),
+      };
+    }
+
+    return result;
   }
 
   /**
@@ -2094,5 +2109,9 @@ export namespace Sdk {
   export interface IEvent<T = any> {
     name: EventNames;
     payload: T;
+  }
+
+  export interface ITransactionDetails extends EthJs.ITransaction {
+    receipt?: EthJs.ITransactionReceipt;
   }
 }
