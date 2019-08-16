@@ -43,10 +43,10 @@ export class ApiError extends Error {
 
 export namespace ApiError {
   export enum Types {
-    BadRequest = 'BadRequest',
-    Unauthorized = 'Unauthorized',
-    Forbidden = 'Forbidden',
-    NotFound = 'NotFound',
-    Failed = 'Failed',
+    BadRequest = 'bad request',
+    Unauthorized = 'unauthorized',
+    Forbidden = 'forbidden',
+    NotFound = 'not found',
+    Failed = 'failed',
   }
 }

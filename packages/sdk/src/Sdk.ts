@@ -23,7 +23,7 @@ import {
   ERR_INVALID_ACCOUNT_DEVICE_TYPE,
   ERR_INVALID_ACCOUNT_STATE,
   ERR_INVALID_GAME_CREATOR,
-  ERR_INVALID_GAME_STATE,
+  ERR_INVALID_GAME_STATE, ERR_NOT_ENOUGH_REAL_FUNDS, ERR_NOT_ENOUGH_VIRTUAL_FUNDS,
   ERR_SDK_ALREADY_INITIALIZED,
   ERR_SDK_NOT_INITIALIZED,
   ERR_WRONG_NUMBER_OF_ARGUMENTS,
@@ -98,29 +98,10 @@ export class Sdk {
     this.catchError = this.catchError.bind(this);
 
     try {
-      let methodsNames = Object.getOwnPropertyNames(Sdk.prototype);
-      methodsNames = methodsNames.slice(
-        1,
-        methodsNames.indexOf('setEnvironment'),
+      SdkError.attachTo(
+        Object.getOwnPropertyNames(Sdk.prototype),
+        this,
       );
-
-      for (const methodsName of methodsNames) {
-        const method = (this as any)[methodsName].bind(this);
-        (this as any)[methodsName] = (...args) => {
-          let result: any;
-          try {
-            const promise = method(...args);
-            if (promise instanceof Promise) {
-              result = promise.catch(error => SdkError.throwFromAny(error));
-            } else {
-              result = promise;
-            }
-          } catch (err) {
-            SdkError.throwFromAny(err);
-          }
-          return result;
-        };
-      }
 
       this.setEnvironment(environment);
     } catch (err) {
@@ -372,6 +353,7 @@ export class Sdk {
     this.require({
       accountCreated: true,
       accountDeviceOwner: true,
+      accountRealBalance: estimated.totalCost,
     });
 
     const { accountAddress } = this.state;
@@ -1604,6 +1586,10 @@ export class Sdk {
     return this.device.signPersonalMessage(message);
   }
 
+  public get(): void {
+
+  }
+
   /**
    * creates contract instance
    * @param abi
@@ -2018,9 +2004,18 @@ export class Sdk {
     const accountDeviceState = accountDevice && !accountDevice.nextState
       ? accountDevice.state
       : null;
+
     const accountDeviceType = accountDevice
       ? accountDevice.type
       : null;
+
+    const accountRealBalance = account && account.balance && account.balance.real
+      ? account.balance.real
+      : new BN(0);
+
+    const accountVirtualBalance = account && account.balance && account.balance.virtual
+      ? account.balance.virtual
+      : new BN(0);
 
     if (options.initialized === true && !initialized) {
       throw ERR_SDK_NOT_INITIALIZED;
@@ -2049,6 +2044,12 @@ export class Sdk {
     if (options.accountDeviceOwner && accountDeviceType !== AccountDeviceTypes.Owner) {
       throw ERR_INVALID_ACCOUNT_DEVICE_TYPE;
     }
+    if (options.accountRealBalance && accountRealBalance.lt(options.accountRealBalance)) {
+      throw ERR_NOT_ENOUGH_REAL_FUNDS;
+    }
+    if (options.accountVirtualBalance && accountVirtualBalance.lt(options.accountRealBalance)) {
+      throw ERR_NOT_ENOUGH_VIRTUAL_FUNDS;
+    }
   }
 }
 
@@ -2074,6 +2075,8 @@ export namespace Sdk {
     accountDeviceCreated?: boolean;
     accountDeviceDeployed?: boolean;
     accountDeviceOwner?: boolean;
+    accountRealBalance?: BN;
+    accountVirtualBalance?: BN;
     initialized?: boolean;
   }
 

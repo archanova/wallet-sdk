@@ -1,6 +1,28 @@
 import { ApiError, EthError } from './modules';
 
 export class SdkError extends Error {
+  public static attachTo(methodsNames: string[], obj: any): void {
+    for (const methodsName of methodsNames) {
+      if (methodsName !== 'constructor') {
+        const method = obj[methodsName].bind(obj);
+        obj[methodsName] = (...args) => {
+          let result: any;
+          try {
+            const promise = method(...args);
+            if (promise instanceof Promise) {
+              result = promise.catch(error => this.throwFromAny(error));
+            } else {
+              result = promise;
+            }
+          } catch (err) {
+            this.throwFromAny(err);
+          }
+          return result;
+        };
+      }
+    }
+  }
+
   public static isSdkError(err: any): boolean {
     return (
       typeof err === 'object' &&
@@ -14,11 +36,11 @@ export class SdkError extends Error {
 
     switch (typeof err) {
       case 'string':
-        result = new Error(err);
+        result = new SdkError(err);
         break;
 
       case 'object':
-        if (err instanceof Error) {
+        if (err instanceof SdkError) {
           result = err;
         } else if (ApiError.isApiError(err)) {
           const { error, errors, message } = err as ApiError;

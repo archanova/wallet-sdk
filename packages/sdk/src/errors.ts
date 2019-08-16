@@ -13,3 +13,5 @@ export const ERR_INVALID_GAME_STATE = SdkError.fromAny('invalid game state');
 export const ERR_EXTENSION_ALREADY_ADDED = SdkError.fromAny('extension already added');
 export const ERR_EXTENSION_NOT_ADDED = SdkError.fromAny('extension not added');
 export const ERR_ADDING_EXTENSION_IN_PROGRESS = SdkError.fromAny('adding extension in progress');
+export const ERR_NOT_ENOUGH_REAL_FUNDS = SdkError.fromAny('not enough real funds');
+export const ERR_NOT_ENOUGH_VIRTUAL_FUNDS = SdkError.fromAny('not enough virtual funds');
