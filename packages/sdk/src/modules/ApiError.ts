@@ -1,10 +1,16 @@
 export class ApiError extends Error {
-  public static isApiError(err: any): boolean {
-    return (
+  public static isApiError(err: any, type: ApiError.Types = null): boolean {
+    let result = (
       typeof err === 'object' &&
       err &&
       err instanceof this
     );
+
+    if (result && type) {
+      result = err.type === type;
+    }
+
+    return result;
   }
 
   public error: string = null;

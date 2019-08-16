@@ -31,6 +31,13 @@ export class SdkError extends Error {
     );
   }
 
+  public static isSdkApiError(err: any, type: ApiError.Types = null): boolean {
+    return (
+      this.isSdkError(err) &&
+      ApiError.isApiError(err.origin, type)
+    );
+  }
+
   public static fromAny(err: any): Error {
     let result: Error = null;
 
@@ -44,13 +51,29 @@ export class SdkError extends Error {
           result = err;
         } else if (ApiError.isApiError(err)) {
           const { error, errors, message } = err as ApiError;
-          result = new SdkError(error || message, SdkError.Types.Http, errors, err);
+
+          result = new SdkError(
+            error || message,
+            SdkError.Types.Http,
+            errors,
+            err,
+          );
         } else if (EthError.isEthError(err)) {
           const { message } = err as EthError;
-          result = new SdkError(message, SdkError.Types.EthNode);
+
+          result = new SdkError(
+            message,
+            SdkError.Types.EthNode,
+          );
         } else if (err instanceof Error) {
           const { message } = err;
-          result = new SdkError(message, undefined, err);
+
+          result = new SdkError(
+            message,
+            SdkError.Types.Internal,
+            undefined,
+            err,
+          );
         }
     }
 
